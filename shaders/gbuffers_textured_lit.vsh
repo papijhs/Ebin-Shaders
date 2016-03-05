@@ -15,6 +15,30 @@ vec2 GetDefaultLightmap(in vec2 lightmapCoord) {		//Gets the lightmap from the d
 	return clamp((lightmapCoord * 33.05 / 32.0) - 1.05 / 32.0, 0.0, 1.0).st;
 }
 
+float GetMaterialIDs() {						//Gather materials
+	float materialID;
+	
+	switch(int(mc_Entity.x)) {
+		case 31:								//Tall Grass
+		case 37:								//Dandelion
+		case 38:								//Rose
+		case 59:								//Wheat
+		case 83:								//Sugar Cane
+		case 106:								//Vine
+		case 175:								//Double Tall Grass
+					materialID = 2.0; break;	//Translucent blocks
+		case 18:
+					materialID = 3.0; break;	//Leaves
+		case 8:
+		case 9:
+					materialID = 4.0; break;	//Water
+		case 79:	materialID = 5.0; break;	//Ice
+		default:	materialID = 1.0;
+	}
+	
+	return materialID;
+}
+
 void main() {
 	color			= gl_Color.rgb;
 	texcoord		= gl_MultiTexCoord0.st;

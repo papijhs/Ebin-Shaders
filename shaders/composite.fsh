@@ -5,8 +5,8 @@
 const int	shadowMapResolution 		= 2160;
 const float	shadowDistance 				= 140.0;
 const float	shadowIntervalSize 			= 4.0;
-const bool	shadowHardwareFiltering0	= true;
 const float	sunPathRotation 			= 30.0;
+const bool	shadowHardwareFiltering0	= true;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
@@ -26,6 +26,39 @@ varying vec3	lightVector;
 varying vec2	texcoord;
 
 varying vec3	colorSkylight;
+
+
+float GetMaterialIDs(in vec2 coord) {		//Function that retrieves the texture that has all material IDs stored in it
+	return texture2D(colortex3, coord).b;
+}
+
+void ExpandMaterialIDs(inout float matID, inout float bit0, inout float bit1, inout float bit2, inout float bit3) {
+	matID *= 255.0;
+	
+	if (matID >= 128.0 && matID < 254.5) {
+		matID -= 128.0;
+		bit0 = 1.0;
+	}
+	
+	if (matID >= 64.0 && matID < 254.5) {
+		matID -= 64.0;
+		bit1 = 1.0;
+	}
+	
+	if (matID >= 32.0 && matID < 254.5) {
+		matID -= 32.0;
+		bit2 = 1.0;
+	}
+	
+	if (matID >= 16.0 && matID < 254.5) {
+		matID -= 16.0;
+		bit3 = 1.0;
+	}
+}
+
+float GetMaterialMask(in float mask, in float materialID) {
+	return float(abs(materialID - mask) < 0.1);
+}
 
 vec3 GetDiffuse(in vec2 coord) {
 	return texture2D(colortex2, coord).rgb;
@@ -81,12 +114,15 @@ vec3 Tonemap(in vec3 color) {
 }
 
 struct Mask {
-	float sky;
+	float materialIDs;
+	float matIDs;
 	
 	float bit0;
 	float bit1;
 	float bit2;
 	float bit3;
+	
+	float sky;
 } mask;
 
 struct Shading {		//Contains all the light levels, or light intensities, without any color
@@ -100,13 +136,21 @@ struct Lightmap {		//Contains all the light with color/pigment applied
 } lightmap;
 
 void CalculateMasks(inout Mask mask) {
+	mask.materialIDs	= GetMaterialIDs(texcoord);
+	mask.matIDs			= mask.materialIDs;
 	
+	ExpandMaterialIDs(mask.matIDs, mask.bit0, mask.bit1, mask.bit2, mask.bit3);
+	
+	mask.sky			= GetMaterialMask(255, mask.matIDs);
 }
 
 void main() {
 	CalculateMasks(mask);
 	
 	vec3	diffuse		= GetDiffuseLinear(texcoord);
+	
+	if (mask.sky > 0.5) { diffuse = Tonemap(diffuse); gl_FragData[0] = vec4(diffuse, 1.0); return; }
+	
 	float	skyLightmap	= GetSkyLightmap(texcoord);
 	
 	vec3	normal				= GetNormal(texcoord);

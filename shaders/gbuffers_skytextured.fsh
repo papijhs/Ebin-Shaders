@@ -1,6 +1,6 @@
 #version 120
 
-/* DRAWBUFFERS:2 */
+/* DRAWBUFFERS:23 */
 
 uniform sampler2D	texture;
 
@@ -11,5 +11,6 @@ void main() {
 	vec4 diffuse	= texture2D(texture, texcoord);
 	diffuse.rgb		*= color;
 	
-	gl_FragData[0] = vec4(1.0);
+	gl_FragData[0] = vec4(diffuse);
+	gl_FragData[1] = vec4(0.0, 0.0, 1.0, 1.0);
 }
