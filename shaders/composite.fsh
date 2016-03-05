@@ -126,5 +126,5 @@ void main() {
 	composite *= diffuse;
 	composite = pow(composite, vec3(1.0 / GAMMA));
 	
-	gl_FragData[0] = vec4(texture2D(colortex0, texcoord).rgb, 1.0);
+	gl_FragData[0] = vec4(composite, 1.0);
 }
