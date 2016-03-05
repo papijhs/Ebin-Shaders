@@ -1,6 +1,6 @@
-#version 150 compatibility
+#version 120
 
-in vec3	color;
+varying vec3	color;
 
 void main() {
 	discard;

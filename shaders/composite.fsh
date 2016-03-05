@@ -1,4 +1,4 @@
-#version 150 compatibility
+#version 120
 
 #define GAMMA 2.2
 
@@ -9,8 +9,8 @@ const bool	shadowHardwareFiltering0	= true;
 const float	sunPathRotation 			= 30.0;
 
 uniform sampler2D colortex0;
-uniform sampler2D colortex1;
 uniform sampler2D colortex2;
+uniform sampler2D colortex3;
 uniform sampler2D gdepthtex;
 uniform sampler2D shadowcolor;
 uniform sampler2DShadow shadow;
@@ -21,26 +21,26 @@ uniform mat4 gbufferProjectionInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
-in vec3		lightVector;
+varying vec3	lightVector;
 
-in vec2		texcoord;
+varying vec2	texcoord;
 
-in vec3		colorSkylight;
+varying vec3	colorSkylight;
 
 vec3 GetDiffuse(in vec2 coord) {
-	return texture2D(colortex0, coord).rgb;
+	return texture2D(colortex2, coord).rgb;
 }
 
 vec3 GetDiffuseLinear(in vec2 coord) {
-	return pow(texture2D(colortex0, coord).rgb, vec3(GAMMA));
+	return pow(texture2D(colortex2, coord).rgb, vec3(GAMMA));
 }
 
 float GetSkyLightmap(in vec2 coord) {
-	return texture2D(colortex1, coord).r;
+	return texture2D(colortex3, coord).g;
 }
 
 vec3 GetNormal(in vec2 coord) {
-	return (gbufferModelView * vec4(texture2D(colortex2, coord).xyz * 2.0 - 1.0, 0.0)).xyz;
+	return (gbufferModelView * vec4(texture2D(colortex0, coord).xyz * 2.0 - 1.0, 0.0)).xyz;
 }
 
 float GetDepth(in vec2 coord) {
@@ -76,17 +76,18 @@ float GetSunlight(in vec4 position) {
 	return shadow2D(shadow, position.xyz - vec3(0.0, 0.0, 0.0005)).x;
 }
 
-void Tonemap(inout vec3 color) {
-	float averageLuminance = 0.65;
-	
-	vec3 IAverage = vec3(averageLuminance);
-	
-	vec3 value = color.rgb / (color.rgb + IAverage);
-	
-	color.rgb = value;
-	color.rgb = min(color.rgb, vec3(1.0));
-	color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
+vec3 Tonemap(in vec3 color) {
+	return pow(color / (color + vec3(0.65)), vec3(1.0 / 2.2));
 }
+
+struct Mask {
+	float sky;
+	
+	float bit0;
+	float bit1;
+	float bit2;
+	float bit3;
+} mask;
 
 struct Shading {		//Contains all the light levels, or light intensities, without any color
 	float sunlight;
@@ -98,7 +99,13 @@ struct Lightmap {		//Contains all the light with color/pigment applied
 	vec3 skylight;
 } lightmap;
 
+void CalculateMasks(inout Mask mask) {
+	
+}
+
 void main() {
+	CalculateMasks(mask);
+	
 	vec3	diffuse		= GetDiffuseLinear(texcoord);
 	float	skyLightmap	= GetSkyLightmap(texcoord);
 	
@@ -124,7 +131,7 @@ void main() {
 			;
 	
 	composite *= diffuse;
-	composite = pow(composite, vec3(1.0 / GAMMA));
+	composite = Tonemap(composite);
 	
 	gl_FragData[0] = vec4(composite, 1.0);
 }

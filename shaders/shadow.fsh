@@ -1,9 +1,9 @@
-#version 150 compatibility
+#version 120
 
 uniform sampler2D	texture;
 
-in vec3		color;
-in vec2		texcoord;
+varying vec3	color;
+varying vec2	texcoord;
 
 void main() {
 	vec4

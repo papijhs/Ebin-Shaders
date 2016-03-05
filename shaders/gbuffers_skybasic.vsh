@@ -1,5 +1,5 @@
-#version 150 compatibility
+#version 120
 
 void main() {
-	return;
+	gl_Position = vec4(-1.0);
 }

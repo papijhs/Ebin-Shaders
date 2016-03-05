@@ -1,4 +1,4 @@
-#version 150 compatibility
+#version 120
 
 uniform vec3	skyColor;
 
@@ -6,11 +6,11 @@ uniform vec3	sunPosition;
 
 uniform float	sunAngle;
 
-out vec2	texcoord;
+varying vec2	texcoord;
 
-out vec3	lightVector;
+varying vec3	lightVector;
 
-out vec3	colorSkylight;
+varying vec3	colorSkylight;
 
 void main() {
 	texcoord	= gl_MultiTexCoord0.st;

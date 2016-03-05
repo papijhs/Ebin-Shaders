@@ -1,4 +1,4 @@
-#version 150 compatibility
+#version 120
 
 void main() {
 	discard;

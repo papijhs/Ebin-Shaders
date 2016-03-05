@@ -1,7 +1,7 @@
-#version 150 compatibility
+#version 120
 
-out vec3	color;
-out vec2	texcoord;
+varying vec3	color;
+varying vec2	texcoord;
 
 void main() {
 	color			= gl_Color.rgb;

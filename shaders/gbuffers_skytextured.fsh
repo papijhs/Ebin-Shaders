@@ -1,16 +1,15 @@
-#version 150 compatibility
+#version 120
 
-/* DRAWBUFFERS:012 */
+/* DRAWBUFFERS:2 */
 
 uniform sampler2D	texture;
 
-in vec3		color;
-in vec2		texcoord;
+varying vec3	color;
+varying vec2	texcoord;
 
 void main() {
-	vec4
-	diffuse		= texture2D(texture, texcoord);
-	diffuse.rgb	*= color;
+	vec4 diffuse	= texture2D(texture, texcoord);
+	diffuse.rgb		*= color;
 	
-	gl_FragData[0] = diffuse;
+	gl_FragData[0] = vec4(1.0);
 }
