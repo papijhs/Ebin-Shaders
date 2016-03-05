@@ -1,6 +1,8 @@
 #version 120
 
 #define GAMMA 2.2
+#define SHADOW_MAP_BIAS 0.8
+#define EXTENDED_SHADOW_DISTANCE true
 
 const int	shadowMapResolution 		= 2160;
 const float	shadowDistance 				= 140.0;
@@ -96,9 +98,27 @@ vec4 WorldSpaceToShadowSpace(in vec4 worldSpacePosition) {
 	return shadowProjection * shadowModelView * worldSpacePosition;
 }
 
+vec4 BiasShadowProjection(in vec4 position) {
+	float dist = length(position.xy);
+	
+	if (EXTENDED_SHADOW_DISTANCE) {
+		vec2 pos = abs(position.xy * 1.165);
+		dist = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
+	}
+	
+	float distortFactor = (1.0 - SHADOW_MAP_BIAS) + dist * SHADOW_MAP_BIAS;
+	
+	position.xy /= distortFactor;
+	
+	position.z /= 4.0;
+	
+	return position;
+}
+
 float GetSunlight(in vec4 position) {
 	position = ViewSpaceToWorldSpace(position);
 	position = WorldSpaceToShadowSpace(position);
+	position = BiasShadowProjection(position); 
 	position = position * 0.5 + 0.5;
 	
 	if (position.x < 0.0 || position.x > 1.0
@@ -106,11 +126,14 @@ float GetSunlight(in vec4 position) {
 	||	position.z < 0.0 || position.z > 1.0
 		) return 1.0;
 	
-	return shadow2D(shadow, position.xyz - vec3(0.0, 0.0, 0.0005)).x;
+	float	sunlight = shadow2D(shadow, position.xyz).x;
+			sunlight = pow(sunlight, 2.0);		//Fatten the shadow up to soften its penumbra
+	
+	return sunlight;
 }
 
 vec3 Tonemap(in vec3 color) {
-	return pow(color / (color + vec3(0.65)), vec3(1.0 / 2.2));
+	return pow(color / (color + vec3(0.6)), vec3(1.0 / 2.2));
 }
 
 struct Mask {
@@ -170,8 +193,8 @@ void main() {
 	
 	
 	vec3
-	composite =	lightmap.sunlight / 0.5
-			+	lightmap.skylight * 0.5
+	composite =	lightmap.sunlight * 3.0
+			+	lightmap.skylight * 0.35
 			;
 	
 	composite *= diffuse;
