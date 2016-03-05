@@ -1,14 +1,18 @@
 #version 120
 
+/* DRAWBUFFERS:2 */
+
 #define GAMMA 2.2
 #define SHADOW_MAP_BIAS 0.8
-#define EXTENDED_SHADOW_DISTANCE true
+#define Extended_Shadow_Distance
 
 const int	shadowMapResolution 		= 2160;
 const float	shadowDistance 				= 140.0;
 const float	shadowIntervalSize 			= 4.0;
 const float	sunPathRotation 			= 30.0;
 const bool	shadowHardwareFiltering0	= true;
+
+const bool colortex2MipmapEnabled		= true;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
@@ -22,6 +26,8 @@ uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
+
+uniform vec3 cameraPosition;
 
 varying vec3	lightVector;
 
@@ -101,10 +107,10 @@ vec4 WorldSpaceToShadowSpace(in vec4 worldSpacePosition) {
 vec4 BiasShadowProjection(in vec4 position) {
 	float dist = length(position.xy);
 	
-	if (EXTENDED_SHADOW_DISTANCE) {
+	#ifdef Extended_Shadow_Distance
 		vec2 pos = abs(position.xy * 1.165);
 		dist = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
-	}
+	#endif
 	
 	float distortFactor = (1.0 - SHADOW_MAP_BIAS) + dist * SHADOW_MAP_BIAS;
 	
