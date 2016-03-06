@@ -20,8 +20,8 @@ vec3 GetColorDOF(in float depth) {
 }
 
 void main() {
-	float depth	= GetDepth(texcoord);
-	vec3  color	= GetColorDOF(depth);
+	float depth = GetDepth(texcoord);
+	vec3  color = GetColorDOF(depth);
 	
 	gl_FragColor = vec4(color, 1.0);
 }

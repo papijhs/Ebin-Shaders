@@ -12,7 +12,7 @@ varying mat3 tbnMatrix;
 varying vec2 vertLightmap;
 
 vec2 GetDefaultLightmap(in vec2 lightmapCoord) {    //Gets the lightmap from the default lighting engine, ignoring any texture pack lightmap. First channel is torch lightmap, second channel is sky lightmap.
-	return clamp((lightmapCoord * 33.05 / 32.0) - 1.05 / 32.0, 0.0, 1.0).st;
+	return clamp((lightmapCoord * 1.032) - 0.032, 0.0, 1.0).st;    //Default lightmap texture coordinates work somewhat as lightmaps, however they need to be adjusted to use the full range of 0.0-1.0
 }
 
 float GetMaterialIDs() {    //Gather materials
@@ -22,7 +22,7 @@ float GetMaterialIDs() {    //Gather materials
 		case 31:                                //Tall Grass
 		case 37:                                //Dandelion
 		case 38:                                //Rose
-		case 59:                                //Wheat
+		case 59:                                //Wheat1.
 		case 83:                                //Sugar Cane
 		case 106:                               //Vine
 		case 175:                               //Double Tall Grass

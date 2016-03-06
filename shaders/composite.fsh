@@ -73,7 +73,7 @@ vec3 GetDiffuseLinear(in vec2 coord) {
 }
 
 float GetSkyLightmap(in vec2 coord) {
-	return texture2D(colortex3, coord).g;
+	return pow(texture2D(colortex3, coord).g, 4.0);    //Best to do this falloff curve after sending the number through the 8-bit pipeline
 }
 
 vec3 GetNormal(in vec2 coord) {
@@ -147,17 +147,20 @@ struct Mask {
 	float bit3;
 	
 	float sky;
-} mask;
+};
 
-struct Shading {    //Contains all the light levels, or light intensities, without any color
+struct Shading {     //Contains all the light levels, or light intensities, without any color
+	float normal;    //Coefficient of light intensity based on the dot product of the normal vector and the light vector
 	float sunlight;
 	float skylight;
-} shading;
+	float ambient;
+};
 
 struct Lightmap {    //Contains all the light with color/pigment applied
 	vec3 sunlight;
 	vec3 skylight;
-} lightmap;
+	vec3 ambient;
+};
 
 void CalculateMasks(inout Mask mask) {
 	mask.materialIDs = GetMaterialIDs(texcoord);
@@ -169,6 +172,7 @@ void CalculateMasks(inout Mask mask) {
 }
 
 void main() {
+	Mask mask;
 	CalculateMasks(mask);
 	
 	vec3 diffuse = GetDiffuseLinear(texcoord);
@@ -179,22 +183,32 @@ void main() {
 	vec3  normal            = GetNormal(texcoord);
 	float depth             = GetDepth(texcoord);
 	vec4  ViewSpacePosition = GetViewSpacePosition(texcoord, depth);
-	float NdotL             = max(0.0, dot(normal, lightVector));
 	
+	Shading shading;
+	shading.normal = max(0.0, dot(normal, lightVector));
 	
-	shading.sunlight  = NdotL;
+	shading.sunlight  = shading.normal;
 	shading.sunlight *= GetSunlight(ViewSpacePosition);
+	shading.sunlight *= 3.0;
 	
-	shading.skylight = skyLightmap;
+	shading.skylight  = skyLightmap;
+	shading.skylight *= 0.4;
+	
+	shading.ambient = 0.005;
 	
 	
+	Lightmap lightmap;
 	lightmap.sunlight = shading.sunlight * vec3(1.0);
+	
 	lightmap.skylight = shading.skylight * colorSkylight;
+	
+	lightmap.ambient = shading.ambient * vec3(1.0);
 	
 	
 	vec3 composite = (
-	    lightmap.sunlight * 3.0
-	+   lightmap.skylight * 0.35
+	    lightmap.sunlight
+	+   lightmap.skylight
+	+   lightmap.ambient
 	    ) * diffuse;
 	
 	composite = Tonemap(composite);
