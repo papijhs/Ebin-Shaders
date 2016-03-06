@@ -72,6 +72,13 @@ vec3 GetDiffuseLinear(in vec2 coord) {
 	return pow(texture2D(colortex2, coord).rgb, vec3(GAMMA));
 }
 
+float GetTorchLightmap(in vec2 coord) {
+	float torchlight = 1.0 - pow(texture2D(colortex3, coord).r, 4.0);
+	      torchlight = 1.0 / pow(torchlight, 2.0) - 1.0;
+	
+	return torchlight;
+}
+
 float GetSkyLightmap(in vec2 coord) {
 	return pow(texture2D(colortex3, coord).g, 4.0);    //Best to do this falloff curve after sending the number through the 8-bit pipeline
 }
@@ -153,12 +160,14 @@ struct Shading {     //Contains all the light levels, or light intensities, with
 	float normal;    //Coefficient of light intensity based on the dot product of the normal vector and the light vector
 	float sunlight;
 	float skylight;
+	float torchlight;
 	float ambient;
 };
 
 struct Lightmap {    //Contains all the light with color/pigment applied
 	vec3 sunlight;
 	vec3 skylight;
+	vec3 torchlight;
 	vec3 ambient;
 };
 
@@ -179,6 +188,7 @@ void main() {
 	
 	if (mask.sky > 0.5) { diffuse = Tonemap(diffuse); gl_FragData[0] = vec4(diffuse, 1.0); return; }
 	
+	float torchLightmap     = GetTorchLightmap(texcoord);
 	float skyLightmap       = GetSkyLightmap(texcoord);
 	vec3  normal            = GetNormal(texcoord);
 	float depth             = GetDepth(texcoord);
@@ -191,14 +201,18 @@ void main() {
 	shading.sunlight *= GetSunlight(ViewSpacePosition);
 	shading.sunlight *= 3.0;
 	
+	shading.torchlight  = torchLightmap;
+	
 	shading.skylight  = skyLightmap;
 	shading.skylight *= 0.4;
 	
-	shading.ambient = 0.005;
+	shading.ambient = 0.003;
 	
 	
 	Lightmap lightmap;
 	lightmap.sunlight = shading.sunlight * vec3(1.0);
+	
+	lightmap.torchlight = shading.torchlight * vec3(1.0, 0.25, 0.05);
 	
 	lightmap.skylight = shading.skylight * colorSkylight;
 	
@@ -207,6 +221,7 @@ void main() {
 	
 	vec3 composite = (
 	    lightmap.sunlight
+	+   lightmap.torchlight
 	+   lightmap.skylight
 	+   lightmap.ambient
 	    ) * diffuse;
