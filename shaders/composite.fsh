@@ -43,6 +43,36 @@ varying vec2 texcoord;
 varying vec3 colorSkylight;
 
 
+struct Mask {
+	float materialIDs;
+	float matIDs;
+	
+	float bit0;
+	float bit1;
+	float bit2;
+	float bit3;
+	
+	float grass;
+	float leaves;
+	float sky;
+};
+
+struct Shading {     //Contains all the light levels, or light intensities, without any color
+	float normal;    //Coefficient of light intensity based on the dot product of the normal vector and the light vector
+	float sunlight;
+	float skylight;
+	float torchlight;
+	float ambient;
+};
+
+struct Lightmap {    //Contains all the light with color/pigment applied
+	vec3 sunlight;
+	vec3 skylight;
+	vec3 torchlight;
+	vec3 ambient;
+};
+
+
 float GetMaterialIDs(in vec2 coord) {    //Function that retrieves the texture that has all material IDs stored in it
 	return texture2D(colortex3, coord).b;
 }
@@ -161,7 +191,16 @@ vec4 BiasShadowProjection(in vec4 position) {
 	return position;
 }
 
-float GetSunlight(in vec4 position) {
+float GetNormalShading(in vec3 normal, in Mask mask) {
+	float shading = max(mask.grass, dot(normal, lightVector));
+		  shading = mix(shading, shading * 0.5 + 0.5, mask.leaves);
+	
+	return shading;
+}
+
+float GetSunlight(in vec4 position, in float normalShading) {
+	if (normalShading <= 0.0) return 0.0;
+	
 	position = ViewSpaceToWorldSpace(position);
 	position = BiasWorldPosition(position);
 	position = WorldSpaceToShadowSpace(position);
@@ -196,40 +235,15 @@ vec3 Uncharted2Tonemap(in vec3 color) {
 	return pow(color, vec3(1.0 / 2.2));
 }
 
-struct Mask {
-	float materialIDs;
-	float matIDs;
-	
-	float bit0;
-	float bit1;
-	float bit2;
-	float bit3;
-	
-	float sky;
-};
-
-struct Shading {     //Contains all the light levels, or light intensities, without any color
-	float normal;    //Coefficient of light intensity based on the dot product of the normal vector and the light vector
-	float sunlight;
-	float skylight;
-	float torchlight;
-	float ambient;
-};
-
-struct Lightmap {    //Contains all the light with color/pigment applied
-	vec3 sunlight;
-	vec3 skylight;
-	vec3 torchlight;
-	vec3 ambient;
-};
-
 void CalculateMasks(inout Mask mask) {
 	mask.materialIDs = GetMaterialIDs(texcoord);
 	mask.matIDs      = mask.materialIDs;
 	
 	DecodeMaterialIDs(mask.matIDs, mask.bit0, mask.bit1, mask.bit2, mask.bit3);
 	
-	mask.sky = GetMaterialMask(255, mask.matIDs);
+	mask.grass  = GetMaterialMask(2, mask.matIDs);
+	mask.leaves = GetMaterialMask(3, mask.matIDs);
+	mask.sky    = GetMaterialMask(255, mask.matIDs);
 }
 
 void main() {
@@ -247,10 +261,10 @@ void main() {
 	vec4  ViewSpacePosition = GetViewSpacePosition(texcoord, depth);
 	
 	Shading shading;
-	shading.normal = max(0.0, dot(normal, lightVector));
+	shading.normal = GetNormalShading(normal, mask);
 	
 	shading.sunlight  = shading.normal;
-	shading.sunlight *= GetSunlight(ViewSpacePosition);
+	shading.sunlight *= GetSunlight(ViewSpacePosition, shading.normal);
 	
 	shading.torchlight = torchLightmap;
 	

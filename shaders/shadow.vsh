@@ -30,7 +30,8 @@ vec4 BiasShadowProjection(in vec4 position) {
 	
 	position.xy /= distortFactor;
 	
-	position.z += 0.0025 * (dist + 0.1) * (2.0 - clamp(pow(dot(vertNormal, vec3(0.0, 0.0, 1.0)), 5.0), 0.0, 1.0));
+	position.z += 0.01 * pow(1.0 - dot(vertNormal, vec3(0.0, 0.0, 1.0)), 5.0);
+	position.z += 0.0025 * (dist + 0.1);
 	position.z /= 4.0;
 	
 	return position;
