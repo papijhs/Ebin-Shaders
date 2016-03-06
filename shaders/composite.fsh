@@ -130,8 +130,14 @@ vec4 WorldSpaceToShadowSpace(in vec4 worldSpacePosition) {
 
 vec4 BiasWorldPosition(in vec4 position) {
 	position = shadowModelView * position;
-	vec2 pos = abs((shadowProjection * position).xy * 1.165);
-	float dist = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
+	
+	float dist = length((shadowProjection * position).xy);
+	
+	#ifdef Extended_Shadow_Distance
+		vec2 pos = abs((shadowProjection * position).xy * 1.165);
+		dist = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
+	#endif
+	
 	position.x += 0.5 * dist * SHADOW_MAP_BIAS * mix(1.0, -1.0, float(mod(sunAngle, 0.5) > 0.25));
 	position = shadowModelViewInverse * position;
 	
