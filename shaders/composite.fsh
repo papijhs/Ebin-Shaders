@@ -162,6 +162,19 @@ vec3 Tonemap(in vec3 color) {
 	return pow(color / (color + vec3(0.6)), vec3(1.0 / 2.2));
 }
 
+vec3 Uncharted2Tonemap(in vec3 color) {
+	const float A = 0.15, B = 0.5, C = 0.1, D = 0.2, E = 0.02, F = 0.3, W = 11.2;
+	const float whiteScale = 1.0 / (((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F);
+	const float ExposureBias = 2.3;
+	
+	vec3 curr = ExposureBias * color;
+	     curr = ((curr * (A * curr + C * B) + D * E) / (curr * (A * curr + B) + D * F)) - E / F;
+	
+	color = curr * whiteScale;
+	
+	return pow(color, vec3(1.0 / 2.2));
+}
+
 struct Mask {
 	float materialIDs;
 	float matIDs;
@@ -217,14 +230,12 @@ void main() {
 	
 	shading.sunlight  = shading.normal;
 	shading.sunlight *= GetSunlight(ViewSpacePosition);
-	shading.sunlight *= 3.0;
 	
-	shading.torchlight  = torchLightmap;
+	shading.torchlight = torchLightmap;
 	
-	shading.skylight  = skyLightmap;
-	shading.skylight *= 0.4;
+	shading.skylight = skyLightmap;
 	
-	shading.ambient = 0.003;
+	shading.ambient = 1.0;
 	
 	
 	Lightmap lightmap;
@@ -238,13 +249,13 @@ void main() {
 	
 	
 	vec3 composite = (
-	    lightmap.sunlight
+	    lightmap.sunlight   * 4.0
 	+   lightmap.torchlight
-	+   lightmap.skylight
-	+   lightmap.ambient
+	+   lightmap.skylight   * 0.4
+	+   lightmap.ambient    * 0.003
 	    ) * diffuse;
 	
-	composite = Tonemap(composite);
+	composite = Uncharted2Tonemap(composite);
 	
 	gl_FragData[0] = vec4(composite, 1.0);
 }
