@@ -6,13 +6,11 @@
 #define SHADOW_MAP_BIAS 0.8
 #define Extended_Shadow_Distance
 
-const int	shadowMapResolution 		= 2160;
-const float	shadowDistance 				= 140.0;
-const float	shadowIntervalSize 			= 4.0;
-const float	sunPathRotation 			= 30.0;
-const bool	shadowHardwareFiltering0	= true;
-
-const bool colortex2MipmapEnabled		= true;
+const int   shadowMapResolution      = 2160;
+const float	shadowDistance           = 140.0;
+const float	shadowIntervalSize       = 4.0;
+const float	sunPathRotation          = 30.0;
+const bool  shadowHardwareFiltering0 = true;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
@@ -27,20 +25,18 @@ uniform mat4 gbufferProjectionInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
-uniform vec3 cameraPosition;
+varying vec3 lightVector;
 
-varying vec3	lightVector;
+varying vec2 texcoord;
 
-varying vec2	texcoord;
-
-varying vec3	colorSkylight;
+varying vec3 colorSkylight;
 
 
-float GetMaterialIDs(in vec2 coord) {		//Function that retrieves the texture that has all material IDs stored in it
+float GetMaterialIDs(in vec2 coord) {    //Function that retrieves the texture that has all material IDs stored in it
 	return texture2D(colortex3, coord).b;
 }
 
-void ExpandMaterialIDs(inout float matID, inout float bit0, inout float bit1, inout float bit2, inout float bit3) {
+void DecodeMaterialIDs(inout float matID, inout float bit0, inout float bit1, inout float bit2, inout float bit3) {
 	matID *= 255.0;
 	
 	if (matID >= 128.0 && matID < 254.5) {
@@ -130,10 +126,10 @@ float GetSunlight(in vec4 position) {
 	if (position.x < 0.0 || position.x > 1.0
 	||	position.y < 0.0 || position.y > 1.0
 	||	position.z < 0.0 || position.z > 1.0
-		) return 1.0;
+	    ) return 1.0;
 	
-	float	sunlight = shadow2D(shadow, position.xyz).x;
-			sunlight = pow(sunlight, 2.0);		//Fatten the shadow up to soften its penumbra
+	float sunlight = shadow2D(shadow, position.xyz).x;
+	      sunlight = pow(sunlight, 2.0);    //Fatten the shadow up to soften its penumbra
 	
 	return sunlight;
 }
@@ -154,41 +150,40 @@ struct Mask {
 	float sky;
 } mask;
 
-struct Shading {		//Contains all the light levels, or light intensities, without any color
+struct Shading {    //Contains all the light levels, or light intensities, without any color
 	float sunlight;
 	float skylight;
 } shading;
 
-struct Lightmap {		//Contains all the light with color/pigment applied
+struct Lightmap {    //Contains all the light with color/pigment applied
 	vec3 sunlight;
 	vec3 skylight;
 } lightmap;
 
 void CalculateMasks(inout Mask mask) {
-	mask.materialIDs	= GetMaterialIDs(texcoord);
-	mask.matIDs			= mask.materialIDs;
+	mask.materialIDs = GetMaterialIDs(texcoord);
+	mask.matIDs      = mask.materialIDs;
 	
-	ExpandMaterialIDs(mask.matIDs, mask.bit0, mask.bit1, mask.bit2, mask.bit3);
+	DecodeMaterialIDs(mask.matIDs, mask.bit0, mask.bit1, mask.bit2, mask.bit3);
 	
-	mask.sky			= GetMaterialMask(255, mask.matIDs);
+	mask.sky = GetMaterialMask(255, mask.matIDs);
 }
 
 void main() {
 	CalculateMasks(mask);
 	
-	vec3	diffuse		= GetDiffuseLinear(texcoord);
+	vec3 diffuse = GetDiffuseLinear(texcoord);
 	
 	if (mask.sky > 0.5) { diffuse = Tonemap(diffuse); gl_FragData[0] = vec4(diffuse, 1.0); return; }
 	
-	float	skyLightmap	= GetSkyLightmap(texcoord);
+	float skyLightmap       = GetSkyLightmap(texcoord);
+	vec3  normal            = GetNormal(texcoord);
+	float depth             = GetDepth(texcoord);
+	vec4  ViewSpacePosition = GetViewSpacePosition(texcoord, depth);
+	float NdotL             = max(0.0, dot(normal, lightVector));
 	
-	vec3	normal				= GetNormal(texcoord);
-	float	depth				= GetDepth(texcoord);
-	vec4	ViewSpacePosition	= GetViewSpacePosition(texcoord, depth);
-	float	NdotL				= max(0.0, dot(normal, lightVector));
 	
-	
-	shading.sunlight = NdotL;
+	shading.sunlight  = NdotL;
 	shading.sunlight *= GetSunlight(ViewSpacePosition);
 	
 	shading.skylight = skyLightmap;
@@ -198,12 +193,11 @@ void main() {
 	lightmap.skylight = shading.skylight * colorSkylight;
 	
 	
-	vec3
-	composite =	lightmap.sunlight * 3.0
-			+	lightmap.skylight * 0.35
-			;
+	vec3 composite = (
+	    lightmap.sunlight * 3.0
+	+   lightmap.skylight * 0.35
+	    ) * diffuse;
 	
-	composite *= diffuse;
 	composite = Tonemap(composite);
 	
 	gl_FragData[0] = vec4(composite, 1.0);

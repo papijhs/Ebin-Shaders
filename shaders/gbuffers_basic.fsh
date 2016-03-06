@@ -1,7 +1,9 @@
 #version 120
 
-varying vec3	color;
+/* DRAWBUFFERS:2 */
+
+varying vec3 color;
 
 void main() {
-	discard;
+	gl_FragData[0] = vec4(color.rgb, 1.0);
 }

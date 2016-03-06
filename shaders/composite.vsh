@@ -1,21 +1,20 @@
 #version 120
 
-uniform vec3	skyColor;
+uniform vec3 skyColor;
+uniform vec3 sunPosition;
 
-uniform vec3	sunPosition;
+uniform float sunAngle;
 
-uniform float	sunAngle;
+varying vec2 texcoord;
 
-varying vec2	texcoord;
+varying vec3 lightVector;
 
-varying vec3	lightVector;
-
-varying vec3	colorSkylight;
+varying vec3 colorSkylight;
 
 void main() {
-	texcoord	= gl_MultiTexCoord0.st;
+	texcoord = gl_MultiTexCoord0.st;
 	
-	gl_Position	= ftransform();
+	gl_Position = ftransform();
 	
 	lightVector = normalize(sunAngle < 0.5 ? sunPosition : -sunPosition);
 	

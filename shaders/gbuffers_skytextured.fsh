@@ -2,14 +2,14 @@
 
 /* DRAWBUFFERS:23 */
 
-uniform sampler2D	texture;
+uniform sampler2D texture;
 
-varying vec3	color;
-varying vec2	texcoord;
+varying vec3 color;
+varying vec2 texcoord;
 
 void main() {
-	vec4 diffuse	= texture2D(texture, texcoord);
-	diffuse.rgb		*= color;
+	vec4 diffuse      = texture2D(texture, texcoord);
+	     diffuse.rgb *= color;
 	
 	gl_FragData[0] = vec4(diffuse);
 	gl_FragData[1] = vec4(0.0, 0.0, 1.0, 1.0);

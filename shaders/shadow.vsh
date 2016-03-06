@@ -8,8 +8,8 @@ uniform mat4 shadowProjectionInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 
-varying vec3	color;
-varying vec2	texcoord;
+varying vec3 color;
+varying vec2 texcoord;
 
 vec4 BiasShadowProjection(in vec4 position) {
 	float dist = length(position.xy);
@@ -30,8 +30,8 @@ vec4 BiasShadowProjection(in vec4 position) {
 }
 
 void main() {
-	color			= gl_Color.rgb;
-	texcoord		= gl_MultiTexCoord0.st;
+	color    = gl_Color.rgb;
+	texcoord = gl_MultiTexCoord0.st;
 	
-	gl_Position		= BiasShadowProjection(ftransform());
+	gl_Position = BiasShadowProjection(ftransform());
 }
