@@ -7,9 +7,9 @@
 #define Extended_Shadow_Distance
 
 const int   shadowMapResolution      = 2160;
-const float	shadowDistance           = 140.0;
-const float	shadowIntervalSize       = 4.0;
-const float	sunPathRotation          = 30.0;
+const float shadowDistance           = 140.0;
+const float shadowIntervalSize       = 4.0;
+const float sunPathRotation          = 30.0;
 const bool  shadowHardwareFiltering0 = true;
 
 uniform sampler2D colortex0;
@@ -85,9 +85,8 @@ float GetDepth(in vec2 coord) {
 }
 
 vec4 GetViewSpacePosition(in vec2 coord, in float depth) {
-	vec4
-	position = gbufferProjectionInverse * vec4(vec3(coord, depth) * 2.0 - 1.0, 1.0);
-	position /= position.w;
+	vec4 position  = gbufferProjectionInverse * vec4(vec3(coord, depth) * 2.0 - 1.0, 1.0);
+	     position /= position.w;
 	
 	return position;
 }
@@ -124,8 +123,8 @@ float GetSunlight(in vec4 position) {
 	position = position * 0.5 + 0.5;
 	
 	if (position.x < 0.0 || position.x > 1.0
-	||	position.y < 0.0 || position.y > 1.0
-	||	position.z < 0.0 || position.z > 1.0
+	||  position.y < 0.0 || position.y > 1.0
+	||  position.z < 0.0 || position.z > 1.0
 	    ) return 1.0;
 	
 	float sunlight = shadow2D(shadow, position.xyz).x;
