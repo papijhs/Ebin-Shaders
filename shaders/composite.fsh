@@ -31,6 +31,10 @@ uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
+uniform mat4 shadowProjectionInverse;
+uniform mat4 shadowModelViewInverse;
+
+uniform float sunAngle;
 
 varying vec3 lightVector;
 
@@ -124,6 +128,16 @@ vec4 WorldSpaceToShadowSpace(in vec4 worldSpacePosition) {
 	return shadowProjection * shadowModelView * worldSpacePosition;
 }
 
+vec4 BiasWorldPosition(in vec4 position) {
+	position = shadowModelView * position;
+	vec2 pos = abs((shadowProjection * position).xy * 1.165);
+	float dist = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
+	position.x += 0.5 * dist * SHADOW_MAP_BIAS * mix(1.0, -1.0, float(mod(sunAngle, 0.5) > 0.25));
+	position = shadowModelViewInverse * position;
+	
+	return position;
+}
+
 vec4 BiasShadowProjection(in vec4 position) {
 	float dist = length(position.xy);
 	
@@ -143,6 +157,7 @@ vec4 BiasShadowProjection(in vec4 position) {
 
 float GetSunlight(in vec4 position) {
 	position = ViewSpaceToWorldSpace(position);
+	position = BiasWorldPosition(position);
 	position = WorldSpaceToShadowSpace(position);
 	position = BiasShadowProjection(position); 
 	position = position * 0.5 + 0.5;
