@@ -12,6 +12,13 @@ const float shadowIntervalSize       = 4.0;
 const float sunPathRotation          = 30.0;
 const bool  shadowHardwareFiltering0 = true;
 
+const int 		RGB8 					= 0;
+const int 		RG16 					= 0;
+const int 		RGB16 					= 0;
+const int 		colortex0Format 		= RG16;
+const int 		colortex2Format 		= RGB16;
+const int 		colortex3Format 		= RGB8;
+
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
@@ -83,8 +90,19 @@ float GetSkyLightmap(in vec2 coord) {
 	return pow(texture2D(colortex3, coord).g, 4.0);    //Best to do this falloff curve after sending the number through the 8-bit pipeline
 }
 
+vec3 DecodeNormal(vec2 encodedNormal) {
+	encodedNormal = encodedNormal * 2.0 - 1.0;
+    vec2 fenc = encodedNormal * 4.0 - 2.0;
+    float f = dot(fenc, fenc);
+    float g = sqrt(1.0 - f / 4.0);
+    vec3 normal;
+    normal.xy = fenc * g;
+    normal.z = 1.0 - f / 2.0;
+    return normal;
+}
+
 vec3 GetNormal(in vec2 coord) {
-	return (gbufferModelView * vec4(texture2D(colortex0, coord).xyz * 2.0 - 1.0, 0.0)).xyz;
+	return DecodeNormal(texture2D(colortex0, coord).xy);
 }
 
 float GetDepth(in vec2 coord) {

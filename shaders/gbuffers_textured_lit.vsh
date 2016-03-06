@@ -43,14 +43,14 @@ void main() {
 	color         = gl_Color.rgb;
 	texcoord      = gl_MultiTexCoord0.st;
 	lightmapCoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).st;
-	vertNormal    = gl_Normal;
+	vertNormal    = gl_NormalMatrix * gl_Normal;
 	vertLightmap  = GetDefaultLightmap(lightmapCoord);
 	
 	gl_Position = ftransform();
 	
 	
-	vec3 tangent  = normalize(at_tangent.xyz);
-	vec3 binormal = normalize(-cross(gl_Normal, at_tangent.xyz));
+	vec3 tangent  = normalize(gl_NormalMatrix * at_tangent.xyz);
+	vec3 binormal = normalize(gl_NormalMatrix * -cross(gl_Normal, at_tangent.xyz));
 	
 	tbnMatrix     = mat3(
 	tangent.x, binormal.x, vertNormal.x,
