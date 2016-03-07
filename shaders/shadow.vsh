@@ -1,10 +1,9 @@
 #version 120
 
 #define SHADOW_MAP_BIAS 0.8
-#define Extended_Shadow_Distance
+#define EXTENDED_SHADOW_DISTANCE
 
-const float sunPathRotation = -30.0;
-const float radians         = 0.0174533;
+attribute vec4 mc_Entity;
 
 uniform mat4 shadowProjection;
 uniform mat4 shadowProjectionInverse;
@@ -19,7 +18,7 @@ varying vec3 vertNormal;
 vec4 BiasShadowProjection(in vec4 position) {
 	float dist = length(position.xy);
 	
-	#ifdef Extended_Shadow_Distance
+	#ifdef EXTENDED_SHADOW_DISTANCE
 		vec2 pos = abs(position.xy * 1.165);
 		dist = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
 	#endif
@@ -43,4 +42,8 @@ void main() {
 	vertNormal = gl_NormalMatrix * gl_Normal;
 	
 	gl_Position = BiasShadowProjection(ftransform());
+	
+	#ifndef DEFERRED_SHADING
+		if (abs(mc_Entity.x - 8.5) < 0.6) gl_Position.w = -1.0;
+	#endif
 }

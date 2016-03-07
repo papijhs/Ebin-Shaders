@@ -1,0 +1,4 @@
+option.EXTENDED_SHADOW_DISTANCE=Extended Shadow Distance
+option.EXTENDED_SHADOW_DISTANCE.comment=Extends the shadow draw distance to the edge of the far-view distance. Looks bad if you zoom in, alright if you're on a 90+ FOV.
+
+option.DEFERRED_SHADING.comment=Extends the shadow draw distance to the edge of the far-view distance. Looks bad if you zoom in, alright if you're on a 90+ FOV.

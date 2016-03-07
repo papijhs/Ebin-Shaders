@@ -1,7 +1,14 @@
 #version 120
 
+uniform mat4 gbufferProjectionInverse;
+
 attribute vec4 mc_Entity;
 attribute vec4 at_tangent;
+
+uniform vec3 skyColor;
+uniform vec3 sunPosition;
+
+uniform float sunAngle;
 
 varying vec3 color;
 varying vec2 texcoord;
@@ -12,6 +19,12 @@ varying mat3 tbnMatrix;
 varying vec2 vertLightmap;
 
 varying float encodedMaterialIDs;
+
+varying vec3 lightVector;
+
+varying vec3 colorSkylight;
+
+varying vec4 viewSpacePosition;
 
 vec2 GetDefaultLightmap(in vec2 lightmapCoord) {    //Gets the lightmap from the default lighting engine, ignoring any texture pack lightmap. First channel is torch lightmap, second channel is sky lightmap.
 	return clamp((lightmapCoord * 1.032) - 0.032, 0.0, 1.0).st;    //Default lightmap texture coordinates work somewhat as lightmaps, however they need to be adjusted to use the full range of 0.0-1.0
@@ -61,6 +74,10 @@ void main() {
 	vertNormal         = gl_NormalMatrix * gl_Normal;
 	vertLightmap       = GetDefaultLightmap(lightmapCoord);
 	encodedMaterialIDs = EncodeMaterialIDs(GetMaterialIDs(), 0.0, 0.0, 0.0, 0.0);
+	
+	viewSpacePosition  = gbufferProjectionInverse * ftransform();
+	lightVector = normalize(sunAngle < 0.5 ? sunPosition : -sunPosition);
+	colorSkylight = pow(skyColor, vec3(1.0 / 2.2));
 	
 	gl_Position = ftransform();
 	
