@@ -4,6 +4,8 @@
 
 #define DEFERRED_SHADING
 
+#include "include/PostHeader.fsh"
+
 uniform sampler2D texture;
 uniform sampler2D normals;
 uniform sampler2D lightmap;

@@ -27,12 +27,9 @@ vec4 BiasShadowProjection(in vec4 position) {
 	
 	float distortFactor = dist * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
 	
-	vec3 wlv = normalize((shadowModelViewInverse * vec4(0.0, 0.0, 1.0, 0.0)).xyz);
-	
 	position.xy /= distortFactor;
-	
 	position.z += 0.01 * pow(1.0 - dot(vertNormal, vec3(0.0, 0.0, 1.0)), 5.0);
-	position.z += 0.0028 * (dist + 0.1);
+	position.z += 0.005 * (dist + 0.1);
 	position.z /= 4.0;
 	
 	return position;

@@ -36,7 +36,6 @@ vec4 BiasShadowProjection(in vec4 position) {
 	float distortFactor = (1.0 - SHADOW_MAP_BIAS) + dist * SHADOW_MAP_BIAS;
 	
 	position.xy /= distortFactor;
-	
 	position.z /= 4.0;
 	
 	return position;
@@ -53,7 +52,6 @@ float ComputeDirectSunlight(in vec4 position, in float normalShading) {
 	if (normalShading <= 0.0) return 0.0;
 	
 	position = ViewSpaceToWorldSpace(position);
-	position = BiasWorldPosition(position);
 	position = WorldSpaceToShadowSpace(position);
 	position = BiasShadowProjection(position); 
 	position = position * 0.5 + 0.5;
