@@ -82,9 +82,9 @@ void main() {
 	Mask mask;
 	CalculateMasks(mask, GetMaterialIDs(texcoord));
 	
-	vec3 diffuse = GetDiffuseLinear(texcoord);
+	if (mask.sky > 0.5) { gl_FragData[0] = vec4(texture2D(colortex2, texcoord).rgb, 1.0); return; }
 	
-	if (mask.sky > 0.5) { diffuse = pow(diffuse, vec3(1.0 / 2.2)); gl_FragData[0] = vec4(diffuse, 1.0); return; }
+	vec3 diffuse = GetDiffuseLinear(texcoord);
 	
 	float torchLightmap     = GetTorchLightmap(texcoord);
 	float skyLightmap       = GetSkyLightmap(texcoord);

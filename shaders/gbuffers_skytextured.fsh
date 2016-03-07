@@ -11,6 +11,6 @@ void main() {
 	vec4 diffuse      = texture2D(texture, texcoord);
 	     diffuse.rgb *= color;
 	
-	gl_FragData[0] = vec4(diffuse);
+	gl_FragData[0] = vec4(diffuse.rgb * 0.1, diffuse.a);
 	gl_FragData[1] = vec4(0.0, 0.0, 1.0, 1.0);
 }
