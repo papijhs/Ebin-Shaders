@@ -24,9 +24,7 @@ uniform mat4 shadowModelViewInverse;
 uniform float sunAngle;
 
 varying vec3 lightVector;
-
 varying vec2 texcoord;
-
 varying vec3 colorSkylight;
 
 
@@ -95,8 +93,7 @@ void main() {
 	vec4  ViewSpacePosition = GetViewSpacePosition(texcoord, depth);
 	
 	
-	vec3 composite = CalculateShading(diffuse, mask, torchLightmap, skyLightmap, normal, ViewSpacePosition);
-	     composite = Uncharted2Tonemap(composite);
+	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, normal, ViewSpacePosition);
 	
 	gl_FragData[0] = vec4(composite, 1.0);
 }

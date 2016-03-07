@@ -5,9 +5,17 @@ uniform mat4 gbufferProjectionInverse;
 attribute vec4 mc_Entity;
 attribute vec4 at_tangent;
 
-uniform vec3 skyColor;
-uniform vec3 sunPosition;
+uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 shadowModelView;
+uniform mat4 shadowModelViewInverse;
 
+uniform vec3  cameraPosition;
+uniform float rainStrength;
+uniform float frameTimeCounter;
+
+uniform vec3  sunPosition;
+uniform vec3  skyColor;
 uniform float sunAngle;
 
 varying vec3 color;
@@ -21,10 +29,12 @@ varying vec2 vertLightmap;
 varying float encodedMaterialIDs;
 
 varying vec3 lightVector;
-
 varying vec3 colorSkylight;
-
 varying vec4 viewSpacePosition;
+
+#define FRAME_TIME frameTimeCounter
+const float pi = 3.14159265;
+
 
 vec2 GetDefaultLightmap(in vec2 lightmapCoord) {    //Gets the lightmap from the default lighting engine, ignoring any texture pack lightmap. First channel is torch lightmap, second channel is sky lightmap.
 	return clamp((lightmapCoord * 1.032) - 0.032, 0.0, 1.0).st;    //Default lightmap texture coordinates work somewhat as lightmaps, however they need to be adjusted to use the full range of 0.0-1.0
@@ -66,6 +76,44 @@ float EncodeMaterialIDs(in float materialIDs, in float bit0, in float bit1, in f
 	return materialIDs;
 }
 
+
+vec4 GetWorldSpacePosition() {
+	return gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+}
+
+vec4 WorldSpaceToProjectedSpace(in vec4 worldSpacePosition) {
+	return gl_ProjectionMatrix * gbufferModelView * worldSpacePosition;
+}
+
+vec3 GetWavingWater(in vec3 position, in float magnitude) {
+	float Distance = length(position.xz - cameraPosition.xz);
+	
+	float waveHeight = max(0.06 / max(Distance / 10.0, 1.0) - 0.006, 0.0);
+	
+	vec3 wave;
+	wave.y  = waveHeight * sin(pi * (FRAME_TIME / 2.1 + position.x / 7.0  + position.z / 13.0));
+	wave.y += waveHeight * sin(pi * (FRAME_TIME / 1.5 + position.x / 11.0 + position.z / 5.0 ));
+	wave.y -= waveHeight;
+	wave.y *= magnitude;
+	wave.y *= float(position.y - floor(position.y) > 0.15 || position.y - floor(position.y) < 0.005);
+	
+	return wave;
+}
+
+vec3 GetWaves(in vec3 position) {
+	vec3 wave = vec3(0.0);
+	
+	float skylightWeight = lightmapCoord.t;
+	
+	switch(int(mc_Entity.x)) {
+		case 8:
+		case 9:
+		case 111:	wave += GetWavingWater(position, 1.0); break;
+	}
+	
+	return wave;
+}
+
 void main() {
 	color         = gl_Color.rgb;
 	texcoord      = gl_MultiTexCoord0.st;
@@ -75,11 +123,13 @@ void main() {
 	vertLightmap       = GetDefaultLightmap(lightmapCoord);
 	encodedMaterialIDs = EncodeMaterialIDs(GetMaterialIDs(), 0.0, 0.0, 0.0, 0.0);
 	
-	viewSpacePosition  = gbufferProjectionInverse * ftransform();
-	lightVector = normalize(sunAngle < 0.5 ? sunPosition : -sunPosition);
-	colorSkylight = pow(skyColor, vec3(1.0 / 2.2));
 	
-	gl_Position = ftransform();
+	vec4 position = GetWorldSpacePosition();
+	position.xyz += cameraPosition.xyz;
+	position.xyz += GetWaves(position.xyz);
+	position.xyz -= cameraPosition.xyz;
+	position      = WorldSpaceToProjectedSpace(position);
+	gl_Position   = position;
 	
 	
 	vec3 tangent  = normalize(gl_NormalMatrix * at_tangent.xyz);
@@ -89,4 +139,9 @@ void main() {
 	tangent.x, binormal.x, vertNormal.x,
 	tangent.y, binormal.y, vertNormal.y,
 	tangent.z, binormal.z, vertNormal.z);
+	
+	
+	viewSpacePosition  = gbufferProjectionInverse * ftransform();
+	lightVector = normalize(sunAngle < 0.5 ? sunPosition : -sunPosition);
+	colorSkylight = pow(skyColor, vec3(1.0 / 2.2));
 }

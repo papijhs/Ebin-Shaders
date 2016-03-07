@@ -53,7 +53,7 @@ float ComputeDirectSunlight(in vec4 position, in float normalShading) {
 	if (normalShading <= 0.0) return 0.0;
 	
 	position = ViewSpaceToWorldSpace(position);
-//	position = BiasWorldPosition(position);
+	position = BiasWorldPosition(position);
 	position = WorldSpaceToShadowSpace(position);
 	position = BiasShadowProjection(position); 
 	position = position * 0.5 + 0.5;
@@ -108,9 +108,13 @@ void CalculateMasks(inout Mask mask, in float materialIDs) {
 	mask.sky    = GetMaterialMask(255, mask.matIDs);
 }
 
-vec3 CalculateShading(in vec3 diffuse, in Mask mask, in float torchLightmap, in float skyLightmap, in vec3 normal, in vec4 ViewSpacePosition) {
+vec3 EncodeColor(in vec3 color) {    //Prepares the color to be sent through a limited dynamic range pipeline
+	return pow(color * 0.001, vec3(1.0 / 2.2));
+}
+
+vec3 CalculateShadedFragment(in vec3 diffuse, in Mask mask, in float torchLightmap, in float skyLightmap, in vec3 normal, in vec4 ViewSpacePosition) {
 	Shading shading;
-	shading.normal = 1.0;
+	shading.normal = GetNormalShading(normal, mask);
 	
 	shading.sunlight  = shading.normal;
 	shading.sunlight *= ComputeDirectSunlight(ViewSpacePosition, shading.normal);
@@ -140,7 +144,7 @@ vec3 CalculateShading(in vec3 diffuse, in Mask mask, in float torchLightmap, in 
 	+   lightmap.ambient    * 0.003
 	    ) * diffuse;
 	
-	return composite;
+	return EncodeColor(composite);
 }
 
 vec3 Tonemap(in vec3 color) {

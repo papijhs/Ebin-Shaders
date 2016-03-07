@@ -8,7 +8,6 @@ uniform float sunAngle;
 varying vec2 texcoord;
 
 varying vec3 lightVector;
-
 varying vec3 colorSkylight;
 
 void main() {
