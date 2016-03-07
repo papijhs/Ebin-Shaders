@@ -2,8 +2,6 @@
 
 /* DRAWBUFFERS:2 */
 
-#define GAMMA 2.2
-
 #include "include/PostHeader.fsh"
 
 uniform sampler2D colortex0;
@@ -39,8 +37,8 @@ vec3 GetDiffuse(in vec2 coord) {
 	return texture2D(colortex2, coord).rgb;
 }
 
-vec3 GetDiffuseLinear(in vec2 coord) {
-	return pow(texture2D(colortex2, coord).rgb, vec3(GAMMA));
+vec3 GetDiffuse(in vec2 coord) {
+	return texture2D(colortex2, coord).rgb;
 }
 
 float GetTorchLightmap(in vec2 coord) {
@@ -84,8 +82,7 @@ void main() {
 	
 	if (mask.sky > 0.5) { gl_FragData[0] = vec4(texture2D(colortex2, texcoord).rgb, 1.0); return; }
 	
-	vec3 diffuse = GetDiffuseLinear(texcoord);
-	
+	vec3  diffuse           = GetDiffuse(texcoord);
 	float torchLightmap     = GetTorchLightmap(texcoord);
 	float skyLightmap       = GetSkyLightmap(texcoord);
 	vec3  normal            = GetNormal(texcoord);

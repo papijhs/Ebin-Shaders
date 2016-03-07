@@ -111,6 +111,9 @@ vec3 EncodeColor(in vec3 color) {    //Prepares the color to be sent through a l
 }
 
 vec3 CalculateShadedFragment(in vec3 diffuse, in Mask mask, in float torchLightmap, in float skyLightmap, in vec3 normal, in vec4 ViewSpacePosition) {
+	diffuse = pow(diffuse, vec3(2.2));    //Give diffuse a linear light falloff (diffuse should not be previously gamma-adjusted)
+	
+	
 	Shading shading;
 	shading.normal = GetNormalShading(normal, mask);
 	
@@ -143,21 +146,4 @@ vec3 CalculateShadedFragment(in vec3 diffuse, in Mask mask, in float torchLightm
 	    ) * diffuse;
 	
 	return EncodeColor(composite);
-}
-
-vec3 Tonemap(in vec3 color) {
-	return pow(color / (color + vec3(0.6)), vec3(1.0 / 2.2));
-}
-
-vec3 Uncharted2Tonemap(in vec3 color) {
-	const float A = 0.15, B = 0.5, C = 0.1, D = 0.2, E = 0.02, F = 0.3, W = 11.2;
-	const float whiteScale = 1.0 / (((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F);
-	const float ExposureBias = 2.3;
-	
-	vec3 curr = ExposureBias * color;
-	     curr = ((curr * (A * curr + C * B) + D * E) / (curr * (A * curr + B) + D * F)) - E / F;
-	
-	color = curr * whiteScale;
-	
-	return pow(color, vec3(1.0 / 2.2));
 }

@@ -72,7 +72,7 @@ void main() {
 		Mask mask;
 		CalculateMasks(mask, materialIDs, false);
 		
-		vec3 composite = CalculateShadedFragment(pow(diffuse.xyz, vec3(2.2)), mask, vertLightmap.s, vertLightmap.t, normal, viewSpacePosition);
+		vec3 composite = CalculateShadedFragment(diffuse.xyz, mask, vertLightmap.s, vertLightmap.t, normal, viewSpacePosition);
 		
 		gl_FragData[0] = vec4(composite, diffuse.a);
 	#endif
