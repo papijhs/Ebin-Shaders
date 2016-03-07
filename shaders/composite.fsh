@@ -80,7 +80,7 @@ vec4 GetViewSpacePosition(in vec2 coord, in float depth) {
 
 void main() {
 	Mask mask;
-	CalculateMasks(mask, GetMaterialIDs(texcoord));
+	CalculateMasks(mask, GetMaterialIDs(texcoord), true);
 	
 	if (mask.sky > 0.5) { gl_FragData[0] = vec4(texture2D(colortex2, texcoord).rgb, 1.0); return; }
 	

@@ -30,6 +30,7 @@ varying vec3 vertNormal;
 varying mat3 tbnMatrix;
 varying vec2 vertLightmap;
 
+varying float materialIDs;
 varying float encodedMaterialIDs;
 
 varying vec3 lightVector;
@@ -69,7 +70,7 @@ void main() {
 		gl_FragData[2] = vec4(EncodeNormal(normal).xy, 0.0, 1.0);
 	#else
 		Mask mask;
-		CalculateMasks(mask, encodedMaterialIDs);
+		CalculateMasks(mask, materialIDs, false);
 		
 		vec3 composite = CalculateShadedFragment(pow(diffuse.xyz, vec3(2.2)), mask, vertLightmap.s, vertLightmap.t, normal, viewSpacePosition);
 		

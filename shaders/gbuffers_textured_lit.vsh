@@ -26,6 +26,7 @@ varying vec3 vertNormal;
 varying mat3 tbnMatrix;
 varying vec2 vertLightmap;
 
+varying float materialIDs;
 varying float encodedMaterialIDs;
 
 varying vec3 lightVector;
@@ -121,7 +122,8 @@ void main() {
 	
 	vertNormal         = gl_NormalMatrix * gl_Normal;
 	vertLightmap       = GetDefaultLightmap(lightmapCoord);
-	encodedMaterialIDs = EncodeMaterialIDs(GetMaterialIDs(), 0.0, 0.0, 0.0, 0.0);
+	materialIDs        = GetMaterialIDs();
+	encodedMaterialIDs = EncodeMaterialIDs(materialIDs, 0.0, 0.0, 0.0, 0.0);
 	
 	
 	vec4 position = GetWorldSpacePosition();
