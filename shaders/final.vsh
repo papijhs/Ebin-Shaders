@@ -10,6 +10,7 @@ varying vec2 texcoord;
 varying vec3 lightVector;
 varying vec3 colorSkylight;
 
+
 void main() {
 	texcoord = gl_MultiTexCoord0.st;
 	
@@ -17,5 +18,5 @@ void main() {
 	
 	lightVector = normalize(sunAngle < 0.5 ? sunPosition : -sunPosition);
 	
-	colorSkylight = pow(skyColor, vec3(1.0 / 2.2));
+	colorSkylight = pow(skyColor, vec3(2.0)) * 2.0;
 }

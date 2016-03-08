@@ -75,5 +75,7 @@ void main() {
 		vec3 composite = CalculateShadedFragment(diffuse.xyz, mask, vertLightmap.s, vertLightmap.t, normal, viewSpacePosition);
 		
 		gl_FragData[0] = vec4(composite, diffuse.a);
+		gl_FragData[1] = vec4(vertLightmap.st, encodedMaterialIDs, 1.0);
+		gl_FragData[2] = vec4(EncodeNormal(normal).xy, 0.0, 1.0);
 	#endif
 }

@@ -78,15 +78,16 @@ void main() {
 	
 	if (mask.sky > 0.5) { gl_FragData[0] = vec4(texture2D(colortex2, texcoord).rgb, 1.0); return; }
 	
+	
 	vec3  diffuse           = GetDiffuse(texcoord);
 	float torchLightmap     = GetTorchLightmap(texcoord);
 	float skyLightmap       = GetSkyLightmap(texcoord);
 	vec3  normal            = GetNormal(texcoord);
 	float depth             = GetDepth(texcoord);
-	vec4  ViewSpacePosition = GetViewSpacePosition(texcoord, depth);
+	vec4  viewSpacePosition = GetViewSpacePosition(texcoord, depth);
 	
 	
-	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, normal, ViewSpacePosition);
+	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, normal, viewSpacePosition);
 	
 	gl_FragData[0] = vec4(composite, 1.0);
 }

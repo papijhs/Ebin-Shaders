@@ -18,5 +18,5 @@ void main() {
 	
 	lightVector = normalize(sunAngle < 0.5 ? sunPosition : -sunPosition);
 	
-	colorSkylight = pow(skyColor, vec3(1.0 / 2.2));
+	colorSkylight = pow(skyColor, vec3(2.0)) * 2.0;
 }
