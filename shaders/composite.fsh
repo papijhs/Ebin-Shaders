@@ -37,10 +37,6 @@ vec3 GetDiffuse(in vec2 coord) {
 	return texture2D(colortex2, coord).rgb;
 }
 
-vec3 GetDiffuse(in vec2 coord) {
-	return texture2D(colortex2, coord).rgb;
-}
-
 float GetTorchLightmap(in vec2 coord) {
 	return texture2D(colortex3, coord).r;
 }

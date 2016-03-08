@@ -1,4 +1,5 @@
-#define SHADOW_MAP_BIAS 0.8
+#define SHADOW_MAP_BIAS 0.8    //[0.6 0.7 0.8 0.85 0.9]
+#define SOFT_SHADOWS
 #define EXTENDED_SHADOW_DISTANCE
 
 vec4 ViewSpaceToWorldSpace(in vec4 viewSpacePosition) {
@@ -25,17 +26,17 @@ vec4 BiasWorldPosition(in vec4 position) {
 	return position;
 }
 
-vec4 BiasShadowProjection(in vec4 position) {
-	float dist = length(position.xy);
-	
+vec4 BiasShadowProjection(in vec4 position, out float biasCoeff) {
 	#ifdef EXTENDED_SHADOW_DISTANCE
 		vec2 pos = abs(position.xy * 1.165);
-		dist = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
+		biasCoeff = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
+	#else
+		biasCoeff = length(position.xy);
 	#endif
 	
-	float distortFactor = (1.0 - SHADOW_MAP_BIAS) + dist * SHADOW_MAP_BIAS;
+	biasCoeff = (1.0 - SHADOW_MAP_BIAS) + biasCoeff * SHADOW_MAP_BIAS;
 	
-	position.xy /= distortFactor;
+	position.xy /= biasCoeff;
 	position.z /= 4.0;
 	
 	return position;
@@ -51,9 +52,11 @@ float GetNormalShading(in vec3 normal, in Mask mask) {
 float ComputeDirectSunlight(in vec4 position, in float normalShading) {
 	if (normalShading <= 0.0) return 0.0;
 	
+	float biasCoeff;
+	
 	position = ViewSpaceToWorldSpace(position);
 	position = WorldSpaceToShadowSpace(position);
-	position = BiasShadowProjection(position); 
+	position = BiasShadowProjection(position, biasCoeff); 
 	position = position * 0.5 + 0.5;
 	
 	if (position.x < 0.0 || position.x > 1.0
@@ -61,8 +64,23 @@ float ComputeDirectSunlight(in vec4 position, in float normalShading) {
 	||  position.z < 0.0 || position.z > 1.0
 	    ) return 1.0;
 	
-	float sunlight = shadow2D(shadow, position.xyz).x;
-	      sunlight = pow(sunlight, 2.0);    //Fatten the shadow up to soften its penumbra
+	#ifdef SOFT_SHADOWS
+		float sunlight = 0.0;
+		float spread   = 1.0 * (1.0 - biasCoeff) / shadowMapResolution;
+		
+		const float range    = 1.0;
+		const float interval = 1.0;
+		
+		for (float i = -range; i <= range; i += interval)
+			for (float j = -range; j <= range; j += interval)
+				sunlight += shadow2D(shadow, vec3(position.xy + vec2(i, j) * spread, position.z)).x;
+		
+		sunlight /= pow(range * interval * 2.0 + 1.0, 2.0);    //Average the samples by dividing the sum by the calculated sample count. Calculating the sample count outside of the for-loop is generally faster.
+	#else
+		float sunlight = shadow2D(shadow, position.xyz).x;
+	#endif
+	
+	sunlight = sunlight * sunlight;    //Fatten the shadow up to soften its penumbra
 	
 	return sunlight;
 }
