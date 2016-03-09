@@ -110,15 +110,7 @@ void CalculateMasks(inout Mask mask, in float materialIDs, const bool encoded) {
 }
 
 
-float CalculateFogFactor(in vec4 position, in float power) {
-	float fogFactor = length(position.xyz);
-		  fogFactor = max(fogFactor - gl_Fog.start, 0.0);
-		  fogFactor /= far - gl_Fog.start;
-		  fogFactor = pow(fogFactor, power);
-		  fogFactor = clamp(fogFactor, 0.0, 1.0);
-	
-	return fogFactor;
-}
+#include "include/CalculateFogFactor.glsl"
 
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
 	vec3 color = vec3(0.0);
@@ -139,7 +131,7 @@ vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
 }
 
 vec4 CalculateSky(in vec3 diffuse, in vec4 viewSpacePosition, in Mask mask) {
-	float fogFactor = max(CalculateFogFactor(viewSpacePosition, 2.0), mask.sky);
+	float fogFactor = max(CalculateFogFactor(viewSpacePosition, FOGPOW), mask.sky);
 	vec3  gradient  = CalculateSkyGradient(viewSpacePosition);
 	vec4  composite;
 	

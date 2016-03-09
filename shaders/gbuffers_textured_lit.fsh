@@ -21,6 +21,7 @@ uniform mat4 shadowProjectionInverse;
 uniform mat4 shadowModelViewInverse;
 
 uniform float sunAngle;
+uniform float far;
 
 varying vec3 color;
 varying vec2 texcoord;
@@ -55,10 +56,13 @@ vec3 GetNormal() {
 }
 
 
+#include "include/CalculateFogFactor.glsl"
 #include "include/ShadingFunctions.fsh"
 
 
 void main() {
+	if (CalculateFogFactor(viewSpacePosition, FOGPOW) >= 1.0) discard;
+	
 	vec4 diffuse  = GetDiffuse();
 	vec3 normal   = GetNormal();
 	
