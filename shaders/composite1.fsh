@@ -22,12 +22,9 @@ uniform mat4 shadowModelViewInverse;
 uniform vec3 cameraPosition;
 uniform vec3 upPosition;
 
-uniform float sunAngle;
 uniform float far;
 
-varying vec3 lightVector;
 varying vec2 texcoord;
-varying vec3 colorSkylight;
 
 
 struct Mask {
@@ -126,10 +123,10 @@ float CalculateFogFactor(in vec4 position, in float power) {
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
 	vec3 color = vec3(0.0);
 	
-	float radius = far;
+	float radius = far * sqrt(2.0);
 	const float horizonLevel = 70.0;
 	
-	vec3 worldPosition = normalize((gbufferModelViewInverse * viewSpacePosition).xyz) * radius;
+	vec3 worldPosition = normalize((gbufferModelViewInverse * vec4(normalize(viewSpacePosition.xyz), 0.0)).xyz) * radius;
 	     vec3 oldPos = worldPosition.xyz;
 	     worldPosition.xz = normalize(worldPosition.xz) * radius;
 	     worldPosition.y = (length(worldPosition.xz) / length(oldPos.xz)) * oldPos.y + cameraPosition.y - horizonLevel;
@@ -148,6 +145,7 @@ vec4 CalculateSky(in vec3 diffuse, in vec4 viewSpacePosition, in Mask mask) {
 	
 	
 	composite.a   = fogFactor;
+//	composite.a   = 1.0;
 	composite.rgb = gradient;
 	
 	

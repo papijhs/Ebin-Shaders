@@ -21,9 +21,7 @@ uniform mat4 shadowModelViewInverse;
 
 uniform float sunAngle;
 
-varying vec3 lightVector;
 varying vec2 texcoord;
-varying vec3 colorSkylight;
 
 
 #include "/include/ShadingStructs.fsh"

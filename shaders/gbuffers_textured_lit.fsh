@@ -33,8 +33,6 @@ varying vec2 vertLightmap;
 varying float materialIDs;
 varying float encodedMaterialIDs;
 
-varying vec3 lightVector;
-varying vec3 colorSkylight;
 varying vec4 viewSpacePosition;
 
 
@@ -53,7 +51,7 @@ vec2 EncodeNormal(vec3 normal) {
 }
 
 vec3 GetNormal() {
-	return (texture2D(normals, texcoord).xyz * 2.0 - 1.0) * tbnMatrix;
+	return normalize((texture2D(normals, texcoord).xyz * 2.0 - 1.0) * tbnMatrix);
 }
 
 
@@ -67,7 +65,7 @@ void main() {
 	#ifdef DEFERRED_SHADING
 		gl_FragData[0] = vec4(diffuse.rgb, diffuse.a);
 		gl_FragData[1] = vec4(vertLightmap.st, encodedMaterialIDs, 1.0);
-		gl_FragData[2] = vec4(EncodeNormal(normal).xy, 0.0, 1.0);
+		gl_FragData[2] = vec4(EncodeNormal(normal), 0.0, 1.0);
 	#else
 		Mask mask;
 		CalculateMasks(mask, materialIDs, false);

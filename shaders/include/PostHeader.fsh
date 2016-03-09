@@ -7,6 +7,16 @@ const bool  shadowHardwareFiltering0 = true;
 const int RGB8            = 0;
 const int RG16            = 0;
 const int RGB16           = 0;
-const int colortex0Format = RG16;
+const int colortex0Format = RGB16;
 const int colortex2Format = RGB16;
 const int colortex3Format = RGB8;
+
+varying vec3 lightVector;
+
+varying float timeDay;
+varying float timeNight;
+varying float timeHorizon;
+
+varying vec3 colorSunlight;
+varying vec3 colorSkylight;
+varying vec3 colorHorizon;

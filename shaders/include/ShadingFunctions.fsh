@@ -75,12 +75,12 @@ float ComputeDirectSunlight(in vec4 position, in float normalShading) {
 			for (float j = -range; j <= range; j += interval)
 				sunlight += shadow2D(shadow, vec3(position.xy + vec2(i, j) * spread, position.z)).x;
 		
-		sunlight /= pow(range * interval * 2.0 + 1.0, 2.0);    //Average the samples by dividing the sum by the calculated sample count. Calculating the sample count outside of the for-loop is generally faster.
+		sunlight /= pow(range / interval * 2.0 + 1.0, 2.0);    //Average the samples by dividing the sum by the calculated sample count. Calculating the sample count outside of the for-loop is generally faster.
 	#else
 		float sunlight = shadow2D(shadow, position.xyz).x;
 	#endif
 	
-	sunlight = sunlight * sunlight;    //Fatten the shadow up to soften its penumbra
+	sunlight *= sunlight;    //Fatten the shadow up to soften its penumbra
 	
 	return sunlight;
 }
@@ -151,16 +151,16 @@ vec3 CalculateShadedFragment(in vec3 diffuse, in Mask mask, in float torchLightm
 	
 	lightmap.torchlight = shading.torchlight * vec3(1.0, 0.25, 0.05);
 	
-	lightmap.skylight = shading.skylight * colorSkylight;
+	lightmap.skylight = shading.skylight * vec3(1.0);
 	
 	lightmap.ambient = shading.ambient * vec3(1.0);
 	
 	
 	vec3 composite = (
 	    lightmap.sunlight   * 4.5
-	+   lightmap.torchlight
 	+   lightmap.skylight   * 0.3
 	+   lightmap.ambient    * 0.005
+	+   lightmap.torchlight
 	    ) * diffuse;
 	
 	return EncodeColor(composite);
