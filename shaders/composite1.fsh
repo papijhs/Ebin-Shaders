@@ -3,6 +3,7 @@
 /* DRAWBUFFERS:2 */
 
 #include "include/PostHeader.fsh"
+#include "include/GlobalCompositeVariables.fsh"
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
@@ -113,21 +114,19 @@ void CalculateMasks(inout Mask mask, in float materialIDs, const bool encoded) {
 #include "include/CalculateFogFactor.glsl"
 
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
-	vec3 color = vec3(0.0);
+	float radius = max(128.0, far * sqrt(2.0));
+	const float horizonLevel = 64.0;
 	
-	float radius = far * sqrt(2.0);
-	const float horizonLevel = 70.0;
-	
-	vec3 worldPosition = normalize((gbufferModelViewInverse * vec4(normalize(viewSpacePosition.xyz), 0.0)).xyz) * radius;
-	     vec3 oldPos = worldPosition.xyz;
+	vec3 worldPosition = (gbufferModelViewInverse * vec4(normalize(viewSpacePosition.xyz), 0.0)).xyz;
+	     worldPosition.y = radius * worldPosition.y / length(worldPosition.xz) + cameraPosition.y - horizonLevel;
 	     worldPosition.xz = normalize(worldPosition.xz) * radius;
-	     worldPosition.y = (length(worldPosition.xz) / length(oldPos.xz)) * oldPos.y + cameraPosition.y - horizonLevel;
 	
-	float horizon = dot(vec3(0.0, 1.0, 0.0), normalize(worldPosition));
-	      if (horizon < 0.0) horizon = clamp( -horizon * 0.5 , 0.0, 1.0);
-		  horizon = pow(1.0 - pow(horizon, 1.5), 20.0);
+	float horizon = dot(vec3(0.0, 1.0, 0.0), normalize(worldPosition)) * 0.5;
+	      horizon = abs(horizon);
+	      horizon = pow(1.0 - pow(horizon, 1.4), 25.0) + pow(1.0 - horizon, 4.0);
+	      horizon = (horizon) * 2.0;
 	
-	return (horizon + 0.3) * colorSkylight * 2.0;
+	return vec3(horizon) * colorSkylight;
 }
 
 vec4 CalculateSky(in vec3 diffuse, in vec4 viewSpacePosition, in Mask mask) {
@@ -137,7 +136,6 @@ vec4 CalculateSky(in vec3 diffuse, in vec4 viewSpacePosition, in Mask mask) {
 	
 	
 	composite.a   = fogFactor;
-//	composite.a   = 1.0;
 	composite.rgb = gradient;
 	
 	

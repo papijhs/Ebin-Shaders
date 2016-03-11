@@ -3,6 +3,7 @@
 /* DRAWBUFFERS:2 */
 
 #include "include/PostHeader.fsh"
+#include "include/GlobalCompositeVariables.fsh"
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;

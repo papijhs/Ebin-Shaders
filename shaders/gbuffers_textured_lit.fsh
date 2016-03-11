@@ -5,6 +5,7 @@
 #define DEFERRED_SHADING
 
 #include "include/PostHeader.fsh"
+#include "include/GlobalCompositeVariables.fsh"
 
 uniform sampler2D texture;
 uniform sampler2D normals;

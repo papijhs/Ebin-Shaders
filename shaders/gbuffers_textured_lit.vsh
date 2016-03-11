@@ -186,7 +186,7 @@ void main() {
 	
 	
 	const vec3 skylightDay =
-	vec3(0.0, 0.5, 1.0);
+	vec3(0.10, 0.24, 1.00);
 	
 	const vec3 skylightNight =
 	vec3(1.0, 1.0, 1.0);
