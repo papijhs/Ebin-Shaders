@@ -10,22 +10,6 @@ vec4 WorldSpaceToShadowSpace(in vec4 worldSpacePosition) {
 	return shadowProjection * shadowModelView * worldSpacePosition;
 }
 
-vec4 BiasWorldPosition(in vec4 position) {
-	position = shadowModelView * position;
-	
-	float dist = length((shadowProjection * position).xy);
-	
-	#ifdef EXTENDED_SHADOW_DISTANCE
-		vec2 pos = abs((shadowProjection * position).xy * 1.165);
-		dist = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
-	#endif
-	
-	position.x += 0.5 * dist * SHADOW_MAP_BIAS * mix(1.0, -1.0, float(mod(sunAngle, 0.5) > 0.25));
-	position = shadowModelViewInverse * position;
-	
-	return position;
-}
-
 vec4 BiasShadowProjection(in vec4 position, out float biasCoeff) {
 	#ifdef EXTENDED_SHADOW_DISTANCE
 		vec2 pos = abs(position.xy * 1.165);
@@ -34,7 +18,7 @@ vec4 BiasShadowProjection(in vec4 position, out float biasCoeff) {
 		biasCoeff = length(position.xy);
 	#endif
 	
-	biasCoeff = (1.0 - SHADOW_MAP_BIAS) + biasCoeff * SHADOW_MAP_BIAS;
+	biasCoeff = biasCoeff * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
 	
 	position.xy /= biasCoeff;
 	position.z /= 4.0;
@@ -68,14 +52,15 @@ float ComputeDirectSunlight(in vec4 position, in float normalShading) {
 		float sunlight = 0.0;
 		float spread   = 1.0 * (1.0 - biasCoeff) / shadowMapResolution;
 		
-		const float range    = 1.0;
-		const float interval = 1.0;
+		const float range       = 1.0;
+		const float interval    = 1.0;
+		const float sampleCount = pow(range / interval * 2.0 + 1.0, 2.0);    //Calculating the sample count outside of the for-loop is generally faster.
 		
 		for (float i = -range; i <= range; i += interval)
 			for (float j = -range; j <= range; j += interval)
 				sunlight += shadow2D(shadow, vec3(position.xy + vec2(i, j) * spread, position.z)).x;
 		
-		sunlight /= pow(range / interval * 2.0 + 1.0, 2.0);    //Average the samples by dividing the sum by the calculated sample count. Calculating the sample count outside of the for-loop is generally faster.
+		sunlight /= sampleCount;    //Average the samples by dividing the sum by the sample count.
 	#else
 		float sunlight = shadow2D(shadow, position.xyz).x;
 	#endif

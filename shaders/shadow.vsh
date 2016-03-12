@@ -18,20 +18,20 @@ varying vec3 vertNormal;
 
 
 vec4 BiasShadowProjection(in vec4 position) {
-	float dist = length(position.xy);
+	float biasCoeff = length(position.xy);
 	
 	#ifdef EXTENDED_SHADOW_DISTANCE
 		vec2 pos = abs(position.xy * 1.165);
-		dist = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
+		biasCoeff = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
 	#endif
 	
-	float distortFactor = dist * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
+	biasCoeff = biasCoeff * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
 	
 	position.z  += 0.001 * (1.0 - sqrt(dot(vertNormal, vec3(0.0, 0.0, 1.0))));
 	position.z  += 0.0005 / (abs(position.x) + 1.0);
-	position.z  += 0.002 * pow(distortFactor * 2.0, 2.0);
+	position.z  += 0.002 * pow(biasCoeff * 2.0, 2.0);
 	position.z  /= 4.0;
-	position.xy /= distortFactor;
+	position.xy /= biasCoeff;
 	
 	return position;
 }
