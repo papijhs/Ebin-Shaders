@@ -40,11 +40,12 @@ varying float timeHorizon;
 
 varying vec3 colorSunlight;
 varying vec3 colorSkylight;
-varying vec3 colorHorizon;
 
 float clamp01(in float x) {
 	return clamp(x, 0.0, 1.0);
 }
+
+#define PI 3.14159
 //#include include/PostHeader.vsh"
 
 
@@ -168,19 +169,23 @@ void main() {
 	
 	float sunUp   = dot(sunVector, normalize(upPosition));
 	
-	timeDay     = sqrt(sqrt(clamp01( sunUp)));
-	timeNight   = sqrt(sqrt(clamp01(-sunUp)));
-	timeHorizon = (1.0 - timeDay) * (1.0 - timeNight);
+	timeDay     = sin( sunUp * PI * 0.5);
+	timeNight   = sin(-sunUp * PI * 0.5);
+	timeHorizon = pow(1 + timeDay * timeNight, 4.0);
 	
+	float horizonClip = max(0.0, 0.9 - timeHorizon) / 0.9;
+	
+	timeDay = clamp01(timeDay * horizonClip);
+	timeNight = clamp01(timeNight * horizonClip);
 	
 	const vec3 sunlightDay =
 	vec3(1.0, 1.0, 1.0);
 	
 	const vec3 sunlightNight =
-	vec3(1.0, 1.0, 1.0);
+	vec3(0.43, 0.65, 1.0) * 0.025;
 	
 	const vec3 sunlightHorizon =
-	vec3(1.0, 1.0, 1.0);
+	vec3(0.00, 0.00, 0.00);
 	
 	colorSunlight = sunlightDay * timeDay + sunlightNight * timeNight + sunlightHorizon * timeHorizon;
 	
@@ -189,23 +194,11 @@ void main() {
 	vec3(0.10, 0.24, 1.00);
 	
 	const vec3 skylightNight =
-	vec3(1.0, 1.0, 1.0);
+	vec3(0.25, 0.5, 1.0) * 0.025;
 	
 	const vec3 skylightHorizon =
-	vec3(1.0, 1.0, 1.0);
+	vec3(0.29, 0.48, 1.0) * 0.01;
 	
 	colorSkylight = skylightDay * timeDay + skylightNight * timeNight + skylightHorizon * timeHorizon;
-	
-	
-	const vec3 horizoncolorDay =
-	vec3(1.0, 1.0, 1.0);
-	
-	const vec3 horizoncolorNight =
-	vec3(1.0, 1.0, 1.0);
-	
-	const vec3 horizoncolorHorizon =
-	vec3(1.0, 1.0, 1.0);
-	
-	colorHorizon = horizoncolorDay * timeDay + horizoncolorNight * timeNight + horizoncolorHorizon * timeHorizon;
 //#include "include/PostCalculations.vsh"
 }

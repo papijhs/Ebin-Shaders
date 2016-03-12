@@ -114,19 +114,22 @@ void CalculateMasks(inout Mask mask, in float materialIDs, const bool encoded) {
 #include "include/CalculateFogFactor.glsl"
 
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
-	float radius = max(128.0, far * sqrt(2.0));
+	float radius = max(176.0, far * sqrt(2.0));
 	const float horizonLevel = 64.0;
 	
 	vec3 worldPosition = (gbufferModelViewInverse * vec4(normalize(viewSpacePosition.xyz), 0.0)).xyz;
 	     worldPosition.y = radius * worldPosition.y / length(worldPosition.xz) + cameraPosition.y - horizonLevel;
 	     worldPosition.xz = normalize(worldPosition.xz) * radius;
 	
-	float horizon = dot(vec3(0.0, 1.0, 0.0), normalize(worldPosition)) * 0.5;
-	      horizon = abs(horizon);
-	      horizon = pow(1.0 - pow(horizon, 1.4), 25.0) + pow(1.0 - horizon, 4.0);
-	      horizon = (horizon) * 2.0;
+	float dotUP = dot(normalize(worldPosition), vec3(0.0, 1.0, 0.0));
 	
-	return vec3(horizon) * colorSkylight;
+	float horizonCoeff  = dotUP * 0.65;
+	      horizonCoeff  = abs(horizonCoeff);
+	      horizonCoeff  = pow(1.0 - horizonCoeff, 3.0) / 0.65 * 5.0 + 0.35;
+	
+	vec3 color = colorSkylight * horizonCoeff;
+	
+	return color;
 }
 
 vec4 CalculateSky(in vec3 diffuse, in vec4 viewSpacePosition, in Mask mask) {

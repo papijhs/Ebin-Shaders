@@ -27,10 +27,11 @@ vec4 BiasShadowProjection(in vec4 position) {
 	
 	float distortFactor = dist * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
 	
+	position.z  += 0.001 * (1.0 - sqrt(dot(vertNormal, vec3(0.0, 0.0, 1.0))));
+	position.z  += 0.0005 / (abs(position.x) + 1.0);
+	position.z  += 0.002 * pow(distortFactor * 2.0, 2.0);
+	position.z  /= 4.0;
 	position.xy /= distortFactor;
-	position.z += 0.01 * pow(1.0 - dot(vertNormal, vec3(0.0, 0.0, 1.0)), 5.0);
-	position.z += 0.005 * (dist + 0.1);
-	position.z /= 4.0;
 	
 	return position;
 }
