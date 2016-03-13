@@ -67,7 +67,7 @@ vec3 GetNormal() {
 void main() {
 	if (CalculateFogFactor(viewSpacePosition, FOGPOW) >= 1.0) discard;
 	
-	vec4 diffuse  = GetDiffuse();
+	vec4 diffuse  = GetDiffuse();  if (diffuse.a < 0.1000003) discard;
 	vec3 normal   = GetNormal();
 	
 	#ifdef DEFERRED_SHADING

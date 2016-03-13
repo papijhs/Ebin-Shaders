@@ -76,7 +76,7 @@ vec4 GetViewSpacePosition(in vec2 coord, in float depth) {
 
 
 vec3 GetIndirectLight(in vec2 coord) {
-	return texture2D(colortex4, coord).rgb;
+	return pow(texture2D(colortex4, coord).rgb, vec3(2.2)) * 1000.0;
 }
 
 void main() {
