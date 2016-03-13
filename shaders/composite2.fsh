@@ -2,8 +2,8 @@
 
 /* DRAWBUFFERS:2 */
 
-#include "include/PostHeader.fsh"
-#include "include/GlobalCompositeVariables.fsh"
+#include "/lib/PostHeader.fsh"
+#include "/lib/GlobalCompositeVariables.fsh"
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
@@ -111,7 +111,7 @@ void CalculateMasks(inout Mask mask, in float materialIDs, const bool encoded) {
 }
 
 
-#include "include/CalculateFogFactor.glsl"
+#include "/lib/CalculateFogFactor.glsl"
 
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
 	float radius = max(176.0, far * sqrt(2.0));

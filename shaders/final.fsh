@@ -1,6 +1,6 @@
 #version 120
 
-#include "include/PostHeader.fsh"
+#include "/lib/PostHeader.fsh"
 
 const bool colortex2MipmapEnabled = true;
 

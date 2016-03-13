@@ -2,8 +2,8 @@
 
 /* DRAWBUFFERS:2 */
 
-#include "include/PostHeader.fsh"
-#include "include/GlobalCompositeVariables.fsh"
+#include "/lib/PostHeader.fsh"
+#include "/lib/GlobalCompositeVariables.fsh"
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
@@ -24,7 +24,8 @@ uniform mat4 shadowModelViewInverse;
 varying vec2 texcoord;
 
 
-#include "/include/ShadingStructs.fsh"
+#include "/lib/Masks.glsl"
+#include "/lib/ShadingStructs.fsh"
 
 
 float GetMaterialIDs(in vec2 coord) {    //Function that retrieves the texture that has all material IDs stored in it
@@ -33,6 +34,10 @@ float GetMaterialIDs(in vec2 coord) {    //Function that retrieves the texture t
 
 vec3 GetDiffuse(in vec2 coord) {
 	return texture2D(colortex2, coord).rgb;
+}
+
+vec3 DecodeColor(in vec3 color) {
+	return pow(color, vec3(2.2)) * 1000.0;
 }
 
 float GetTorchLightmap(in vec2 coord) {
@@ -67,30 +72,37 @@ vec4 GetViewSpacePosition(in vec2 coord, in float depth) {
 }
 
 
-#include "include/ShadingFunctions.fsh"
+#include "/lib/ShadingFunctions.fsh"
 
+
+vec3 GetIndirectLight(in vec2 coord) {
+	return texture2D(colortex4, coord).rgb;
+}
 
 void main() {
-	#ifndef DEFERRED_SHADING    //Program unloading only seems to work with composite, not composite1, unfortunately
-		gl_FragData[0] = vec4(texture2D(colortex2, texcoord));
-		return;
-	#endif
-	
 	Mask mask;
 	CalculateMasks(mask, GetMaterialIDs(texcoord), true);
 	
 	if (mask.sky > 0.5) { gl_FragData[0] = vec4(texture2D(colortex2, texcoord).rgb, 1.0); return; }
 	
-	
-	vec3  diffuse           = GetDiffuse(texcoord);
-	float torchLightmap     = GetTorchLightmap(texcoord);
-	float skyLightmap       = GetSkyLightmap(texcoord);
 	vec3  normal            = GetNormal(texcoord);
 	float depth             = GetDepth(texcoord);
-	vec4  viewSpacePosition = GetViewSpacePosition(texcoord, depth);
+	vec3  diffuse           = GetDiffuse(texcoord);
 	
+	vec3 final = DecodeColor(diffuse);
+	
+	#ifdef DEFERRED_SHADING
+	float torchLightmap     = GetTorchLightmap(texcoord);
+	float skyLightmap       = GetSkyLightmap(texcoord);
+	vec4  viewSpacePosition = GetViewSpacePosition(texcoord, depth);
 	
 	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, normal, viewSpacePosition);
 	
-	gl_FragData[0] = vec4(composite, 1.0);
+	final = composite;
+	#endif
+	
+	final += GetIndirectLight(texcoord);
+	
+	
+	gl_FragData[0] = vec4(EncodeColor(final), 1.0);
 }

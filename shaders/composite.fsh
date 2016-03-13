@@ -5,8 +5,8 @@
 #define SHADOW_MAP_BIAS 0.8    //[0.0 0.6 0.7 0.8 0.85 0.9]
 #define EXTENDED_SHADOW_DISTANCE
 
-#include "include/PostHeader.fsh"
-#include "include/GlobalCompositeVariables.fsh"
+#include "/lib/PostHeader.fsh"
+#include "/lib/GlobalCompositeVariables.fsh"
 
 const bool 		shadowtex1Mipmap   = true;
 const bool 		shadowcolor0Mipmap = true;
@@ -15,6 +15,7 @@ const bool 		shadowcolor1Mipmap = true;
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
+uniform sampler2D colortex4;
 uniform sampler2D gdepthtex;
 uniform sampler2D noisetex;
 uniform sampler2D shadowcolor;
@@ -38,7 +39,7 @@ uniform float sunAngle;
 varying vec2 texcoord;
 
 
-#include "/include/ShadingStructs.fsh"
+#include "/lib/Masks.glsl"
 
 
 float GetMaterialIDs(in vec2 coord) {    //Function that retrieves the texture that has all material IDs stored in it
@@ -46,11 +47,11 @@ float GetMaterialIDs(in vec2 coord) {    //Function that retrieves the texture t
 }
 
 vec3 GetDiffuse(in vec2 coord) {
+	#ifndef DEFERRED_SHADING
+	return texture2D(colortex4, coord).rgb;
+	#endif
+	
 	return texture2D(colortex2, coord).rgb;
-}
-
-float GetTorchLightmap(in vec2 coord) {
-	return texture2D(colortex3, coord).r;
 }
 
 float GetSkyLightmap(in vec2 coord) {
@@ -80,45 +81,6 @@ vec4 GetViewSpacePosition(in vec2 coord, in float depth) {
 	return position;
 }
 
-
-void DecodeMaterialIDs(inout float matID, inout float bit0, inout float bit1, inout float bit2, inout float bit3) {
-	matID *= 255.0;
-	
-	if (matID >= 128.0 && matID < 254.5) {
-		matID -= 128.0;
-		bit0 = 1.0;
-	}
-	
-	if (matID >= 64.0 && matID < 254.5) {
-		matID -= 64.0;
-		bit1 = 1.0;
-	}
-	
-	if (matID >= 32.0 && matID < 254.5) {
-		matID -= 32.0;
-		bit2 = 1.0;
-	}
-	
-	if (matID >= 16.0 && matID < 254.5) {
-		matID -= 16.0;
-		bit3 = 1.0;
-	}
-}
-
-float GetMaterialMask(in float mask, in float materialID) {
-	return float(abs(materialID - mask) < 0.1);
-}
-
-void CalculateMasks(inout Mask mask, in float materialIDs, const bool encoded) {
-	mask.materialIDs = materialIDs;
-	mask.matIDs      = mask.materialIDs;
-	
-	if (encoded) DecodeMaterialIDs(mask.matIDs, mask.bit0, mask.bit1, mask.bit2, mask.bit3);
-	
-	mask.grass  = GetMaterialMask(2, mask.matIDs);
-	mask.leaves = GetMaterialMask(3, mask.matIDs);
-	mask.sky    = GetMaterialMask(255, mask.matIDs);
-}
 
 vec4 ViewSpaceToWorldSpace(in vec4 viewSpacePosition) {
 	return gbufferModelViewInverse * viewSpacePosition;
@@ -187,7 +149,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 			vec3 shadowNormal = texture2DLod(shadowcolor1, mapPos, sampleLod).xyz * 2.0 - 1.0;
 			vec3 sampleDir    = normalize(sampleDiff);
 			
-			float viewNormalCoeff   = max(0.0, dot(      normal, sampleDir * vec3(-1.0, -1.0,  1.0)) * 0.5 + 0.5);
+			float viewNormalCoeff   = max(0.0, dot(      normal, sampleDir * vec3(-1.0, -1.0,  1.0)) * 0.4 + 0.6);
 			float shadowNormalCoeff = max(0.0, dot(shadowNormal, sampleDir * vec3( 1.0,  1.0, -1.0)));
 			
 			float sampleCoeff = viewNormalCoeff * shadowNormalCoeff * distanceCoeff * abs(x);
@@ -212,9 +174,7 @@ void main() {
 	
 	if (mask.sky > 0.5) { gl_FragData[0] = vec4(texture2D(colortex2, texcoord).rgb, 1.0); return; }
 	
-	
 	vec3  diffuse           = GetDiffuse(texcoord);
-	float torchLightmap     = GetTorchLightmap(texcoord);
 	float skyLightmap       = GetSkyLightmap(texcoord);
 	vec3  normal            = GetNormal(texcoord);
 	float depth             = GetDepth(texcoord);
@@ -223,5 +183,5 @@ void main() {
 	
 	vec3 GI = ComputeGlobalIllumination(viewSpacePosition, normal, 16.0, 4.0, noise2D);
 	
-	gl_FragData[0] = vec4(GI, 1.0);
+	gl_FragData[0] = vec4(GI * pow(diffuse, vec3(2.2)), 1.0);
 }

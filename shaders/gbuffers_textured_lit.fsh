@@ -1,11 +1,11 @@
 #version 120
 
-/* DRAWBUFFERS:230 */
+/* DRAWBUFFERS:2304 */
 
 #define DEFERRED_SHADING
 
-#include "include/PostHeader.fsh"
-#include "include/GlobalCompositeVariables.fsh"
+#include "/lib/PostHeader.fsh"
+#include "/lib/GlobalCompositeVariables.fsh"
 
 uniform sampler2D texture;
 uniform sampler2D normals;
@@ -38,7 +38,7 @@ varying float encodedMaterialIDs;
 varying vec4 viewSpacePosition;
 
 
-#include "/include/ShadingStructs.fsh"
+#include "/lib/ShadingStructs.fsh"
 
 vec4 GetDiffuse() {
 	vec4 diffuse = vec4(color.rgb, 1.0);
@@ -57,10 +57,11 @@ vec3 GetNormal() {
 }
 
 
-#include "include/CalculateFogFactor.glsl"
+#include "/lib/CalculateFogFactor.glsl"
 
 #ifndef DEFERRED_SHADING
-#include "include/ShadingFunctions.fsh"
+#include "/lib/Masks.glsl"
+#include "/lib/ShadingFunctions.fsh"
 #endif
 
 void main() {
@@ -79,8 +80,9 @@ void main() {
 		
 		vec3 composite = CalculateShadedFragment(diffuse.xyz, mask, vertLightmap.r, vertLightmap.g, normal, viewSpacePosition);
 		
-		gl_FragData[0] = vec4(composite, diffuse.a);
+		gl_FragData[0] = vec4(EncodeColor(composite), diffuse.a);
 		gl_FragData[1] = vec4(vertLightmap.st, encodedMaterialIDs, 1.0);
 		gl_FragData[2] = vec4(EncodeNormal(normal).xy, 0.0, 1.0);
+		gl_FragData[3] = vec4(diffuse.rgb, 1.0);
 	#endif
 }
