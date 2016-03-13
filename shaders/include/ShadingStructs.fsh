@@ -23,6 +23,7 @@ struct Shading {     //Contains all the light levels, or light intensities, with
 struct Lightmap {    //Contains all the light with color/pigment applied
 	vec3 sunlight;
 	vec3 skylight;
-	vec3 torchlight;
+	vec3 indirect;
 	vec3 ambient;
+	vec3 torchlight;
 };

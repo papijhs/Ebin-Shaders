@@ -1,4 +1,7 @@
 #version 120
+#define COMPOSITE_VERTEX
+
+#define COMPOSITE_SCALE 1.0
 
 varying vec2 texcoord;
 
@@ -26,6 +29,10 @@ float clamp01(in float x) {
 void main() {
 	texcoord    = gl_MultiTexCoord0.st;
 	gl_Position = ftransform();
+	
+	#ifdef COMPOSITE_VERTEX
+		gl_Position.xy = ((gl_Position.xy * 0.5 + 0.5) * COMPOSITE_SCALE) * 2.0 - 1.0;
+	#endif
 	
 	
 //#include "include/PostCalculations.vsh"

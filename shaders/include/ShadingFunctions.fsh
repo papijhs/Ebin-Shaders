@@ -2,6 +2,45 @@
 #define SOFT_SHADOWS
 #define EXTENDED_SHADOW_DISTANCE
 
+void DecodeMaterialIDs(inout float matID, inout float bit0, inout float bit1, inout float bit2, inout float bit3) {
+	matID *= 255.0;
+	
+	if (matID >= 128.0 && matID < 254.5) {
+		matID -= 128.0;
+		bit0 = 1.0;
+	}
+	
+	if (matID >= 64.0 && matID < 254.5) {
+		matID -= 64.0;
+		bit1 = 1.0;
+	}
+	
+	if (matID >= 32.0 && matID < 254.5) {
+		matID -= 32.0;
+		bit2 = 1.0;
+	}
+	
+	if (matID >= 16.0 && matID < 254.5) {
+		matID -= 16.0;
+		bit3 = 1.0;
+	}
+}
+
+float GetMaterialMask(in float mask, in float materialID) {
+	return float(abs(materialID - mask) < 0.1);
+}
+
+void CalculateMasks(inout Mask mask, in float materialIDs, const bool encoded) {
+	mask.materialIDs = materialIDs;
+	mask.matIDs      = mask.materialIDs;
+	
+	if (encoded) DecodeMaterialIDs(mask.matIDs, mask.bit0, mask.bit1, mask.bit2, mask.bit3);
+	
+	mask.grass  = GetMaterialMask(2, mask.matIDs);
+	mask.leaves = GetMaterialMask(3, mask.matIDs);
+	mask.sky    = GetMaterialMask(255, mask.matIDs);
+}
+
 vec4 ViewSpaceToWorldSpace(in vec4 viewSpacePosition) {
 	return gbufferModelViewInverse * viewSpacePosition;
 }
@@ -28,7 +67,7 @@ vec4 BiasShadowProjection(in vec4 position, out float biasCoeff) {
 
 float GetNormalShading(in vec3 normal, in Mask mask) {
 	float shading = max(mask.grass, dot(normal, lightVector));
-		  shading = mix(shading, shading * 0.5 + 0.5, mask.leaves);
+	      shading = mix(shading, shading * 0.5 + 0.5, mask.leaves);
 	
 	return shading;
 }
@@ -70,43 +109,12 @@ float ComputeDirectSunlight(in vec4 position, in float normalShading) {
 	return sunlight;
 }
 
-void DecodeMaterialIDs(inout float matID, inout float bit0, inout float bit1, inout float bit2, inout float bit3) {
-	matID *= 255.0;
+vec3 GetIndirectLight(in vec2 coord) {
+	#ifdef DEFERRED_SHADING
+		return texture2D(colortex4, coord).rgb;
+	#endif
 	
-	if (matID >= 128.0 && matID < 254.5) {
-		matID -= 128.0;
-		bit0 = 1.0;
-	}
-	
-	if (matID >= 64.0 && matID < 254.5) {
-		matID -= 64.0;
-		bit1 = 1.0;
-	}
-	
-	if (matID >= 32.0 && matID < 254.5) {
-		matID -= 32.0;
-		bit2 = 1.0;
-	}
-	
-	if (matID >= 16.0 && matID < 254.5) {
-		matID -= 16.0;
-		bit3 = 1.0;
-	}
-}
-
-float GetMaterialMask(in float mask, in float materialID) {
-	return float(abs(materialID - mask) < 0.1);
-}
-
-void CalculateMasks(inout Mask mask, in float materialIDs, const bool encoded) {
-	mask.materialIDs = materialIDs;
-	mask.matIDs      = mask.materialIDs;
-	
-	if (encoded) DecodeMaterialIDs(mask.matIDs, mask.bit0, mask.bit1, mask.bit2, mask.bit3);
-	
-	mask.grass  = GetMaterialMask(2, mask.matIDs);
-	mask.leaves = GetMaterialMask(3, mask.matIDs);
-	mask.sky    = GetMaterialMask(255, mask.matIDs);
+	return vec3(0.0);
 }
 
 vec3 EncodeColor(in vec3 color) {    //Prepares the color to be sent through a limited dynamic range pipeline
@@ -114,7 +122,7 @@ vec3 EncodeColor(in vec3 color) {    //Prepares the color to be sent through a l
 }
 
 vec3 CalculateShadedFragment(in vec3 diffuse, in Mask mask, in float torchLightmap, in float skyLightmap, in vec3 normal, in vec4 ViewSpacePosition) {
-	diffuse = pow(diffuse, vec3(2.2));    //Give diffuse a linear light falloff (diffuse should not be previously gamma-adjusted)
+	diffuse = pow(diffuse, vec3(2.2));    //Put diffuse into a linear color space (diffuse should not be previously gamma-adjusted)
 	
 	
 	Shading shading;
@@ -134,16 +142,19 @@ vec3 CalculateShadedFragment(in vec3 diffuse, in Mask mask, in float torchLightm
 	Lightmap lightmap;
 	lightmap.sunlight = shading.sunlight * colorSunlight;
 	
-	lightmap.torchlight = shading.torchlight * vec3(1.00, 0.25, 0.05);
-	
 	lightmap.skylight = shading.skylight * sqrt(colorSkylight);
 	
 	lightmap.ambient = shading.ambient * vec3(1.0);
+	
+	lightmap.indirect = GetIndirectLight(texcoord);
+	
+	lightmap.torchlight = shading.torchlight * vec3(1.00, 0.25, 0.05);
 	
 	
 	vec3 composite = (
 	    lightmap.sunlight   * 4.5
 	+   lightmap.skylight   * 0.4
+	+   lightmap.indirect
 	+   lightmap.ambient    * 0.005
 	+   lightmap.torchlight
 	    ) * diffuse;

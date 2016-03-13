@@ -58,8 +58,10 @@ vec3 GetNormal() {
 
 
 #include "include/CalculateFogFactor.glsl"
-#include "include/ShadingFunctions.fsh"
 
+#ifndef DEFERRED_SHADING
+#include "include/ShadingFunctions.fsh"
+#endif
 
 void main() {
 	if (CalculateFogFactor(viewSpacePosition, FOGPOW) >= 1.0) discard;
@@ -75,7 +77,7 @@ void main() {
 		Mask mask;
 		CalculateMasks(mask, materialIDs, false);
 		
-		vec3 composite = CalculateShadedFragment(diffuse.xyz, mask, vertLightmap.s, vertLightmap.t, normal, viewSpacePosition);
+		vec3 composite = CalculateShadedFragment(diffuse.xyz, mask, vertLightmap.r, vertLightmap.g, normal, viewSpacePosition);
 		
 		gl_FragData[0] = vec4(composite, diffuse.a);
 		gl_FragData[1] = vec4(vertLightmap.st, encodedMaterialIDs, 1.0);
