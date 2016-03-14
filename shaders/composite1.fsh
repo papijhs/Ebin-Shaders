@@ -2,8 +2,9 @@
 
 /* DRAWBUFFERS:2 */
 
-#include "/lib/PostHeader.fsh"
-#include "/lib/GlobalCompositeVariables.fsh"
+#define SHADOW_MAP_BIAS 0.8    //[0.0 0.6 0.7 0.8 0.85 0.9]
+#define SOFT_SHADOWS
+#define EXTENDED_SHADOW_DISTANCE
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
@@ -23,29 +24,23 @@ uniform mat4 shadowModelViewInverse;
 
 varying vec2 texcoord;
 
-
+#include "/lib/PostHeader.fsh"
+#include "/lib/GlobalCompositeVariables.fsh"
 #include "/lib/Masks.glsl"
 #include "/lib/ShadingStructs.fsh"
+#include "/lib/ShadingFunctions.fsh"
 
-
-float GetMaterialIDs(in vec2 coord) {    //Function that retrieves the texture that has all material IDs stored in it
-	return texture2D(colortex3, coord).b;
-}
-
-vec3 GetDiffuse(in vec2 coord) {
-	return texture2D(colortex2, coord).rgb;
-}
 
 vec3 DecodeColor(in vec3 color) {
 	return pow(color, vec3(2.2)) * 1000.0;
 }
 
-float GetTorchLightmap(in vec2 coord) {
-	return texture2D(colortex3, coord).r;
+vec3 EncodeColor(in vec3 color) {    // Prepares the color to be sent through a limited dynamic range pipeline
+	return pow(color * 0.001, vec3(1.0 / 2.2));
 }
 
-float GetSkyLightmap(in vec2 coord) {
-	return texture2D(colortex3, coord).g;
+vec3 GetDiffuse(in vec2 coord) {
+	return texture2D(colortex2, coord).rgb;
 }
 
 vec3 DecodeNormal(vec2 encodedNormal) {
@@ -60,41 +55,34 @@ vec3 GetNormal(in vec2 coord) {
 	return DecodeNormal(texture2D(colortex0, coord).xy);
 }
 
-float GetDepth(in vec2 coord) {
-	return texture2D(gdepthtex, coord).x;
-}
-
-vec4 GetViewSpacePosition(in vec2 coord, in float depth) {
+vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
 	vec4 position  = gbufferProjectionInverse * vec4(vec3(coord, depth) * 2.0 - 1.0, 1.0);
 	     position /= position.w;
 	
 	return position;
 }
 
-
-#include "/lib/ShadingFunctions.fsh"
-
-
 vec3 GetIndirectLight(in vec2 coord) {
 	return pow(texture2D(colortex4, coord).rgb, vec3(2.2)) * 1000.0;
 }
 
+
 void main() {
 	Mask mask;
-	CalculateMasks(mask, GetMaterialIDs(texcoord), true);
+	CalculateMasks(mask, texture2D(colortex3, texcoord).b, true);
 	
 	if (mask.sky > 0.5) { gl_FragData[0] = vec4(texture2D(colortex2, texcoord).rgb, 1.0); return; }
 	
-	vec3  normal            = GetNormal(texcoord);
-	float depth             = GetDepth(texcoord);
 	vec3  diffuse           = GetDiffuse(texcoord);
+	vec3  normal            = GetNormal(texcoord);
+	float depth             = texture2D(gdepthtex, texcoord).x;
 	
 	vec3 final = DecodeColor(diffuse);
 	
 	#ifdef DEFERRED_SHADING
-	float torchLightmap     = GetTorchLightmap(texcoord);
-	float skyLightmap       = GetSkyLightmap(texcoord);
-	vec4  viewSpacePosition = GetViewSpacePosition(texcoord, depth);
+	float torchLightmap     = texture2D(colortex3, texcoord).r;
+	float skyLightmap       = texture2D(colortex3, texcoord).g;
+	vec4  viewSpacePosition = CalculateViewSpacePosition(texcoord, depth);
 	
 	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, normal, viewSpacePosition);
 	

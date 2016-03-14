@@ -2,16 +2,13 @@
 
 /* DRAWBUFFERS:4 */
 
-#define SHADOW_MAP_BIAS 0.8    //[0.0 0.6 0.7 0.8 0.85 0.9]
+#define SHADOW_MAP_BIAS 0.8    // [0.0 0.6 0.7 0.8 0.85 0.9]
 #define EXTENDED_SHADOW_DISTANCE
 #define GI_TRANSLUCENCE 0.2    // [0.0 0.2 0.4 0.6 0.8 1.0]
 
-#include "/lib/PostHeader.fsh"
-#include "/lib/GlobalCompositeVariables.fsh"
-
-const bool 		shadowtex1Mipmap   = true;
-const bool 		shadowcolor0Mipmap = true;
-const bool 		shadowcolor1Mipmap = true;
+const bool shadowtex1Mipmap   = true;
+const bool shadowcolor0Mipmap = true;
+const bool shadowcolor1Mipmap = true;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
@@ -39,24 +36,21 @@ uniform float sunAngle;
 
 varying vec2 texcoord;
 
-
+#include "/lib/PostHeader.fsh"
+#include "/lib/GlobalCompositeVariables.fsh"
 #include "/lib/Masks.glsl"
 
 
-float GetMaterialIDs(in vec2 coord) {    //Function that retrieves the texture that has all material IDs stored in it
-	return texture2D(colortex3, coord).b;
+vec3 EncodeColor(in vec3 color) {    // Prepares the color to be sent through a limited dynamic range pipeline
+	return pow(color * 0.001, vec3(1.0 / 2.2));
 }
 
-vec3 GetDiffuse(in vec2 coord) {
+vec3 GetDiffuseLinear(in vec2 coord) {
 	#ifndef DEFERRED_SHADING
-	return texture2D(colortex4, coord).rgb;
+	return pow(texture2D(colortex4, coord).rgb, vec3(2.2));
 	#endif
 	
-	return texture2D(colortex2, coord).rgb;
-}
-
-float GetSkyLightmap(in vec2 coord) {
-	return texture2D(colortex3, coord).g;
+	return pow(texture2D(colortex2, coord).rgb, vec3(2.2));
 }
 
 vec3 DecodeNormal(vec2 encodedNormal) {
@@ -75,13 +69,12 @@ float GetDepth(in vec2 coord) {
 	return texture2D(gdepthtex, coord).x;
 }
 
-vec4 GetViewSpacePosition(in vec2 coord, in float depth) {
+vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
 	vec4 position  = gbufferProjectionInverse * vec4(vec3(coord, depth) * 2.0 - 1.0, 1.0);
 	     position /= position.w;
 	
 	return position;
 }
-
 
 vec4 ViewSpaceToWorldSpace(in vec4 viewSpacePosition) {
 	return gbufferModelViewInverse * viewSpacePosition;
@@ -112,7 +105,6 @@ vec2 BiasShadowMap(in vec2 position, out float ebin) {
 
 vec2 Get2DNoise(in vec2 coord) {
 	coord *= noiseTextureResolution;
-//	coord += frameTimeCounter;
 	return texture2D(noisetex, coord).xy;
 }
 
@@ -176,18 +168,18 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 
 void main() {
 	Mask mask;
-	CalculateMasks(mask, GetMaterialIDs(texcoord), true);
-	
+	CalculateMasks(mask, texture2D(colortex3, texcoord).b, true);
 	if (mask.sky > 0.5) { gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0); return; }
 	
-	vec3  diffuse           = GetDiffuse(texcoord);
-	float skyLightmap       = GetSkyLightmap(texcoord);
+	vec3  diffuse           = GetDiffuseLinear(texcoord);
 	vec3  normal            = GetNormal(texcoord);
-	float depth             = GetDepth(texcoord);
-	vec4  viewSpacePosition = GetViewSpacePosition(texcoord, depth);
+	float depth             = texture2D(gdepthtex, texcoord).x;
+	
+	float skyLightmap       = texture2D(colortex3, texcoord).g;
+	vec4  viewSpacePosition = CalculateViewSpacePosition(texcoord, depth);
 	vec2  noise2D           = Get2DNoise(texcoord);
 	
 	vec3 GI = ComputeGlobalIllumination(viewSpacePosition, normal, 16.0, 4.0, noise2D);
 	
-	gl_FragData[0] = vec4(pow(GI * pow(diffuse, vec3(2.2)) * 0.001, vec3(1.0 / 2.2)), 1.0);
+	gl_FragData[0] = vec4(EncodeColor(GI * diffuse), 1.0);
 }

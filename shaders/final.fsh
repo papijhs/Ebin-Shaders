@@ -10,10 +10,6 @@ uniform sampler2D gdepthtex;
 varying vec2 texcoord;
 
 
-float GetDepth(in vec2 coord) {
-	return texture2D(gdepthtex, coord).x;
-}
-
 vec3 GetColor(in vec2 coord) {
 	return pow(texture2D(colortex2, coord).rgb, vec3(2.2));
 }
@@ -43,8 +39,8 @@ vec3 Uncharted2Tonemap(in vec3 color) {
 	return pow(color, vec3(1.0 / 2.2));
 }
 
+
 void main() {
-//	float depth = GetDepth(texcoord);
 	vec3  color = GetColor(texcoord);
 	      color = Uncharted2Tonemap(color);
 	

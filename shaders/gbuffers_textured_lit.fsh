@@ -3,13 +3,12 @@
 /* DRAWBUFFERS:2304 */
 
 #define DEFERRED_SHADING
-
-#include "/lib/PostHeader.fsh"
-#include "/lib/GlobalCompositeVariables.fsh"
+#define SHADOW_MAP_BIAS 0.8    //[0.0 0.6 0.7 0.8 0.85 0.9]
+#define SOFT_SHADOWS
+#define EXTENDED_SHADOW_DISTANCE
 
 uniform sampler2D texture;
 uniform sampler2D normals;
-uniform sampler2D lightmap;
 
 uniform sampler2DShadow shadow;
 
@@ -21,7 +20,6 @@ uniform mat4 shadowProjection;
 uniform mat4 shadowProjectionInverse;
 uniform mat4 shadowModelViewInverse;
 
-uniform float sunAngle;
 uniform float far;
 
 varying vec3 color;
@@ -37,8 +35,23 @@ varying float encodedMaterialIDs;
 
 varying vec4 viewSpacePosition;
 
-
+#include "/lib/PostHeader.fsh"
+#include "/lib/GlobalCompositeVariables.fsh"
 #include "/lib/ShadingStructs.fsh"
+#include "/lib/CalculateFogFactor.glsl"
+#ifndef DEFERRED_SHADING
+#include "/lib/Masks.glsl"
+#include "/lib/ShadingFunctions.fsh"
+#endif
+
+
+vec3 DecodeColor(in vec3 color) {
+	return pow(color, vec3(2.2)) * 1000.0;
+}
+
+vec3 EncodeColor(in vec3 color) {    // Prepares the color to be sent through a limited dynamic range pipeline
+	return pow(color * 0.001, vec3(1.0 / 2.2));
+}
 
 vec4 GetDiffuse() {
 	vec4 diffuse = vec4(color.rgb, 1.0);
@@ -57,17 +70,10 @@ vec3 GetNormal() {
 }
 
 
-#include "/lib/CalculateFogFactor.glsl"
-
-#ifndef DEFERRED_SHADING
-#include "/lib/Masks.glsl"
-#include "/lib/ShadingFunctions.fsh"
-#endif
-
 void main() {
 	if (CalculateFogFactor(viewSpacePosition, FOGPOW) >= 1.0) discard;
 	
-	vec4 diffuse  = GetDiffuse();  if (diffuse.a < 0.1000003) discard;
+	vec4 diffuse  = GetDiffuse();  if (diffuse.a < 0.1000003) discard;    // Non-transparent surfaces will be invisible if their alpha is less than ~0.1000004. This basically throws out invisible leaf and tall grass fragments.
 	vec3 normal   = GetNormal();
 	
 	#ifdef DEFERRED_SHADING

@@ -1,7 +1,3 @@
-#define SHADOW_MAP_BIAS 0.8    //[0.0 0.6 0.7 0.8 0.85 0.9]
-#define SOFT_SHADOWS
-#define EXTENDED_SHADOW_DISTANCE
-
 vec4 ViewSpaceToWorldSpace(in vec4 viewSpacePosition) {
 	return gbufferModelViewInverse * viewSpacePosition;
 }
@@ -54,28 +50,24 @@ float ComputeDirectSunlight(in vec4 position, in float normalShading) {
 		
 		const float range       = 1.0;
 		const float interval    = 1.0;
-		const float sampleCount = pow(range / interval * 2.0 + 1.0, 2.0);    //Calculating the sample count outside of the for-loop is generally faster.
+		const float sampleCount = pow(range / interval * 2.0 + 1.0, 2.0);    // Calculating the sample count outside of the for-loop is generally faster.
 		
 		for (float i = -range; i <= range; i += interval)
 			for (float j = -range; j <= range; j += interval)
 				sunlight += shadow2D(shadow, vec3(position.xy + vec2(i, j) * spread, position.z)).x;
 		
-		sunlight /= sampleCount;    //Average the samples by dividing the sum by the sample count.
+		sunlight /= sampleCount;    // Average the samples by dividing the sum by the sample count.
 	#else
 		float sunlight = shadow2D(shadow, position.xyz).x;
 	#endif
 	
-	sunlight *= sunlight;    //Fatten the shadow up to soften its penumbra
+	sunlight *= sunlight;    // Fatten the shadow up to soften its penumbra
 	
 	return sunlight;
 }
 
-vec3 EncodeColor(in vec3 color) {    //Prepares the color to be sent through a limited dynamic range pipeline
-	return pow(color * 0.001, vec3(1.0 / 2.2));
-}
-
 vec3 CalculateShadedFragment(in vec3 diffuse, in Mask mask, in float torchLightmap, in float skyLightmap, in vec3 normal, in vec4 ViewSpacePosition) {
-	diffuse = pow(diffuse, vec3(2.2));    //Put diffuse into a linear color space (diffuse should not be previously gamma-adjusted)
+	diffuse = pow(diffuse, vec3(2.2));    // Put diffuse into a linear color space (diffuse should not be previously gamma-adjusted)
 	
 	
 	Shading shading;
