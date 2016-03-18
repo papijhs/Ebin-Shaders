@@ -150,7 +150,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 			float viewNormalCoeff   = max(0.0, dot(      normal, sampleDir * vec3(-1.0, -1.0,  1.0)) * (1.0 - GI_TRANSLUCENCE) + GI_TRANSLUCENCE);
 			float shadowNormalCoeff = max(0.0, dot(shadowNormal, sampleDir * vec3( 1.0,  1.0, -1.0)));
 			
-			float sampleCoeff = viewNormalCoeff * shadowNormalCoeff * distanceCoeff * abs(x);
+			float sampleCoeff = viewNormalCoeff * shadowNormalCoeff * distanceCoeff * abs(a.x);
 			
 			if (sampleCoeff < 0.001 * sampleCount) continue;
 			
