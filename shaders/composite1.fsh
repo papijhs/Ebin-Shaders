@@ -6,6 +6,8 @@
 #define SOFT_SHADOWS
 #define EXTENDED_SHADOW_DISTANCE
 
+const bool colortex4MipmapEnabled = true;
+
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
@@ -21,6 +23,9 @@ uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 uniform mat4 shadowProjectionInverse;
 uniform mat4 shadowModelViewInverse;
+
+uniform float viewWidth;
+uniform float viewHeight;
 
 varying vec2 texcoord;
 
@@ -63,7 +68,7 @@ vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
 }
 
 vec3 GetIndirectLight(in vec2 coord) {
-	return pow(texture2D(colortex4, coord).rgb, vec3(2.2)) * 1000.0;
+	return DecodeColor(texture2D(colortex4, coord).rgb);
 }
 
 

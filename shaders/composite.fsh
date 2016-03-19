@@ -84,18 +84,24 @@ vec4 WorldSpaceToShadowSpace(in vec4 worldSpacePosition) {
 	return shadowProjection * shadowModelView * worldSpacePosition;
 }
 
-vec2 BiasShadowMap(in vec2 position, out float ebin) {
+float GetShadowBias(in vec2 shadowProjection) {
+	#ifdef EXTENDED_SHADOW_DISTANCE
+		shadowProjection *= 1.165;
+		shadowProjection *= shadowProjection;
+		shadowProjection *= shadowProjection;
+		shadowProjection *= shadowProjection;
+		
+		return sqrt(sqrt(sqrt(shadowProjection.x + shadowProjection.y))) * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
+	#else
+		return length(shadowProjection) * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
+	#endif
+}
+
+vec2 BiasShadowMap(in vec2 position, out float biasCoeff) {
 	position = position * 2.0 - 1.0;
 	
-	#ifdef EXTENDED_SHADOW_DISTANCE
-		vec2 pos = abs(position * 1.165);
-		float biasCoeff = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
-	#else
-		float biasCoeff = length(position);
-	#endif
+	biasCoeff = GetShadowBias(position);
 	
-	biasCoeff = biasCoeff * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
-	ebin = biasCoeff;
 	position /= biasCoeff;
 	
 	position = position * 0.5 + 0.5;
@@ -114,9 +120,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	position = WorldSpaceToShadowSpace(ViewSpaceToWorldSpace(position)) * 0.5 + 0.5;    //Convert the view-space position to shadow-map coordinates (unbiased)
 	normal   = (shadowModelView * gbufferModelViewInverse * vec4(normal, 0.0)).xyz;    //Convert the normal from view-space to shadow-view-space
 	
-	vec2 pos = abs(position.xy * 1.165);
-	float biasCoeff = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
-	biasCoeff = biasCoeff * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
+	float biasCoeff = GetShadowBias(position.xy);
 	
 	vec3 GI = vec3(0.0);
 	
@@ -124,33 +128,39 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	const float scale       = radius / shadowMapResolution;
 	const float sampleCount = pow(1.0 / interval * 2.0 + 1.0, 2.0);
 	
+	
 	for(float x = -1.0; x <= 1.0; x += interval) {
 		for(float y = -1.0; y <= 1.0; y += interval) {
-			vec2 a = (vec2(x, y) + noise);
-			vec2 offset    = vec2(cos(PI * a.y), sin(PI * a.y)) * a.x * scale  / biasCoeff;
+			vec2 polar = vec2(x, y) + noise;
+			
+			vec2 offset  = vec2(cos(PI * polar.y), sin(PI * polar.y)) * polar.x;
+			     offset *= scale / biasCoeff;
+			
 			vec3 samplePos = vec3(position.xy + offset, 0.0);
 			
-			float ebin;
-			vec2 mapPos    = BiasShadowMap(samplePos.xy, ebin);
+			float sampleBiasCoeff;
+			vec2 mapPos = BiasShadowMap(samplePos.xy, sampleBiasCoeff);
 			
-			float sampleLod = 5.0 * (1.0 - ebin);
+			float sampleLod = 5.0 * (1.0 - sampleBiasCoeff);
 			
 			samplePos.z = texture2DLod(shadowtex1, mapPos, sampleLod).x;
 			samplePos.z = ((samplePos.z * 2.0 - 1.0) * 4.0) * 0.5 + 0.5;
 			
 			vec3 sampleDiff = position.xyz - samplePos.xyz;
 			
-			float distanceCoeff  = length(sampleDiff) * radius;
+			float distanceCoeff  = length(sampleDiff) * radius * 4.0;
 			      distanceCoeff *= distanceCoeff;
 			      distanceCoeff  = clamp(1.0 / distanceCoeff, 0.0, 1.0);
 			
-			vec3 shadowNormal = texture2DLod(shadowcolor1, mapPos, sampleLod).xyz * 2.0 - 1.0;
-			vec3 sampleDir    = normalize(sampleDiff);
+			float sampleRadiusCoeff = abs(polar.x);
 			
-			float viewNormalCoeff   = max(0.0, dot(      normal, sampleDir * vec3(-1.0, -1.0,  1.0)) * (1.0 - GI_TRANSLUCENCE) + GI_TRANSLUCENCE);
+			vec3 sampleDir    = normalize(sampleDiff);
+			vec3 shadowNormal = texture2DLod(shadowcolor1, mapPos, sampleLod).xyz * 2.0 - 1.0;
+			
+			float viewNormalCoeff   = max(0.0, dot(      normal, sampleDir * vec3(-1.0, -1.0,  1.0))) * (1.0 - GI_TRANSLUCENCE) + GI_TRANSLUCENCE;
 			float shadowNormalCoeff = max(0.0, dot(shadowNormal, sampleDir * vec3( 1.0,  1.0, -1.0)));
 			
-			float sampleCoeff = viewNormalCoeff * shadowNormalCoeff * distanceCoeff * abs(a.x);
+			float sampleCoeff = viewNormalCoeff * shadowNormalCoeff * distanceCoeff * sampleRadiusCoeff;
 			
 			if (sampleCoeff < 0.001 * sampleCount) continue;
 			
