@@ -24,6 +24,7 @@ uniform float far;
 
 varying vec2 texcoord;
 
+#include "/lib/Settings.txt"
 #include "/lib/PostHeader.fsh"
 #include "/lib/GlobalCompositeVariables.fsh"
 #include "/lib/CalculateFogFactor.glsl"

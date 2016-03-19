@@ -1,7 +1,7 @@
 #version 120
-#define COMPOSITE_VERTEX
+#define COMPOSITE0_VERTEX
 
-#define COMPOSITE_SCALE 1.0
+#define COMPOSITE0_SCALE 1.0
 
 varying vec2 texcoord;
 
@@ -30,8 +30,8 @@ void main() {
 	texcoord    = gl_MultiTexCoord0.st;
 	gl_Position = ftransform();
 	
-	#ifdef COMPOSITE_VERTEX
-		gl_Position.xy = ((gl_Position.xy * 0.5 + 0.5) * COMPOSITE_SCALE) * 2.0 - 1.0;
+	#ifdef COMPOSITE0_VERTEX
+		gl_Position.xy = ((gl_Position.xy * 0.5 + 0.5) * COMPOSITE0_SCALE) * 2.0 - 1.0;
 	#endif
 	
 	

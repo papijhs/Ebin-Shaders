@@ -2,10 +2,6 @@
 
 /* DRAWBUFFERS:4 */
 
-#define SHADOW_MAP_BIAS 0.8    // [0.0 0.6 0.7 0.8 0.85 0.9]
-#define EXTENDED_SHADOW_DISTANCE
-#define GI_TRANSLUCENCE 0.2    // [0.0 0.2 0.4 0.6 0.8 1.0]
-
 const bool shadowtex1Mipmap   = true;
 const bool shadowcolor0Mipmap = true;
 const bool shadowcolor1Mipmap = true;
@@ -36,6 +32,7 @@ uniform float sunAngle;
 
 varying vec2 texcoord;
 
+#include "/lib/Settings.txt"
 #include "/lib/PostHeader.fsh"
 #include "/lib/GlobalCompositeVariables.fsh"
 #include "/lib/Masks.glsl"

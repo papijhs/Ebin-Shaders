@@ -2,10 +2,6 @@
 
 /* DRAWBUFFERS:2 */
 
-#define SHADOW_MAP_BIAS 0.8    //[0.0 0.6 0.7 0.8 0.85 0.9]
-#define SOFT_SHADOWS
-#define EXTENDED_SHADOW_DISTANCE
-
 const bool colortex4MipmapEnabled = true;
 
 uniform sampler2D colortex0;
@@ -29,6 +25,7 @@ uniform float viewHeight;
 
 varying vec2 texcoord;
 
+#include "/lib/Settings.txt"
 #include "/lib/PostHeader.fsh"
 #include "/lib/GlobalCompositeVariables.fsh"
 #include "/lib/Masks.glsl"

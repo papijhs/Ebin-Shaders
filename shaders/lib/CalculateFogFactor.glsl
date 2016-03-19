@@ -1,6 +1,3 @@
-#define FOGPOW 2.0
-#define FOG_ENABLED
-
 float CalculateFogFactor(in vec4 position, in float power) {
 	#ifndef FOG_ENABLED
 	return 0.0;

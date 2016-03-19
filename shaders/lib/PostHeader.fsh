@@ -1,5 +1,3 @@
-#define DEFERRED_SHADING
-
 const int   shadowMapResolution      = 4096;    //[1024 2048 3072 4096]
 const float sunPathRotation          = 40.0;
 const float shadowDistance           = 140.0;

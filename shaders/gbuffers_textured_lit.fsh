@@ -2,11 +2,6 @@
 
 /* DRAWBUFFERS:2304 */
 
-#define DEFERRED_SHADING
-#define SHADOW_MAP_BIAS 0.8    //[0.0 0.6 0.7 0.8 0.85 0.9]
-#define SOFT_SHADOWS
-#define EXTENDED_SHADOW_DISTANCE
-
 uniform sampler2D texture;
 uniform sampler2D normals;
 
@@ -35,6 +30,7 @@ varying float encodedMaterialIDs;
 
 varying vec4 viewSpacePosition;
 
+#include "/lib/Settings.txt"
 #include "/lib/PostHeader.fsh"
 #include "/lib/GlobalCompositeVariables.fsh"
 #include "/lib/ShadingStructs.fsh"
