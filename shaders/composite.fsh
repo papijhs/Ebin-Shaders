@@ -149,7 +149,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 			      distanceCoeff *= distanceCoeff;
 			      distanceCoeff  = clamp(1.0 / distanceCoeff, 0.0, 1.0);
 			
-			float sampleRadiusCoeff = abs(polar.x);
+			float sampleRadiusCoeff = sqrt(abs(polar.x));
 			
 			vec3 sampleDir    = normalize(sampleDiff);
 			vec3 shadowNormal = texture2DLod(shadowcolor1, mapPos, sampleLod).xyz * 2.0 - 1.0;
