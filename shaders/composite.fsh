@@ -121,8 +121,9 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	
 	vec3 GI = vec3(0.0);
 	
+	const float brightness  = 10.0 * radius;
 	const float interval    = 1.0 / quality;
-	const float scale       = radius / shadowMapResolution;
+	const float scale       = 2.7 * radius / shadowMapResolution;
 	const float sampleCount = pow(1.0 / interval * 2.0 + 1.0, 2.0);
 	
 	
@@ -138,14 +139,14 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 			float sampleBiasCoeff;
 			vec2 mapPos = BiasShadowMap(samplePos.xy, sampleBiasCoeff);
 			
-			float sampleLod = 5.0 * (1.0 - sampleBiasCoeff);
+			float sampleLod = 3.0 * (1.0 - sampleBiasCoeff) + 2.0;
 			
 			samplePos.z = texture2DLod(shadowtex1, mapPos, sampleLod).x;
 			samplePos.z = ((samplePos.z * 2.0 - 1.0) * 4.0) * 0.5 + 0.5;
 			
-			vec3 sampleDiff = position.xyz - samplePos.xyz;
+			vec3 sampleDiff  = position.xyz - samplePos.xyz;
 			
-			float distanceCoeff  = length(sampleDiff) * radius * 8.0;
+			float distanceCoeff  = length(sampleDiff) * radius * 2.7;
 			      distanceCoeff *= distanceCoeff;
 			      distanceCoeff  = clamp(1.0 / distanceCoeff, 0.0, 1.0);
 			
@@ -157,9 +158,9 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 			float viewNormalCoeff   = max(0.0, dot(      normal, sampleDir * vec3(-1.0, -1.0,  1.0))) * (1.0 - GI_TRANSLUCENCE) + GI_TRANSLUCENCE;
 			float shadowNormalCoeff = max(0.0, dot(shadowNormal, sampleDir * vec3( 1.0,  1.0, -1.0)));
 			
-			float sampleCoeff =  sqrt(viewNormalCoeff * shadowNormalCoeff) * distanceCoeff * sampleRadiusCoeff;
+			float sampleCoeff = sqrt(viewNormalCoeff * shadowNormalCoeff) * distanceCoeff * sampleRadiusCoeff;
 			
-			if (sampleCoeff < 0.001 * sampleCount) continue;
+			if (sampleCoeff < 0.001 * sampleCount / brightness) continue;
 			
 			vec3 flux = pow(1.0 - texture2DLod(shadowcolor, mapPos, sampleLod).rgb, vec3(2.2));
 			
@@ -169,7 +170,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	
 	GI /= sampleCount;
 	
-	return GI * 5.0 * radius;
+	return GI * brightness;
 }
 
 
