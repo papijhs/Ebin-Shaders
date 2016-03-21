@@ -1,7 +1,5 @@
 #version 120
 
-/* DRAWBUFFERS:2 */
-
 const bool colortex4MipmapEnabled = true;
 
 uniform sampler2D colortex0;
@@ -20,8 +18,12 @@ uniform mat4 shadowProjection;
 uniform mat4 shadowProjectionInverse;
 uniform mat4 shadowModelViewInverse;
 
+uniform vec3 cameraPosition;
+
 uniform float viewWidth;
 uniform float viewHeight;
+
+uniform float far;
 
 varying vec2 texcoord;
 
@@ -31,6 +33,7 @@ varying vec2 texcoord;
 #include "/lib/Masks.glsl"
 #include "/lib/ShadingStructs.fsh"
 #include "/lib/ShadingFunctions.fsh"
+#include "/lib/CalculateFogFactor.glsl"
 
 
 vec3 DecodeColor(in vec3 color) {
@@ -57,6 +60,10 @@ vec3 GetNormal(in vec2 coord) {
 	return DecodeNormal(texture2D(colortex0, coord).xy);
 }
 
+float GetDepth(in vec2 coord) {
+	return texture2D(gdepthtex, coord).x;
+}
+
 vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
 	vec4 position  = gbufferProjectionInverse * vec4(vec3(coord, depth) * 2.0 - 1.0, 1.0);
 	     position /= position.w;
@@ -68,23 +75,70 @@ vec3 GetIndirectLight(in vec2 coord) {
 	return DecodeColor(texture2D(colortex4, coord).rgb);
 }
 
+vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
+	float radius = max(176.0, far * sqrt(2.0));
+	const float horizonLevel = 64.0;
+	
+	vec3 worldPosition = (gbufferModelViewInverse * vec4(normalize(viewSpacePosition.xyz), 0.0)).xyz;
+	     worldPosition.y = radius * worldPosition.y / length(worldPosition.xz) + cameraPosition.y - horizonLevel;
+	     worldPosition.xz = normalize(worldPosition.xz) * radius;
+	
+	float dotUP = dot(normalize(worldPosition), vec3(0.0, 1.0, 0.0));
+	
+	float horizonCoeff  = dotUP * 0.65;
+	      horizonCoeff  = abs(horizonCoeff);
+	      horizonCoeff  = pow(1.0 - horizonCoeff, 3.0) / 0.65 * 5.0 + 0.35;
+	
+	vec3 color = colorSkylight * horizonCoeff;
+	
+	return color;
+}
+
+vec4 CalculateSky(in vec4 viewSpacePosition, in Mask mask) {
+	float fogFactor = max(CalculateFogFactor(viewSpacePosition, FOGPOW), mask.sky);
+	vec3  gradient  = CalculateSkyGradient(viewSpacePosition);
+	vec4  composite;
+	
+	
+	composite.a   = fogFactor;
+	composite.rgb = gradient;
+	
+	
+	return vec4(composite);
+}
+
+vec3 Uncharted2Tonemap(in vec3 color) {
+	const float A = 0.15, B = 0.5, C = 0.1, D = 0.2, E = 0.02, F = 0.3, W = 11.2;
+	const float whiteScale = 1.0 / (((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F);
+	const float ExposureBias = 2.3;
+	
+	vec3 curr = ExposureBias * color;
+	     curr = ((curr * (A * curr + C * B) + D * E) / (curr * (A * curr + B) + D * F)) - E / F;
+	
+	color = curr * whiteScale;
+	
+	return pow(color, vec3(1.0 / 2.2));
+}
+
 
 void main() {
 	Mask mask;
 	CalculateMasks(mask, texture2D(colortex3, texcoord).b, true);
 	
-	if (mask.sky > 0.5) { gl_FragData[0] = vec4(texture2D(colortex2, texcoord).rgb, 1.0); return; }
+//	if (mask.sky > 0.5) { gl_FragData[0] = vec4(texture2D(colortex2, texcoord).rgb, 1.0); return; }
 	
-	vec3  diffuse           = GetDiffuse(texcoord);
-	vec3  normal            = GetNormal(texcoord);
-	float depth             = texture2D(gdepthtex, texcoord).x;
+	
+	vec3  diffuse           = (mask.sky < 0.5 ? GetDiffuse(texcoord) : vec3(0.0));
+	float depth             = (mask.sky < 0.5 ?   GetDepth(texcoord) : 1.0);
+	
+	vec4  viewSpacePosition = CalculateViewSpacePosition(texcoord, depth);
 	
 	vec3 final = DecodeColor(diffuse);
 	
 	#ifdef DEFERRED_SHADING
+	vec3  normal            = (mask.sky < 0.5 ?  GetNormal(texcoord) : vec3(0.0));
 	float torchLightmap     = texture2D(colortex3, texcoord).r;
 	float skyLightmap       = texture2D(colortex3, texcoord).g;
-	vec4  viewSpacePosition = CalculateViewSpacePosition(texcoord, depth);
 	
 	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, normal, viewSpacePosition);
 	
@@ -93,6 +147,10 @@ void main() {
 	
 	final += GetIndirectLight(texcoord);
 	
+	vec4 sky = CalculateSky(viewSpacePosition, mask);
 	
-	gl_FragData[0] = vec4(EncodeColor(final), 1.0);
+	final = mix(final, sky.rgb, sky.a);
+	
+	
+	gl_FragData[0] = vec4(Uncharted2Tonemap(final), 1.0);
 }
