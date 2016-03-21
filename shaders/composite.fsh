@@ -1,6 +1,6 @@
 #version 120
 
-/* DRAWBUFFERS:4 */
+/* DRAWBUFFERS:45 */
 
 const bool shadowtex1Mipmap   = true;
 const bool shadowcolor0Mipmap = true;
@@ -29,6 +29,7 @@ uniform vec3 cameraPosition;
 
 uniform float frameTimeCounter;
 uniform float sunAngle;
+uniform float far;
 
 varying vec2 texcoord;
 
@@ -36,6 +37,7 @@ varying vec2 texcoord;
 #include "/lib/PostHeader.fsh"
 #include "/lib/GlobalCompositeVariables.fsh"
 #include "/lib/Masks.glsl"
+#include "/lib/CalculateFogFactor.glsl"
 
 
 vec3 EncodeColor(in vec3 color) {    // Prepares the color to be sent through a limited dynamic range pipeline
@@ -108,7 +110,7 @@ vec2 BiasShadowMap(in vec2 position, out float biasCoeff) {
 
 vec2 Get2DNoise(in vec2 coord) {
 	coord *= noiseTextureResolution;
-	return texture2D(noisetex, coord).xy;
+	return texture2D(noisetex, coord).xy * 2.0 - 1.0;
 }
 
 #define PI 3.14159
@@ -121,7 +123,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	
 	vec3 GI = vec3(0.0);
 	
-	const float brightness  = 10.0 * radius;
+	const float brightness  = 2.0 * radius;
 	const float interval    = 1.0 / quality;
 	const float scale       = 2.7 * radius / shadowMapResolution;
 	const float sampleCount = pow(1.0 / interval * 2.0 + 1.0, 2.0);
@@ -146,7 +148,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 			
 			vec3 sampleDiff  = position.xyz - samplePos.xyz;
 			
-			float distanceCoeff  = length(sampleDiff) * radius * 2.7;
+			float distanceCoeff  = length(sampleDiff) * radius  ;
 			      distanceCoeff *= distanceCoeff;
 			      distanceCoeff  = clamp(1.0 / distanceCoeff, 0.0, 1.0);
 			
@@ -173,21 +175,72 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	return GI * brightness;
 }
 
+vec4 BiasShadowProjection(in vec4 position, out float biasCoeff) {
+	#ifdef EXTENDED_SHADOW_DISTANCE
+		vec2 pos = abs(position.xy * 1.165);
+		biasCoeff = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
+	#else
+		biasCoeff = length(position.xy);
+	#endif
+	
+	biasCoeff = biasCoeff * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
+	
+	position.xy /= biasCoeff;
+	position.z /= 4.0;
+	
+	return position;
+}
+
+float ComputeVolumetricLight(in vec4 viewSpacePosition, in float noise1D) {
+	
+	float fog = 0.0;
+	float sampleCount = 0.0;
+	float rayIncrement = 0.25;
+	
+	float biasCoeff;
+	
+	vec3 rayStep = normalize(viewSpacePosition.xyz + vec3(0.0, 0.0, noise1D));
+
+	vec3 ray = rayStep * gl_Fog.start;
+	
+	while (length(ray) < length(viewSpacePosition.xyz)) {
+		sampleCount++;
+		
+		ray += rayStep * rayIncrement;
+		rayIncrement *= 1.01;
+		
+		vec3 samplePosition = BiasShadowProjection(WorldSpaceToShadowSpace(ViewSpaceToWorldSpace(vec4(ray, 1.0))), biasCoeff).xyz * 0.5 + 0.5;
+		
+		float sample = shadow2D(shadow, samplePosition).x * rayIncrement;
+		
+		float sampleFog = CalculateFogFactor(vec4(ray, 1.0), FOGPOW);
+		
+		fog += sqrt(sample * sampleFog);
+	}
+	
+	return fog / sampleCount * 4.0;
+}
+
 
 void main() {
 	Mask mask;
 	CalculateMasks(mask, texture2D(colortex3, texcoord).b, true);
-	if (mask.sky > 0.5) { gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0); return; }
 	
-	vec3  diffuse           = GetDiffuseLinear(texcoord);
+	if (mask.sky > 0.5) { gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0); gl_FragData[1] = vec4(1.0, 0.0, 0.0, 1.0); return; }
+	
 	vec3  normal            = GetNormal(texcoord);
 	float depth             = texture2D(gdepthtex, texcoord).x;
-	
-	float skyLightmap       = texture2D(colortex3, texcoord).g;
 	vec4  viewSpacePosition = CalculateViewSpacePosition(texcoord, depth);
+	
 	vec2  noise2D           = Get2DNoise(texcoord);
+	
+	vec3  diffuse           = GetDiffuseLinear(texcoord);
+	float skyLightmap       = texture2D(colortex3, texcoord).g;
 	
 	vec3 GI = ComputeGlobalIllumination(viewSpacePosition, normal, 16.0, 4.0, noise2D);
 	
+	float VL = ComputeVolumetricLight(viewSpacePosition, noise2D.x);
+	
 	gl_FragData[0] = vec4(EncodeColor(GI * diffuse), 1.0);
+	gl_FragData[1] = vec4(VL, 0.0, 0.0, 1.0);
 }

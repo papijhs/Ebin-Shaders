@@ -6,6 +6,7 @@ uniform sampler2D colortex0;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
+uniform sampler2D colortex5;
 uniform sampler2D gdepthtex;
 uniform sampler2D shadowcolor;
 uniform sampler2DShadow shadow;
@@ -75,6 +76,10 @@ vec3 GetIndirectLight(in vec2 coord) {
 	return DecodeColor(texture2D(colortex4, coord).rgb);
 }
 
+float GetVolLight(in vec2 coord) {
+	return texture2D(colortex5, coord).r;
+}
+
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
 	float radius = max(176.0, far * sqrt(2.0));
 	const float horizonLevel = 64.0;
@@ -125,32 +130,30 @@ void main() {
 	Mask mask;
 	CalculateMasks(mask, texture2D(colortex3, texcoord).b, true);
 	
-//	if (mask.sky > 0.5) { gl_FragData[0] = vec4(texture2D(colortex2, texcoord).rgb, 1.0); return; }
-	
-	
-	vec3  diffuse           = (mask.sky < 0.5 ? GetDiffuse(texcoord) : vec3(0.0));
+	vec3  diffuse           = (mask.sky < 0.5 ? GetDiffuse(texcoord) : vec3(0.0));    // Ternary statements avoid redundant texture lookups for sky pixels.
+	vec3  normal            = (mask.sky < 0.5 ?  GetNormal(texcoord) : vec3(0.0));
 	float depth             = (mask.sky < 0.5 ?   GetDepth(texcoord) : 1.0);
 	
 	vec4  viewSpacePosition = CalculateViewSpacePosition(texcoord, depth);
 	
-	vec3 final = DecodeColor(diffuse);
-	
 	#ifdef DEFERRED_SHADING
-	vec3  normal            = (mask.sky < 0.5 ?  GetNormal(texcoord) : vec3(0.0));
 	float torchLightmap     = texture2D(colortex3, texcoord).r;
 	float skyLightmap       = texture2D(colortex3, texcoord).g;
 	
 	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, normal, viewSpacePosition);
 	
-	final = composite;
+	vec3 final = composite;
+	#else
+	vec3 final = DecodeColor(diffuse);
 	#endif
 	
 	final += GetIndirectLight(texcoord);
 	
 	vec4 sky = CalculateSky(viewSpacePosition, mask);
 	
-	final = mix(final, sky.rgb, sky.a);
+	float VL = GetVolLight(texcoord);
 	
+	final = mix(final, sky.rgb, min(1.0, (sky.a * VL) + pow(sky.a, 3)));// + sky.a * sky.a * sky.a * sky.a));
 	
 	gl_FragData[0] = vec4(Uncharted2Tonemap(final), 1.0);
 }
