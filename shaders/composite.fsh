@@ -116,14 +116,14 @@ vec2 Get2DNoise(in vec2 coord) {
 #define PI 3.14159
 
 vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float radius, const in float quality, in vec2 noise) {
-	position = WorldSpaceToShadowSpace(ViewSpaceToWorldSpace(position)) * 0.5 + 0.5;    //Convert the view-space position to shadow-map coordinates (unbiased)
-	normal   = (shadowModelView * gbufferModelViewInverse * vec4(normal, 0.0)).xyz;    //Convert the normal from view-space to shadow-view-space
+	position = WorldSpaceToShadowSpace(ViewSpaceToWorldSpace(position)) * 0.5 + 0.5;    // Convert the view-space position to shadow-map coordinates (unbiased)
+	normal   = (shadowModelView * gbufferModelViewInverse * vec4(normal, 0.0)).xyz;     // Convert the normal from view-space to shadow-view-space
 	
 	float biasCoeff = GetShadowBias(position.xy);
 	
 	vec3 GI = vec3(0.0);
 	
-	const float brightness  = 2.0 * radius;
+	const float brightness  = 5.0 * radius;
 	const float interval    = 1.0 / quality;
 	const float scale       = 2.7 * radius / shadowMapResolution;
 	const float sampleCount = pow(1.0 / interval * 2.0 + 1.0, 2.0);
@@ -146,9 +146,9 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 			samplePos.z = texture2DLod(shadowtex1, mapPos, sampleLod).x;
 			samplePos.z = ((samplePos.z * 2.0 - 1.0) * 4.0) * 0.5 + 0.5;
 			
-			vec3 sampleDiff  = position.xyz - samplePos.xyz;
+			vec3 sampleDiff = position.xyz - samplePos.xyz;
 			
-			float distanceCoeff  = length(sampleDiff) * radius  ;
+			float distanceCoeff  = length(sampleDiff * vec3(1.0, 1.0, 4.0)) * radius;
 			      distanceCoeff *= distanceCoeff;
 			      distanceCoeff  = clamp(1.0 / distanceCoeff, 0.0, 1.0);
 			

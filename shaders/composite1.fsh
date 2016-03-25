@@ -130,7 +130,7 @@ void main() {
 	Mask mask;
 	CalculateMasks(mask, texture2D(colortex3, texcoord).b, true);
 	
-	vec3  diffuse           = (mask.sky < 0.5 ? GetDiffuse(texcoord) : vec3(0.0));    // Ternary statements avoid redundant texture lookups for sky pixels.
+	vec3  diffuse           = (mask.sky < 0.5 ? GetDiffuse(texcoord) : vec3(0.0));    // These ternary statements avoid redundant texture lookups for sky pixels.
 	vec3  normal            = (mask.sky < 0.5 ?  GetNormal(texcoord) : vec3(0.0));
 	float depth             = (mask.sky < 0.5 ?   GetDepth(texcoord) : 1.0);
 	
