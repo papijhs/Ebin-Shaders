@@ -44,14 +44,6 @@ vec3 EncodeColor(in vec3 color) {    // Prepares the color to be sent through a 
 	return pow(color * 0.001, vec3(1.0 / 2.2));
 }
 
-vec3 GetDiffuseLinear(in vec2 coord) {
-	#ifndef DEFERRED_SHADING
-	return pow(texture2D(colortex4, coord).rgb, vec3(2.2));
-	#endif
-	
-	return pow(texture2D(colortex2, coord).rgb, vec3(2.2));
-}
-
 vec3 DecodeNormal(vec2 encodedNormal) {
 	encodedNormal = encodedNormal * 2.0 - 1.0;
     vec2 fenc = encodedNormal * 4.0 - 2.0;
@@ -86,7 +78,7 @@ vec4 WorldSpaceToShadowSpace(in vec4 worldSpacePosition) {
 float GetShadowBias(in vec2 shadowProjection) {
 	#ifdef EXTENDED_SHADOW_DISTANCE
 		shadowProjection *= 1.165;
-		shadowProjection *= shadowProjection;
+		shadowProjection *= shadowProjection;    // These next 3 lines and the triple sqrt() get a squircular (bevelled square) length formula (rather than the generic circular length formula most shaders use).
 		shadowProjection *= shadowProjection;
 		shadowProjection *= shadowProjection;
 		
@@ -96,16 +88,9 @@ float GetShadowBias(in vec2 shadowProjection) {
 	#endif
 }
 
-vec2 BiasShadowMap(in vec2 position, out float biasCoeff) {
-	position = position * 2.0 - 1.0;
-	
-	biasCoeff = GetShadowBias(position);
-	
-	position /= biasCoeff;
-	
-	position = position * 0.5 + 0.5;
-	
-	return position;
+vec2 BiasShadowMap(in vec2 shadowProjection, out float biasCoeff) {
+	biasCoeff = GetShadowBias(shadowProjection);
+	return shadowProjection / biasCoeff;
 }
 
 vec2 Get2DNoise(in vec2 coord) {
@@ -123,7 +108,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	
 	vec3 GI = vec3(0.0);
 	
-	const float brightness  = 5.0 * radius;
+	const float brightness  = 10.0 * radius;
 	const float interval    = 1.0 / quality;
 	const float scale       = 2.7 * radius / shadowMapResolution;
 	const float sampleCount = pow(1.0 / interval * 2.0 + 1.0, 2.0);
@@ -139,7 +124,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 			vec3 samplePos = vec3(position.xy + offset, 0.0);
 			
 			float sampleBiasCoeff;
-			vec2 mapPos = BiasShadowMap(samplePos.xy, sampleBiasCoeff);
+			vec2 mapPos = BiasShadowMap(samplePos.xy * 2.0 - 1.0, sampleBiasCoeff) * 0.5 + 0.5;
 			
 			float sampleLod = 3.0 * (1.0 - sampleBiasCoeff) + 2.0;
 			
@@ -234,13 +219,9 @@ void main() {
 	
 	vec2  noise2D           = Get2DNoise(texcoord);
 	
-	vec3  diffuse           = GetDiffuseLinear(texcoord);
 	float skyLightmap       = texture2D(colortex3, texcoord).g;
 	
 	vec3 GI = ComputeGlobalIllumination(viewSpacePosition, normal, 16.0, 4.0, noise2D);
 	
-	float VL = ComputeVolumetricLight(viewSpacePosition, noise2D.x);
-	
-	gl_FragData[0] = vec4(EncodeColor(GI * diffuse), 1.0);
-	gl_FragData[1] = vec4(VL, 0.0, 0.0, 1.0);
+	gl_FragData[0] = vec4(EncodeColor(GI), 1.0);
 }

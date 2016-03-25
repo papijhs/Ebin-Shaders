@@ -1,6 +1,6 @@
 #version 120
 
-/* DRAWBUFFERS:2304 */
+/* DRAWBUFFERS:2306 */
 
 uniform sampler2D texture;
 uniform sampler2D normals;
@@ -35,7 +35,7 @@ varying vec4 viewSpacePosition;
 #include "/lib/GlobalCompositeVariables.fsh"
 #include "/lib/ShadingStructs.fsh"
 #include "/lib/CalculateFogFactor.glsl"
-#ifndef DEFERRED_SHADING
+#ifdef FORWARD_SHADING
 #include "/lib/Masks.glsl"
 #include "/lib/ShadingFunctions.fsh"
 #endif
@@ -80,7 +80,7 @@ void main() {
 		Mask mask;
 		CalculateMasks(mask, materialIDs, false);
 		
-		vec3 composite = CalculateShadedFragment(diffuse.xyz, mask, vertLightmap.r, vertLightmap.g, normal, viewSpacePosition);
+		vec3 composite = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, normal, viewSpacePosition);
 		
 		gl_FragData[0] = vec4(EncodeColor(composite), diffuse.a);
 		gl_FragData[1] = vec4(vertLightmap.st, encodedMaterialIDs, 1.0);

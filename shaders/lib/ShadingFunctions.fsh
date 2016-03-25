@@ -66,10 +66,7 @@ float ComputeDirectSunlight(in vec4 position, in float normalShading) {
 	return sunlight;
 }
 
-vec3 CalculateShadedFragment(in vec3 diffuse, in Mask mask, in float torchLightmap, in float skyLightmap, in vec3 normal, in vec4 ViewSpacePosition) {
-	diffuse = pow(diffuse, vec3(2.2));    // Put diffuse into a linear color space (diffuse should not be previously gamma-adjusted)
-	
-	
+vec3 CalculateShadedFragment(in Mask mask, in float torchLightmap, in float skyLightmap, in vec3 normal, in vec4 ViewSpacePosition) {
 	Shading shading;
 	shading.normal = GetNormalShading(normal, mask);
 	
@@ -99,7 +96,7 @@ vec3 CalculateShadedFragment(in vec3 diffuse, in Mask mask, in float torchLightm
 	+   lightmap.skylight   * 0.4
 	+   lightmap.ambient    * 0.005
 	+   lightmap.torchlight
-	    ) * diffuse;
+	    );
 	
 	return composite;
 }

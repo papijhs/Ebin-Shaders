@@ -7,6 +7,7 @@ uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
+uniform sampler2D colortex6;
 uniform sampler2D gdepthtex;
 uniform sampler2D shadowcolor;
 uniform sampler2DShadow shadow;
@@ -46,7 +47,11 @@ vec3 EncodeColor(in vec3 color) {    // Prepares the color to be sent through a 
 }
 
 vec3 GetDiffuse(in vec2 coord) {
-	return texture2D(colortex2, coord).rgb;
+	return texture2D((Deferred_Shading ? colortex2 : colortex6), coord).rgb;
+}
+
+vec3 GetDiffuseForward(in vec2 coord) {
+	return texture2D(colortex6, coord).rgb;
 }
 
 vec3 DecodeNormal(vec2 encodedNormal) {
@@ -74,10 +79,6 @@ vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
 
 vec3 GetIndirectLight(in vec2 coord) {
 	return DecodeColor(texture2D(colortex4, coord).rgb);
-}
-
-float GetVolLight(in vec2 coord) {
-	return texture2D(colortex5, coord).r;
 }
 
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
@@ -140,20 +141,20 @@ void main() {
 	float torchLightmap     = texture2D(colortex3, texcoord).r;
 	float skyLightmap       = texture2D(colortex3, texcoord).g;
 	
-	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, normal, viewSpacePosition);
-	
-	vec3 final = composite;
+	vec3 composite = CalculateShadedFragment(mask, torchLightmap, skyLightmap, normal, viewSpacePosition);
 	#else
-	vec3 final = DecodeColor(diffuse);
+	vec3 composite = DecodeColor(texture2D(colortex2, texcoord).rgb);
 	#endif
 	
-	final += GetIndirectLight(texcoord);
+	composite += GetIndirectLight(texcoord);
+	
+	composite *= pow(diffuse, vec3(2.2));
+	
 	
 	vec4 sky = CalculateSky(viewSpacePosition, mask);
 	
-	float VL = GetVolLight(texcoord);
+	composite = mix(composite, sky.rgb, sky.a);
 	
-	final = mix(final, sky.rgb, min(1.0, (sky.a * VL) + pow(sky.a, 3)));// + sky.a * sky.a * sky.a * sky.a));
 	
-	gl_FragData[0] = vec4(Uncharted2Tonemap(final), 1.0);
+	gl_FragColor = vec4(Uncharted2Tonemap(composite), 1.0);
 }
