@@ -3,7 +3,7 @@
 /* DRAWBUFFERS:4 */
 
 const bool shadowtex1Mipmap    = true;
-const bool shadowtex1Nearest   = false;
+const bool shadowtex1Nearest   = true;
 const bool shadowcolor0Mipmap  = true;
 const bool shadowcolor0Nearest = false;
 const bool shadowcolor1Mipmap  = true;
@@ -78,8 +78,6 @@ vec2 GetDitherred2DNoise(in vec2 coord) {    // Returns a random noise pattern r
 	return texture2D(noisetex, coord).xy * 2.0 - 1.0;
 }
 
-#define PI 3.14159
-
 vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float radius, const in float quality, in Mask mask, in vec2 noise) {
 	float normalShading = GetNormalShading(normal, mask);
 	
@@ -105,18 +103,15 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	
 	for(float x = -1.0; x <= 1.0; x += interval) {
 		for(float y = -1.0; y <= 1.0; y += interval) {
-			vec2 polar = vec2(x, y) + noise * interval;
-			
-			vec2 offset  = vec2(cos(PI * polar.y), sin(PI * polar.y)) * sqrt(abs(polar.x)) * sign(polar.x);
-				 offset  = polar;
+			vec2 offset  = vec2(x, y) + noise * interval;
 			     offset *= scale * biasCoeff;
 			
 			vec4 samplePos = vec4(position.xy + offset, 0.0, 1.0);
 			
-			float sampleBiasCoeff;
-			vec2 mapPos = BiasShadowMap(samplePos.xy * 2.0 - 1.0, sampleBiasCoeff) * 0.5 + 0.5;
+			float sampleBias;
+			vec2 mapPos = BiasShadowMap(samplePos.xy * 2.0 - 1.0, sampleBias) * 0.5 + 0.5;
 			
-			float sampleLod = 4.0 * (1.0 - sampleBiasCoeff) + 2.0;
+			float sampleLod = 4.0 * (1.0 - sampleBias) + 2.0;
 			
 			samplePos.z = texture2DLod(shadowtex1, mapPos, sampleLod * 0.5).x;
 			samplePos.z = ((samplePos.z * 2.0 - 1.0) * 4.0) * 0.5 + 0.5;    // Undo z-shrinking
@@ -130,22 +125,20 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 			      distanceCoeff *= distanceCoeff;
 			      distanceCoeff  = clamp(1.0 / distanceCoeff, 0.0, 1.0);
 			
-			float sampleRadiusCoeff = sqrt(abs(polar.x));
-			
 			vec3 sampleDir    = normalize(sampleDiff);
 			vec3 shadowNormal = texture2DLod(shadowcolor1, mapPos, sampleLod).xyz * 2.0 - 1.0;
 			
 			float viewNormalCoeff   = max(0.0, dot(normalize(      normal), normalize(-sampleDir)));
 			float shadowNormalCoeff = max(0.0, dot(normalize(shadowNormal), normalize( sampleDir)));
 			
-			viewNormalCoeff   = viewNormalCoeff * (1.0 - GI_TRANSLUCENCE) + GI_TRANSLUCENCE;
 			viewNormalCoeff   = viewNormalCoeff * (1.0 - mask.leaves) + mask.leaves * 2.0;
+			viewNormalCoeff   = viewNormalCoeff * (1.0 - GI_TRANSLUCENCE) + GI_TRANSLUCENCE;
 			
-			float sampleCoeff = viewNormalCoeff * sqrt(shadowNormalCoeff) * distanceCoeff * sampleRadiusCoeff;// * sampleRadiusCoeff;
+			float sampleCoeff = viewNormalCoeff * sqrt(shadowNormalCoeff) * distanceCoeff;
 			
 		//	if (sampleCoeff < 0.01 * sampleCount / brightness) continue;    // This should in theory reduce costly texture lookups for redundant pixels, but it seems to just hurt performance most of the time
 			
-			vec3 flux = pow(1.0 - texture2DLod(shadowcolor, mapPos, sampleLod).rgb, vec3(2.2));
+			vec3 flux = 1.0 - texture2DLod(shadowcolor, mapPos, sampleLod).rgb;
 			
 			GI += flux * sampleCoeff;
 		}
@@ -157,7 +150,6 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 }
 
 float ComputeVolumetricLight(in vec4 viewSpacePosition, in float noise1D) {
-	
 	float fog = 0.0;
 	float sampleCount = 0.0;
 	float rayIncrement = 0.25;
@@ -197,7 +189,6 @@ void main() {
 	vec3  normal            = GetNormal(texcoord);
 	float depth             = texture2D(gdepthtex, texcoord).x;
 	vec4  viewSpacePosition = CalculateViewSpacePosition(texcoord, depth);
-	
 	vec2  noise2D           = GetDitherred2DNoise(texcoord);
 	
 	vec3 GI = ComputeGlobalIllumination(viewSpacePosition, normal, 16.0, 4.0, mask, noise2D);
