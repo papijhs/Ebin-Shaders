@@ -53,28 +53,29 @@ float clamp01(in float x) {
 const float pi = 3.14159265;
 
 
-vec2 GetDefaultLightmap(in vec2 lightmapCoord) {    //Gets the lightmap from the default lighting engine, ignoring any texture pack lightmap. First channel is torch lightmap, second channel is sky lightmap.
-	return clamp((lightmapCoord * 1.032) - 0.032, 0.0, 1.0).st;    //Default lightmap texture coordinates work somewhat as lightmaps, however they need to be adjusted to use the full range of 0.0-1.0
+vec2 GetDefaultLightmap(in vec2 lightmapCoord) {    // Gets the lightmap from the default lighting engine, ignoring any texture pack lightmap. First channel is torch lightmap, second channel is sky lightmap.
+	return clamp((lightmapCoord * 1.032) - 0.032, 0.0, 1.0).st;    // Default lightmap texture coordinates work somewhat as lightmaps, however they need to be adjusted to use the full range of 0.0-1.0
 }
 
-float GetMaterialIDs() {    //Gather material masks
+float GetMaterialIDs() {    // Gather material masks
 	float materialID;
 	
 	switch(int(mc_Entity.x)) {
-		case 31:                                //Tall Grass
-		case 37:                                //Dandelion
-		case 38:                                //Rose
-		case 59:                                //Wheat
-		case 83:                                //Sugar Cane
-		case 106:                               //Vine
-		case 175:                               //Double Tall Grass
-					materialID = 2.0; break;    //Grass
-		case 18:
-					materialID = 3.0; break;    //Leaves
+		case 31:                                // Tall Grass
+		case 37:                                // Dandelion
+		case 38:                                // Rose
+		case 59:                                // Wheat
+		case 83:                                // Sugar Cane
+		case 175:                               // Double Tall Grass
+					materialID = 2.0; break;    // Grass
+		case 18:                                // Generic leaves
+		case 106:                               // Vines
+		case 161:                               // New leaves
+					materialID = 3.0; break;    // Leaves
 		case 8:
 		case 9:
-					materialID = 4.0; break;    //Water
-		case 79:	materialID = 5.0; break;    //Ice
+					materialID = 4.0; break;    // Water
+		case 79:	materialID = 5.0; break;    // Ice
 		default:	materialID = 1.0;
 	}
 	
@@ -89,6 +90,7 @@ float EncodeMaterialIDs(in float materialIDs, in float bit0, in float bit1, in f
 	
 	materialIDs += 0.1;
 	materialIDs /= 255.0;
+	materialIDs  = 1.0 - materialIDs;    // MaterialIDs are sent through the pipeline inverted so that when they're decoded, sky pixels (which are always written as 0.0 in certain situations) will be 1.0
 	
 	return materialIDs;
 }

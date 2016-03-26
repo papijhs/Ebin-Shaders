@@ -40,8 +40,9 @@ vec4 BiasShadowProjection(in vec4 position, out float biasCoeff) {
 }
 
 float GetNormalShading(in vec3 normal, in Mask mask) {
-	float shading = max(mask.grass, dot(normal, lightVector));
-	      shading = mix(shading, shading * 0.5 + 0.5, mask.leaves);
+	float shading = dot(normal, lightVector);
+	      shading = shading * (1.0 - mask.grass       ) + mask.grass       ;
+	      shading = shading * (1.0 - mask.leaves * 0.5) + mask.leaves * 0.5;
 	
 	return shading;
 }

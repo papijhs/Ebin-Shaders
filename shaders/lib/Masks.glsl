@@ -14,6 +14,7 @@ struct Mask {
 };
 
 void DecodeMaterialIDs(inout float matID, inout float bit0, inout float bit1, inout float bit2, inout float bit3) {
+	matID  = 1.0 - matID;
 	matID *= 255.0;
 	
 	if (matID >= 128.0 && matID < 254.5) {
