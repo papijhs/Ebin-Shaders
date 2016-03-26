@@ -1,12 +1,11 @@
 #version 120
 
-const bool colortex4MipmapEnabled = true;
+//const bool colortex4MipmapEnabled = true;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
-uniform sampler2D colortex5;
 uniform sampler2D colortex6;
 uniform sampler2D gdepthtex;
 uniform sampler2D shadowcolor;
@@ -22,18 +21,13 @@ uniform mat4 shadowModelViewInverse;
 
 uniform vec3 cameraPosition;
 
-uniform float viewWidth;
-uniform float viewHeight;
-
 uniform float far;
 
 varying vec2 texcoord;
 
 #include "/lib/Settings.txt"
-#include "/lib/PostHeader.fsh"
 #include "/lib/GlobalCompositeVariables.fsh"
 #include "/lib/Masks.glsl"
-#include "/lib/ShadingStructs.fsh"
 #include "/lib/ShadingFunctions.fsh"
 #include "/lib/CalculateFogFactor.glsl"
 
@@ -77,8 +71,8 @@ vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
 	return position;
 }
 
-vec3 GetIndirectLight(in vec2 coord) {
-	return DecodeColor(texture2D(colortex4, coord).rgb);
+vec3 GetIndirectLight() {
+	return DecodeColor(texture2D(colortex4, texcoord).rgb);
 }
 
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
@@ -146,7 +140,10 @@ void main() {
 	vec3 composite = DecodeColor(texture2D(colortex2, texcoord).rgb);
 	#endif
 	
-	composite += GetIndirectLight(texcoord);
+//	vec3 GI = GetIndirectLight(normal, ExpToLinearDepth(depth));
+	vec3 GI = DecodeColor(texture2D(colortex4, texcoord).rgb);
+	
+	composite += GI;
 	
 	composite *= pow(diffuse, vec3(2.2));
 	

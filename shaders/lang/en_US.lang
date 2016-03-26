@@ -6,4 +6,7 @@ option.DEFERRED_SHADING.comment=Extends the shadow draw distance to the edge of 
 option.GI_TRANSLUCENCE=Translucence
 option.GI_TRANSLUCENCE.comment=Inverse coefficient of light falloff from the normals. 0.0 is "physically correct"
 
+option.GI_BOOST=GI Boost
+option.GI_BOOST.comment=Disables global illumination computations in certain situations where they will have a minimal visual impact (mostly in sunlight)
+
 option.FOG_ENABLED=Fog

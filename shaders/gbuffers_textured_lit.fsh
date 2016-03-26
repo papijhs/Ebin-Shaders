@@ -31,9 +31,7 @@ varying float encodedMaterialIDs;
 varying vec4 viewSpacePosition;
 
 #include "/lib/Settings.txt"
-#include "/lib/PostHeader.fsh"
 #include "/lib/GlobalCompositeVariables.fsh"
-#include "/lib/ShadingStructs.fsh"
 #include "/lib/CalculateFogFactor.glsl"
 #ifdef FORWARD_SHADING
 #include "/lib/Masks.glsl"

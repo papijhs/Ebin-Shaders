@@ -27,11 +27,13 @@ vec4 BiasShadowProjection(in vec4 position) {
 	
 	biasCoeff = biasCoeff * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
 	
-	position.z  += 0.001 * (1.0 - sqrt(dot(vertNormal, vec3(0.0, 0.0, 1.0))));
+	position.z  += 0.001 * (1.0 - sqrt(dot(vertNormal, vec3(0.0, 0.0, 1.0))));    // Offset the z-coordinate to fix shadow acne
 	position.z  += 0.0005 / (abs(position.x) + 1.0);
 	position.z  += 0.002 * pow(biasCoeff * 2.0, 2.0);
-	position.z  /= 4.0;
+	
 	position.xy /= biasCoeff;
+	
+	position.z  /= 4.0;    // Shrink the domain of the z-buffer. This counteracts the noticable issue where far terrain would not have shadows cast, especially when the sun was near the horizon
 	
 	return position;
 }

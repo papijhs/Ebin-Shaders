@@ -1,3 +1,18 @@
+struct Shading {     // Contains scalar light levels without any color
+	float normal;    // Coefficient of light intensity based on the dot product of the normal vector and the light vector
+	float sunlight;
+	float skylight;
+	float torchlight;
+	float ambient;
+};
+
+struct Lightmap {    // Contains vector light levels with color
+	vec3 sunlight;
+	vec3 skylight;
+	vec3 ambient;
+	vec3 torchlight;
+};
+
 vec4 ViewSpaceToWorldSpace(in vec4 viewSpacePosition) {
 	return gbufferModelViewInverse * viewSpacePosition;
 }
@@ -6,20 +21,22 @@ vec4 WorldSpaceToShadowSpace(in vec4 worldSpacePosition) {
 	return shadowProjection * shadowModelView * worldSpacePosition;
 }
 
-vec4 BiasShadowProjection(in vec4 position, out float biasCoeff) {
+float GetShadowBias(in vec2 shadowProjection) {
 	#ifdef EXTENDED_SHADOW_DISTANCE
-		vec2 pos = abs(position.xy * 1.165);
-		biasCoeff = pow(pow(pos.x, 8) + pow(pos.y, 8), 1.0 / 8.0);
+		shadowProjection *= 1.165;
+		shadowProjection *= shadowProjection;    // These next 3 lines and the triple sqrt() get a squircular (bevelled square) length formula (rather than the generic circular length formula most shaders use).
+		shadowProjection *= shadowProjection;
+		shadowProjection *= shadowProjection;
+		
+		return sqrt(sqrt(sqrt(shadowProjection.x + shadowProjection.y))) * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
 	#else
-		biasCoeff = length(position.xy);
+		return length(shadowProjection) * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
 	#endif
-	
-	biasCoeff = biasCoeff * SHADOW_MAP_BIAS + (1.0 - SHADOW_MAP_BIAS);
-	
-	position.xy /= biasCoeff;
-	position.z /= 4.0;
-	
-	return position;
+}
+
+vec4 BiasShadowProjection(in vec4 position, out float biasCoeff) {
+	biasCoeff = GetShadowBias(position.xy);
+	return position / vec4(vec2(biasCoeff), 4.0, 1.0);    // Apply bias to position.xy, shrink z-buffer
 }
 
 float GetNormalShading(in vec3 normal, in Mask mask) {
@@ -61,7 +78,7 @@ float ComputeDirectSunlight(in vec4 position, in float normalShading) {
 		float sunlight = shadow2D(shadow, position.xyz).x;
 	#endif
 	
-	sunlight *= sunlight;    // Fatten the shadow up to soften its penumbra
+	sunlight *= sunlight;    // Fatten the shadow up to soften its penumbra (default hardware-filtered penumbra does not have a satisfying penumbra curve)
 	
 	return sunlight;
 }
