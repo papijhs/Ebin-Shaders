@@ -72,15 +72,15 @@ vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
 }
 
 vec3 GetIndirectLight() {
-	return DecodeColor(texture2D(colortex4, texcoord).rgb);
+	return DecodeColor(texture2D(colortex4, texcoord).rgb) * colorSunlight;
 }
 
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
 	float radius = max(176.0, far * sqrt(2.0));
-	const float horizonLevel = 64.0;
+	const float horizonLevel = 72.0;
 	
 	vec3 worldPosition = (gbufferModelViewInverse * vec4(normalize(viewSpacePosition.xyz), 0.0)).xyz;
-	     worldPosition.y = radius * worldPosition.y / length(worldPosition.xz) + cameraPosition.y - horizonLevel;
+	     worldPosition.y = radius * worldPosition.y / length(worldPosition.xz) + cameraPosition.y - horizonLevel;    // Reproject the world vector to have a consistent horizon height
 	     worldPosition.xz = normalize(worldPosition.xz) * radius;
 	
 	float dotUP = dot(normalize(worldPosition), vec3(0.0, 1.0, 0.0));
@@ -94,14 +94,24 @@ vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
 	return color;
 }
 
+vec3 CalculateSunspot(in vec4 viewSpacePosition) {
+	float sunspot = max(0.0, dot(normalize(viewSpacePosition.xyz), lightVector) - 0.01);
+	      sunspot = pow(sunspot, 300.0);
+	      sunspot = pow(sunspot + 1.0, 400.0) - 1.0;
+	      sunspot = min(sunspot, 20.0);
+	
+	return sunspot * colorSunlight * colorSunlight;
+}
+
 vec4 CalculateSky(in vec4 viewSpacePosition, in Mask mask) {
 	float fogFactor = max(CalculateFogFactor(viewSpacePosition, FOGPOW), mask.sky);
 	vec3  gradient  = CalculateSkyGradient(viewSpacePosition);
+	vec3  sunspot   = CalculateSunspot(viewSpacePosition) * pow(fogFactor, 25);
 	vec4  composite;
 	
 	
 	composite.a   = fogFactor;
-	composite.rgb = gradient;
+	composite.rgb = gradient + sunspot;
 	
 	
 	return vec4(composite);
@@ -140,8 +150,7 @@ void main() {
 	vec3 composite = DecodeColor(texture2D(colortex2, texcoord).rgb);
 	#endif
 	
-//	vec3 GI = GetIndirectLight(normal, ExpToLinearDepth(depth));
-	vec3 GI = DecodeColor(texture2D(colortex4, texcoord).rgb);
+	vec3 GI = GetIndirectLight();
 	
 	composite += GI;
 	

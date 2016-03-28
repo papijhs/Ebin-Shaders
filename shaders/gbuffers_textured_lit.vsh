@@ -180,20 +180,21 @@ void main() {
 	timeDay = clamp01(timeDay * horizonClip);
 	timeNight = clamp01(timeNight * horizonClip);
 	
-	const vec3 sunlightDay =
+	vec3 sunlightDay =
 	vec3(1.0, 1.0, 1.0);
 	
-	const vec3 sunlightNight =
+	vec3 sunlightNight =
 	vec3(0.43, 0.65, 1.0) * 0.025;
 	
-	const vec3 sunlightHorizon =
-	vec3(0.00, 0.00, 0.00);
+	vec3 sunlightHorizon =
+	vec3(1.00, 0.50, 0.00);
 	
-	colorSunlight = sunlightDay * timeDay + sunlightNight * timeNight + sunlightHorizon * timeHorizon;
+	colorSunlight  = sunlightDay * timeDay + sunlightNight * timeNight + sunlightHorizon * timeHorizon;
+	colorSunlight *= mix(vec3(1.0), sunlightHorizon, timeHorizon);
 	
 	
 	const vec3 skylightDay =
-	vec3(0.10, 0.24, 1.00);
+	vec3(0.24, 0.58, 1.00);
 	
 	const vec3 skylightNight =
 	vec3(0.25, 0.5, 1.0) * 0.025;
