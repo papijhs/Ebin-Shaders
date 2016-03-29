@@ -1,7 +1,7 @@
 #version 120
 #define COMPOSITE0_VERTEX
 
-#define COMPOSITE0_SCALE 1.0
+#define COMPOSITE0_SCALE 0.5
 
 varying vec2 texcoord;
 

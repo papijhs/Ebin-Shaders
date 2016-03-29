@@ -73,7 +73,7 @@ vec2 BiasShadowMap(in vec2 shadowProjection, out float biasCoeff) {
 
 vec2 GetDitherred2DNoise(in vec2 coord) {    // Returns a random noise pattern ranging {-1.0 to 1.0} that repeats every 4 pixels
 	coord *= vec2(viewWidth, viewHeight);
-	coord  = mod(coord, vec2(4));
+	coord  = mod(coord, vec2(2 / COMPOSITE0_SCALE));
 	coord /= noiseTextureResolution;
 	return texture2D(noisetex, coord).xy * 2.0 - 1.0;
 }
@@ -111,7 +111,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 			float sampleBias;
 			vec2 mapPos = BiasShadowMap(samplePos.xy * 2.0 - 1.0, sampleBias) * 0.5 + 0.5;
 			
-			float sampleLod = 4.0 * (1.0 - sampleBias) + 2.0;
+			float sampleLod = 3.0 * (1.0 - sampleBias) + 3.0;
 			
 			samplePos.z = texture2DLod(shadowtex1, mapPos, sampleLod * 0.5).x;
 			samplePos.z = ((samplePos.z * 2.0 - 1.0) * 4.0) * 0.5 + 0.5;    // Undo z-shrinking
@@ -131,7 +131,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 			float viewNormalCoeff   = max(0.0, dot(normalize(      normal), normalize(-sampleDir)));
 			float shadowNormalCoeff = max(0.0, dot(normalize(shadowNormal), normalize( sampleDir)));
 			
-			viewNormalCoeff   = viewNormalCoeff * (1.0 - mask.leaves) + mask.leaves * 2.0;
+		//	viewNormalCoeff   = viewNormalCoeff * (1.0 - mask.leaves) + mask.leaves * 2.0;
 			viewNormalCoeff   = viewNormalCoeff * (1.0 - GI_TRANSLUCENCE) + GI_TRANSLUCENCE;
 			
 			float sampleCoeff = viewNormalCoeff * sqrt(shadowNormalCoeff) * distanceCoeff;

@@ -1,7 +1,5 @@
 #version 120
 
-//const bool colortex4MipmapEnabled = true;
-
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
@@ -21,6 +19,9 @@ uniform mat4 shadowModelViewInverse;
 
 uniform vec3 cameraPosition;
 
+uniform float viewWidth;
+uniform float viewHeight;
+uniform float near;
 uniform float far;
 
 varying vec2 texcoord;
@@ -64,6 +65,10 @@ float GetDepth(in vec2 coord) {
 	return texture2D(gdepthtex, coord).x;
 }
 
+float ExpToLinearDepth(in float depth) {
+	return 2.0 * near * (far + near - depth * (far - near));
+}
+
 vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
 	vec4 position  = gbufferProjectionInverse * vec4(vec3(coord, depth) * 2.0 - 1.0, 1.0);
 	     position /= position.w;
@@ -71,8 +76,34 @@ vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
 	return position;
 }
 
-vec3 GetIndirectLight() {
-	return DecodeColor(texture2D(colortex4, texcoord).rgb) * colorSunlight;
+void BilateralUpsample(in vec3 normal, in float depth, in Mask mask, out vec3 GI) {
+	GI = vec3(0.0);
+	
+	if (mask.sky > 0.5) return;
+	
+	depth = ExpToLinearDepth(depth);
+	
+	float totalWeights = 0.0;
+	
+	for(float i = -0.5; i <= 0.5; i++) {
+		for(float j = -0.5; j <= 0.5; j++) {
+			vec2 offset = vec2(i, j) / vec2(viewWidth, viewHeight);
+			
+			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
+			vec3  sampleNormal = GetNormal(texcoord + offset * 8.0);
+			
+			float weight = 1.0 - abs(depth - sampleDepth) * 10.0;
+			      weight = dot(normal, sampleNormal);
+			      weight = pow(weight, 32);
+			      weight = max(0.000000001, weight);
+			
+			GI += DecodeColor(texture2D(colortex4, texcoord * COMPOSITE0_SCALE + offset).rgb) * weight;
+			
+			totalWeights += weight;
+		}
+	}
+	
+	GI /= totalWeights;
 }
 
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
@@ -150,9 +181,11 @@ void main() {
 	vec3 composite = DecodeColor(texture2D(colortex2, texcoord).rgb);
 	#endif
 	
-	vec3 GI = GetIndirectLight();
+	vec3 GI;
 	
-	composite += GI;
+	BilateralUpsample(normal, depth, mask, GI);
+	
+	composite += GI * colorSunlight;
 	
 	composite *= pow(diffuse, vec3(2.2));
 	

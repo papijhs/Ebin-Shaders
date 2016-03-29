@@ -111,7 +111,7 @@ vec3 CalculateShadedFragment(in Mask mask, in float torchLightmap, in float skyL
 	
 	vec3 composite = (
 	    lightmap.sunlight   * 4.5
-	+   lightmap.skylight   * 0.4
+	+   lightmap.skylight   * 0.35
 	+   lightmap.ambient    * 0.005
 	+   lightmap.torchlight
 	    );

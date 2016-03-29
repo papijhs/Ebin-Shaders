@@ -10,3 +10,6 @@ option.GI_BOOST=GI Boost
 option.GI_BOOST.comment=Disables global illumination computations in certain situations where they will have a minimal visual impact (mostly in sunlight)
 
 option.FOG_ENABLED=Fog
+
+option.COMPOSITE0_SCALE=Composite Scale
+option.COMPOSITE0_SCALE.comment=Resolution coefficient for Global Illumination and Volumetric Light.
