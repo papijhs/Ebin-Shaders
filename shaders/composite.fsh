@@ -84,7 +84,8 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	float lightMult = 1.0;
 	
 	#ifdef GI_BOOST
-	lightMult = (1.0 - normalShading) * (1.0 - ComputeDirectSunlight(position, normalShading));
+	float sunlight = ComputeDirectSunlight(position, normalShading);
+	lightMult = 1.0 - pow(sunlight, 1) * normalShading * 4.0;
 	#endif
 	
 	position = WorldSpaceToShadowSpace(ViewSpaceToWorldSpace(position)) * 0.5 + 0.5;    // Convert the view-space position to shadow-map coordinates (unbiased)
@@ -99,7 +100,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	const float scale       = 4.0 * radius / 2048.0;
 	const float sampleCount = pow(1.0 / interval * 2.0 + 1.0, 2.0);
 	
-	if (lightMult * brightness < 20.0 && GI_Boost) return vec3(0.0);
+	if (lightMult * brightness < 1.0 && GI_Boost) return vec3(0.0);
 	
 	for(float x = -1.0; x <= 1.0; x += interval) {
 		for(float y = -1.0; y <= 1.0; y += interval) {
