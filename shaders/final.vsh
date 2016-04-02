@@ -1,7 +1,11 @@
 #version 120
 //#define COMPOSITE0_VERTEX
+//#define COMPOSITE2_VERTEX
 
 #define COMPOSITE0_SCALE 0.5
+
+uniform float viewWidth;
+uniform float viewHeight;
 
 varying vec2 texcoord;
 
@@ -32,6 +36,16 @@ void main() {
 	
 	#ifdef COMPOSITE0_VERTEX
 		gl_Position.xy = ((gl_Position.xy * 0.5 + 0.5) * COMPOSITE0_SCALE) * 2.0 - 1.0;
+	#endif
+	
+	#ifdef COMPOSITE2_VERTEX
+		vec2 pixelSize = 1.0 / vec2(viewWidth, viewHeight);
+		
+		#define COMPOSITE2_SCALE vec2(0.25 + pixelSize.x * 2.0, 0.375 + pixelSize.y * 4.0)
+		
+		gl_Position.xy = ((gl_Position.xy * 0.5 + 0.5) * COMPOSITE2_SCALE) * 2.0 - 1.0;    // Crop the vertex to only cover the areas that are being used
+		
+		texcoord *= COMPOSITE2_SCALE;    // Compensate for the vertex adjustment to make this a true "crop" rather than a "downscale"
 	#endif
 	
 	
