@@ -76,14 +76,17 @@ vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
 	return position;
 }
 
-void BilateralUpsample(in vec3 normal, in float depth, in Mask mask, out vec3 GI) {
+void BilateralUpsample(in vec3 normal, in float depth, in Mask mask, out vec3 GI, out float VL) {
 	GI = vec3(0.0);
+	VL = 0.0;
 	
-	if (mask.sky > 0.5) return;
+	if (mask.sky > 0.5) { VL = 1.0; return; }
 	
 	depth = ExpToLinearDepth(depth);
 	
 	float totalWeights = 0.0;
+	
+	float totalVLWeight = 0.0;
 	
 	for(float i = -0.5; i <= 0.5; i++) {
 		for(float j = -0.5; j <= 0.5; j++) {
@@ -97,13 +100,20 @@ void BilateralUpsample(in vec3 normal, in float depth, in Mask mask, out vec3 GI
 			      weight = pow(weight, 32);
 			      weight = max(0.000000001, weight);
 			
-			GI += DecodeColor(texture2D(colortex4, texcoord * COMPOSITE0_SCALE + offset).rgb) * weight;
+			float VLWeight = 1.0 - abs(depth - sampleDepth) * 10.0;
+			      VLWeight = pow(VLWeight, 32);
+			      VLWeight = max(0.000000001, VLWeight);
 			
-			totalWeights += weight;
+			GI += DecodeColor(texture2D(colortex4, texcoord * COMPOSITE0_SCALE + offset).rgb) * weight;
+			VL += texture2D(colortex4, texcoord * COMPOSITE0_SCALE + offset).a * VLWeight;
+			
+			totalWeights  += weight;
+			totalVLWeight += VLWeight;
 		}
 	}
 	
 	GI /= totalWeights;
+	VL /= totalVLWeight;
 }
 
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
@@ -169,9 +179,10 @@ void main() {
 	vec3 composite = DecodeColor(texture2D(colortex2, texcoord).rgb);
 	#endif
 	
-	vec3 GI;
+	vec3  GI;
+	float VL;
 	
-	BilateralUpsample(normal, depth, mask, GI);
+	BilateralUpsample(normal, depth, mask, GI, VL);
 	
 	composite += GI * colorSunlight;
 	
@@ -180,7 +191,7 @@ void main() {
 	
 	vec4 sky = CalculateSky(viewSpacePosition, mask);
 	
-	composite = mix(composite, sky.rgb, sky.a);
+	composite = mix(composite, sky.rgb, min(VL * sky.a + pow(sky.a, 6), 1.0));
 	
 	
 	gl_FragData[0] = vec4(EncodeColor(composite), 1.0);

@@ -28,6 +28,7 @@ uniform mat4 shadowModelViewInverse;
 
 uniform float viewWidth;
 uniform float viewHeight;
+uniform float near;
 uniform float far;
 
 varying vec2 texcoord;
@@ -57,6 +58,10 @@ vec3 GetNormal(in vec2 coord) {
 
 float GetDepth(in vec2 coord) {
 	return texture2D(gdepthtex, coord).x;
+}
+
+float ExpToLinearDepth(in float depth) {
+	return 2.0 * near * (far + near - depth * (far - near));
 }
 
 vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
@@ -153,7 +158,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 float ComputeVolumetricLight(in vec4 viewSpacePosition, in float noise1D) {
 	float fog = 0.0;
 	float sampleCount = 0.0;
-	float rayIncrement = 0.25;
+	float rayIncrement = gl_Fog.start / 64.0;
 	
 	float biasCoeff;
 	
@@ -169,14 +174,10 @@ float ComputeVolumetricLight(in vec4 viewSpacePosition, in float noise1D) {
 		
 		vec3 samplePosition = BiasShadowProjection(WorldSpaceToShadowSpace(ViewSpaceToWorldSpace(vec4(ray, 1.0))), biasCoeff).xyz * 0.5 + 0.5;
 		
-		float sample = shadow2D(shadow, samplePosition).x * rayIncrement;
-		
-		float sampleFog = CalculateFogFactor(vec4(ray, 1.0), FOGPOW);
-		
-		fog += sqrt(sample * sampleFog);
+		fog += shadow2D(shadow, samplePosition).x * rayIncrement;
 	}
 	
-	return fog / sampleCount * 4.0;
+	return fog / sampleCount;
 }
 
 
@@ -184,15 +185,21 @@ void main() {
 	Mask mask;
 	CalculateMasks(mask, texture2D(colortex3, texcoord).b, true);
 	
-	if (mask.sky + mask.water > 0.5)
+	if (mask.sky > 0.5)
 		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0); return; }
 	
-	vec3  normal            = GetNormal(texcoord);
 	float depth             = texture2D(gdepthtex, texcoord).x;
 	vec4  viewSpacePosition = CalculateViewSpacePosition(texcoord, depth);
 	vec2  noise2D           = GetDitherred2DNoise(texcoord);
 	
-	vec3 GI = ComputeGlobalIllumination(viewSpacePosition, normal, 16.0, 4.0, mask, noise2D);
+	float VL = ComputeVolumetricLight(viewSpacePosition, noise2D.x);
 	
-	gl_FragData[0] = vec4(EncodeColor(GI), 1.0);
+	if (mask.water > 0.5)
+		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, VL); return; }
+	
+	vec3  normal            = GetNormal(texcoord);
+	
+	vec3  GI = ComputeGlobalIllumination(viewSpacePosition, normal, 16.0, 4.0, mask, noise2D);
+	
+	gl_FragData[0] = vec4(EncodeColor(GI), VL);
 }

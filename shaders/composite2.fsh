@@ -61,7 +61,7 @@ vec3 ComputeBloom(const int scale, vec2 offset) {    // Computes a single bloom 
 		}
 	}
 	
-	return bloom * 1000.0 / totalWeight;
+	return bloom / totalWeight;
 }
 
 void main() {
@@ -75,5 +75,5 @@ void main() {
 	     bloom += ComputeBloom(128, vec2(0.140625 + pixelSize.x * 4.0, 0.3125   + pixelSize.y * 4.0));
 	     bloom += ComputeBloom(256, vec2(0.125    + pixelSize.x * 2.0, 0.328125 + pixelSize.y * 6.0));
 	
-	gl_FragData[0] = vec4(EncodeColor(bloom), 1.0);
+	gl_FragData[0] = vec4(pow(bloom, vec3(1.0 / 2.2)), 1.0);
 }
