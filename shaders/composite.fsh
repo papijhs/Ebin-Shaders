@@ -157,6 +157,9 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 
 float ComputeVolumetricLight(in vec4 viewSpacePosition, in float noise1D) {
 	float fog = 0.0;
+	
+	
+	#ifdef FOG_ENABLED
 	float weight = 0.0;
 	float rayIncrement = gl_Fog.start / 64.0;
 	
@@ -177,6 +180,8 @@ float ComputeVolumetricLight(in vec4 viewSpacePosition, in float noise1D) {
 	}
 	
 	fog /= weight;
+	#endif
+	
 	
 	return fog;
 }
