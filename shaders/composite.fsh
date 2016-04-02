@@ -33,7 +33,7 @@ uniform float far;
 
 varying vec2 texcoord;
 
-#include "/lib/Settings.txt"
+#include "/lib/Settings.glsl"
 #include "/lib/GlobalCompositeVariables.fsh"
 #include "/lib/Masks.glsl"
 #include "/lib/CalculateFogFactor.glsl"

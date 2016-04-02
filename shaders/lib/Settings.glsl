@@ -10,7 +10,7 @@
 #define FOGPOW 2.0
 #define FOG_ENABLED
 
-#define DEFERRED_SHADING
+#define FORWARD_SHADING
 
 
 const int   shadowMapResolution      = 2048;    //[1024 2048 3072 4096]
@@ -39,11 +39,11 @@ const int noiseTextureResolution = 4;
 	#define GI_Boost false
 #endif
 
-#ifdef DEFERRED_SHADING
-	#define Forward_Shading  false
-	#define Deferred_Shading true
-#else
-	#define FORWARD_SHADING
+#ifdef FORWARD_SHADING
 	#define Forward_Shading  true
 	#define Deferred_Shading false
+#else
+	#define DEFERRED_SHADING
+	#define Forward_Shading  false
+	#define Deferred_Shading true
 #endif

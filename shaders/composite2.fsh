@@ -11,7 +11,7 @@ uniform float viewHeight;
 
 varying vec2 texcoord;
 
-#include "/lib/Settings.txt"
+#include "/lib/Settings.glsl"
 
 vec3 DecodeColor(in vec3 color) {
 	return pow(color, vec3(2.2)) * 1000.0;

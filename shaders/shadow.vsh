@@ -2,7 +2,7 @@
 
 #define SHADOW_MAP_BIAS 0.8
 #define EXTENDED_SHADOW_DISTANCE
-#define DEFERRED_SHADING
+#define FORWARD_SHADING
 
 attribute vec4 mc_Entity;
 
@@ -45,7 +45,7 @@ void main() {
 	
 	gl_Position = BiasShadowProjection(ftransform());
 	
-	#ifndef DEFERRED_SHADING
+	#ifdef FORWARD_SHADING
 		if (abs(mc_Entity.x - 8.5) < 0.6) gl_Position.w = -1.0;
 	#endif
 }
