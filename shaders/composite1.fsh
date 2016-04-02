@@ -130,6 +130,7 @@ vec3 CalculateSunspot(in vec4 viewSpacePosition) {
 	      sunspot = pow(sunspot, 300.0);
 	      sunspot = pow(sunspot + 1.0, 400.0) - 1.0;
 	      sunspot = min(sunspot, 20.0);
+	      sunspot += 50.0 * float(sunspot == 20.0);
 	
 	return sunspot * colorSunlight * colorSunlight;
 }
@@ -146,19 +147,6 @@ vec4 CalculateSky(in vec4 viewSpacePosition, in Mask mask) {
 	
 	
 	return vec4(composite);
-}
-
-vec3 Uncharted2Tonemap(in vec3 color) {
-	const float A = 0.15, B = 0.5, C = 0.1, D = 0.2, E = 0.02, F = 0.3, W = 11.2;
-	const float whiteScale = 1.0 / (((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F);
-	const float ExposureBias = 2.3;
-	
-	vec3 curr = ExposureBias * color;
-	     curr = ((curr * (A * curr + C * B) + D * E) / (curr * (A * curr + B) + D * F)) - E / F;
-	
-	color = curr * whiteScale;
-	
-	return pow(color, vec3(1.0 / 2.2));
 }
 
 
@@ -195,5 +183,5 @@ void main() {
 	composite = mix(composite, sky.rgb, sky.a);
 	
 	
-	gl_FragColor = vec4(Uncharted2Tonemap(composite), 1.0);
+	gl_FragData[0] = vec4(EncodeColor(composite), 1.0);
 }
