@@ -157,27 +157,28 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 
 float ComputeVolumetricLight(in vec4 viewSpacePosition, in float noise1D) {
 	float fog = 0.0;
-	float sampleCount = 0.0;
+	float weight = 0.0;
 	float rayIncrement = gl_Fog.start / 64.0;
-	
-	float biasCoeff;
 	
 	vec3 rayStep = normalize(viewSpacePosition.xyz + vec3(0.0, 0.0, noise1D));
 
 	vec3 ray = rayStep * gl_Fog.start;
 	
 	while (length(ray) < length(viewSpacePosition.xyz)) {
-		sampleCount++;
-		
 		ray += rayStep * rayIncrement;
-		rayIncrement *= 1.01;
 		
-		vec3 samplePosition = BiasShadowProjection(WorldSpaceToShadowSpace(ViewSpaceToWorldSpace(vec4(ray, 1.0))), biasCoeff).xyz * 0.5 + 0.5;
+		vec3 samplePosition = BiasShadowProjection(WorldSpaceToShadowSpace(ViewSpaceToWorldSpace(vec4(ray, 1.0)))).xyz * 0.5 + 0.5;
 		
 		fog += shadow2D(shadow, samplePosition).x * rayIncrement;
+		
+		weight += rayIncrement;
+		
+		rayIncrement *= 1.01;
 	}
 	
-	return fog / sampleCount;
+	fog /= weight;
+	
+	return fog;
 }
 
 

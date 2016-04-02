@@ -56,7 +56,7 @@ void main() {
 	     bloom += GetBloom(256, vec2(0.125    + pixelSize.x * 2.0, 0.328125 + pixelSize.y * 6.0));
 	     bloom /= 7.0;
 	
-	color = mix(color, pow(bloom, vec3(1.3)), 0.125);
+	color = mix(color, pow(bloom, vec3(1.25)), 0.125);
 	
 	gl_FragData[0] = vec4(Uncharted2Tonemap(color), 1.0);
 }

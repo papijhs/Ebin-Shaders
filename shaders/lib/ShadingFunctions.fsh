@@ -39,6 +39,10 @@ vec4 BiasShadowProjection(in vec4 position, out float biasCoeff) {
 	return position / vec4(vec2(biasCoeff), 4.0, 1.0);    // Apply bias to position.xy, shrink z-buffer
 }
 
+vec4 BiasShadowProjection(in vec4 position) {
+	return position / vec4(vec2(GetShadowBias(position.xy)), 4.0, 1.0);
+}
+
 float GetNormalShading(in vec3 normal, in Mask mask) {
 	float shading = dot(normal, lightVector);
 	      shading = shading * (1.0 - mask.grass       ) + mask.grass       ;
