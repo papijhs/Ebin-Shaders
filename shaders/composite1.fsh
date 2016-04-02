@@ -174,7 +174,7 @@ void main() {
 	float torchLightmap     = texture2D(colortex3, texcoord).r;
 	float skyLightmap       = texture2D(colortex3, texcoord).g;
 	
-	vec3 composite = CalculateShadedFragment(mask, torchLightmap, skyLightmap, normal, viewSpacePosition);
+	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, normal, viewSpacePosition);
 	#else
 	vec3 composite = DecodeColor(texture2D(colortex2, texcoord).rgb);
 	#endif
@@ -184,9 +184,7 @@ void main() {
 	
 	BilateralUpsample(normal, depth, mask, GI, VL);
 	
-	composite += GI * colorSunlight;
-	
-	composite *= pow(diffuse, vec3(2.2));
+	composite += GI * colorSunlight * pow(diffuse, vec3(2.2));
 	
 	
 	vec4 sky = CalculateSky(viewSpacePosition, mask);
