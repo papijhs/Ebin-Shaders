@@ -136,7 +136,7 @@ vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
 
 vec3 CalculateSunspot(in vec4 viewSpacePosition) {
 	float sunspot = max(0.0, dot(normalize(viewSpacePosition.xyz), lightVector) - 0.01);
-	      sunspot = pow(sunspot, 300.0);
+	      sunspot = pow(sunspot, 350.0);
 	      sunspot = pow(sunspot + 1.0, 400.0) - 1.0;
 	      sunspot = min(sunspot, 20.0);
 	      sunspot += 50.0 * float(sunspot == 20.0);
@@ -144,14 +144,14 @@ vec3 CalculateSunspot(in vec4 viewSpacePosition) {
 	return sunspot * colorSunlight * colorSunlight;
 }
 
-vec4 CalculateSky(in vec4 viewSpacePosition, in Mask mask) {
+vec4 CalculateSky(in vec4 viewSpacePosition, in float fogVolume, in Mask mask) {
 	float fogFactor = max(CalculateFogFactor(viewSpacePosition, FOGPOW), mask.sky);
 	vec3  gradient  = CalculateSkyGradient(viewSpacePosition);
 	vec3  sunspot   = CalculateSunspot(viewSpacePosition) * pow(fogFactor, 25);
 	vec4  composite;
 	
 	
-	composite.a   = fogFactor;
+	composite.a   = min(fogVolume * fogFactor + pow(fogFactor, 6), 1.0);
 	composite.rgb = gradient + sunspot;
 	
 	
@@ -186,9 +186,9 @@ void main() {
 	composite += GI * colorSunlight * pow(diffuse, vec3(2.2));
 	
 	
-	vec4 sky = CalculateSky(viewSpacePosition, mask);
+	vec4 sky = CalculateSky(viewSpacePosition, Fog,	mask);
 	
-	composite = mix(composite, sky.rgb, min(Fog * sky.a + pow(sky.a, 6), 1.0));
+	composite = mix(composite, sky.rgb, sky.a);
 	
 	
 	gl_FragData[0] = vec4(EncodeColor(composite), 1.0);
