@@ -94,10 +94,10 @@ void BilateralUpsample(in vec3 normal, in float depth, in Mask mask, out vec3 GI
 			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
 			vec3  sampleNormal = GetNormal(texcoord + offset * 8.0);
 			
-			float weight = 1.0 - abs(depth - sampleDepth) * 10.0;
-			      weight = dot(normal, sampleNormal);
-			      weight = pow(weight, 32);
-			      weight = max(0.000000001, weight);
+			float weight  = 1.0 - abs(depth - sampleDepth) * 10.0;
+			      weight *= dot(normal, sampleNormal);
+			      weight  = pow(weight, 32);
+			      weight  = max(0.000000001, weight);
 			
 			float FogWeight = 1.0 - abs(depth - sampleDepth) * 10.0;
 			      FogWeight = pow(FogWeight, 32);
