@@ -76,7 +76,7 @@ void main() {
 	vec3(1.00, 0.50, 0.00);
 	
 	colorSunlight  = sunlightDay * timeDay + sunlightNight * timeNight + sunlightHorizon * timeHorizon;
-	colorSunlight *= mix(vec3(1.0), sunlightHorizon, timeHorizon);
+//	colorSunlight *= mix(vec3(1.0), sunlightHorizon, timeHorizon);
 	
 	
 	const vec3 skylightDay =

@@ -7,14 +7,14 @@
 
 #define COMPOSITE0_SCALE 0.5   // [0.25 0.33 0.4 0.5 0.75 1.0]
 
-#define FOGPOW 2.0
+#define FOGPOW 3.0
 #define FOG_ENABLED
 
 #define FORWARD_SHADING
 
 
 const int   shadowMapResolution      = 2048;    //[1024 2048 3072 4096]
-const float sunPathRotation          = 40.0;
+const float sunPathRotation          = -40.0;
 const float shadowDistance           = 140.0;
 const float shadowIntervalSize       = 4.0;
 const bool  shadowHardwareFiltering0 = true;

@@ -155,17 +155,16 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	return GI * lightMult * brightness;    // brightness is constant for all pixels for all samples. lightMult is not constant over all pixels, but is constant over each pixels' samples.
 }
 
-float ComputeVolumetricLight(in vec4 viewSpacePosition, in float noise1D) {
+float ComputeVolumetricFog(in vec4 viewSpacePosition, in float noise1D) {
 	float fog = 0.0;
 	
 	
 	#ifdef FOG_ENABLED
 	float weight = 0.0;
-	float rayIncrement = gl_Fog.start / 64.0;
 	
-	vec3 rayStep = normalize(viewSpacePosition.xyz + vec3(0.0, 0.0, noise1D));
-
-	vec3 ray = rayStep * gl_Fog.start;
+	float rayIncrement = gl_Fog.start / 64.0;
+	vec3  rayStep      = normalize(viewSpacePosition.xyz + vec3(0.0, 0.0, noise1D));
+	vec3  ray          = rayStep * gl_Fog.start;
 	
 	while (length(ray) < length(viewSpacePosition.xyz)) {
 		ray += rayStep * rayIncrement;
@@ -198,14 +197,14 @@ void main() {
 	vec4  viewSpacePosition = CalculateViewSpacePosition(texcoord, depth);
 	vec2  noise2D           = GetDitherred2DNoise(texcoord);
 	
-	float VL = ComputeVolumetricLight(viewSpacePosition, noise2D.x);
+	float Fog = ComputeVolumetricFog(viewSpacePosition, noise2D.x);
 	
 	if (mask.water > 0.5)
-		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, VL); return; }
+		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, Fog); return; }
 	
-	vec3  normal            = GetNormal(texcoord);
+	vec3 normal = GetNormal(texcoord);
 	
-	vec3  GI = ComputeGlobalIllumination(viewSpacePosition, normal, 16.0, 4.0, mask, noise2D);
+	vec3 GI = ComputeGlobalIllumination(viewSpacePosition, normal, 16.0, 4.0, mask, noise2D);
 	
-	gl_FragData[0] = vec4(EncodeColor(GI), VL);
+	gl_FragData[0] = vec4(EncodeColor(GI), Fog);
 }

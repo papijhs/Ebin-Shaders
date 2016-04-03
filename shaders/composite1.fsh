@@ -76,17 +76,16 @@ vec4 CalculateViewSpacePosition(in vec2 coord, in float depth) {
 	return position;
 }
 
-void BilateralUpsample(in vec3 normal, in float depth, in Mask mask, out vec3 GI, out float VL) {
+void BilateralUpsample(in vec3 normal, in float depth, in Mask mask, out vec3 GI, out float Fog) {
 	GI = vec3(0.0);
-	VL = 0.0;
+	Fog = 0.0;
 	
-	if (mask.sky > 0.5) { VL = 1.0; return; }
+	if (mask.sky > 0.5) { Fog = 1.0; return; }
 	
 	depth = ExpToLinearDepth(depth);
 	
-	float totalWeights = 0.0;
-	
-	float totalVLWeight = 0.0;
+	float totalWeights   = 0.0;
+	float totalFogWeight = 0.0;
 	
 	for(float i = -0.5; i <= 0.5; i++) {
 		for(float j = -0.5; j <= 0.5; j++) {
@@ -100,20 +99,20 @@ void BilateralUpsample(in vec3 normal, in float depth, in Mask mask, out vec3 GI
 			      weight = pow(weight, 32);
 			      weight = max(0.000000001, weight);
 			
-			float VLWeight = 1.0 - abs(depth - sampleDepth) * 10.0;
-			      VLWeight = pow(VLWeight, 32);
-			      VLWeight = max(0.000000001, VLWeight);
+			float FogWeight = 1.0 - abs(depth - sampleDepth) * 10.0;
+			      FogWeight = pow(FogWeight, 32);
+			      FogWeight = max(0.000000001, FogWeight);
 			
-			GI += DecodeColor(texture2D(colortex4, texcoord * COMPOSITE0_SCALE + offset).rgb) * weight;
-			VL += texture2D(colortex4, texcoord * COMPOSITE0_SCALE + offset).a * VLWeight;
+			GI  += DecodeColor(texture2D(colortex4, texcoord * COMPOSITE0_SCALE + offset).rgb) * weight;
+			Fog += texture2D(colortex4, texcoord * COMPOSITE0_SCALE + offset).a * FogWeight;
 			
-			totalWeights  += weight;
-			totalVLWeight += VLWeight;
+			totalWeights   += weight;
+			totalFogWeight += FogWeight;
 		}
 	}
 	
-	GI /= totalWeights;
-	VL /= totalVLWeight;
+	GI  /= totalWeights;
+	Fog /= totalFogWeight;
 }
 
 vec3 CalculateSkyGradient(in vec4 viewSpacePosition) {
@@ -180,16 +179,16 @@ void main() {
 	#endif
 	
 	vec3  GI;
-	float VL;
+	float Fog;
 	
-	BilateralUpsample(normal, depth, mask, GI, VL);
+	BilateralUpsample(normal, depth, mask, GI, Fog);
 	
 	composite += GI * colorSunlight * pow(diffuse, vec3(2.2));
 	
 	
 	vec4 sky = CalculateSky(viewSpacePosition, mask);
 	
-	composite = mix(composite, sky.rgb, min(VL * sky.a + pow(sky.a, 6), 1.0));
+	composite = mix(composite, sky.rgb, min(Fog * sky.a + pow(sky.a, 6), 1.0));
 	
 	
 	gl_FragData[0] = vec4(EncodeColor(composite), 1.0);
