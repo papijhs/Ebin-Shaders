@@ -13,8 +13,7 @@ void main() {
 	
 	float NdotL = dot(vertNormal, vec3(0.0, 0.0, 1.0));
 	
-	diffuse.rgb *= NdotL;
-	diffuse.rgb  = pow(diffuse.rgb, vec3(2.2));
+	diffuse.rgb *= pow(NdotL, 1.0 / 2.2);
 	
 	
 	gl_FragData[0] = vec4(1.0 - diffuse.rgb, diffuse.a);    // Diffuse is inverted here because sky pixels will always be written as RGB 1.0. If we invert everything when we read it, then sky pixels will all be RGB 0.0, and our colors will be unaffected

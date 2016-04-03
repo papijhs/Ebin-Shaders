@@ -14,7 +14,7 @@
 
 
 const int   shadowMapResolution      = 2048;    //[1024 2048 3072 4096]
-const float sunPathRotation          = -40.0;
+const float sunPathRotation          = 40.0;
 const float shadowDistance           = 140.0;
 const float shadowIntervalSize       = 4.0;
 const bool  shadowHardwareFiltering0 = true;
