@@ -25,7 +25,7 @@ float cubesmooth(in float x) {
 	return x * x * (3.0 - 2.0 * x);
 }
 
-vec3 ComputeBloom(const int scale, vec2 offset) {    // Computes a single bloom tile, the tile's blur level is inversely proportional to its size
+vec3 ComputeBloomTile(const int scale, vec2 offset) {    // Computes a single bloom tile, the tile's blur level is inversely proportional to its size
 	// Each bloom tile uses (1.0 / scale) per-unit of the screen + (pixelSize * 2.0)
 	
 	vec2  pixelSize = 1.0 / vec2(viewWidth, viewHeight);
@@ -64,16 +64,20 @@ vec3 ComputeBloom(const int scale, vec2 offset) {    // Computes a single bloom 
 	return bloom / totalWeight;
 }
 
-void main() {
+vec3 ComputeBloom() {
 	vec2 pixelSize = 1.0 / vec2(viewWidth, viewHeight);
 	
-	vec3 bloom  = ComputeBloom(  4, vec2(0.0                         ,                          0.0));
-	     bloom += ComputeBloom(  8, vec2(0.0                         , 0.25     + pixelSize.y * 2.0));
-	     bloom += ComputeBloom( 16, vec2(0.125    + pixelSize.x * 2.0, 0.25     + pixelSize.y * 2.0));
-	     bloom += ComputeBloom( 32, vec2(0.1875   + pixelSize.x * 4.0, 0.25     + pixelSize.y * 2.0));
-	     bloom += ComputeBloom( 64, vec2(0.125    + pixelSize.x * 2.0, 0.3125   + pixelSize.y * 4.0));
-	     bloom += ComputeBloom(128, vec2(0.140625 + pixelSize.x * 4.0, 0.3125   + pixelSize.y * 4.0));
-	     bloom += ComputeBloom(256, vec2(0.125    + pixelSize.x * 2.0, 0.328125 + pixelSize.y * 6.0));
+	vec3 bloom  = ComputeBloomTile(  4, vec2(0.0                         ,                          0.0));
+	     bloom += ComputeBloomTile(  8, vec2(0.0                         , 0.25     + pixelSize.y * 2.0));
+	     bloom += ComputeBloomTile( 16, vec2(0.125    + pixelSize.x * 2.0, 0.25     + pixelSize.y * 2.0));
+	     bloom += ComputeBloomTile( 32, vec2(0.1875   + pixelSize.x * 4.0, 0.25     + pixelSize.y * 2.0));
+	     bloom += ComputeBloomTile( 64, vec2(0.125    + pixelSize.x * 2.0, 0.3125   + pixelSize.y * 4.0));
+	     bloom += ComputeBloomTile(128, vec2(0.140625 + pixelSize.x * 4.0, 0.3125   + pixelSize.y * 4.0));
+	     bloom += ComputeBloomTile(256, vec2(0.125    + pixelSize.x * 2.0, 0.328125 + pixelSize.y * 6.0));
 	
-	gl_FragData[0] = vec4(pow(bloom, vec3(1.0 / 2.2)), 1.0);
+	return bloom;
+}
+
+void main() {
+	gl_FragData[0] = vec4(pow(ComputeBloom(), vec3(1.0 / 2.2)), 1.0);
 }

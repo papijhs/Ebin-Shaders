@@ -31,7 +31,7 @@ vec3 Uncharted2Tonemap(in vec3 color) {
 	return pow(color, vec3(1.0 / 2.2));
 }
 
-vec3 GetBloom(const int scale, vec2 offset) {
+vec3 GetBloomTile(const int scale, vec2 offset) {
 	vec2 pixelSize = 1.0 / vec2(viewWidth, viewHeight);
 	
 	vec2 coord  = texcoord;
@@ -41,22 +41,36 @@ vec3 GetBloom(const int scale, vec2 offset) {
 	return DecodeColor(texture2D(colortex2, coord).rgb);
 }
 
+vec3[8] GetBloom() {
+	vec2 pixelSize = 1.0 / vec2(viewWidth, viewHeight);
+	
+	vec3[8] bloom;
+	
+	// These arguments should be identical to those in composite2.fsh
+	bloom[1] = GetBloomTile(  4, vec2(0.0                         ,                          0.0));
+	bloom[2] = GetBloomTile(  8, vec2(0.0                         , 0.25     + pixelSize.y * 2.0));
+	bloom[3] = GetBloomTile( 16, vec2(0.125    + pixelSize.x * 2.0, 0.25     + pixelSize.y * 2.0));
+	bloom[4] = GetBloomTile( 32, vec2(0.1875   + pixelSize.x * 4.0, 0.25     + pixelSize.y * 2.0));
+	bloom[5] = GetBloomTile( 64, vec2(0.125    + pixelSize.x * 2.0, 0.3125   + pixelSize.y * 4.0));
+	bloom[6] = GetBloomTile(128, vec2(0.140625 + pixelSize.x * 4.0, 0.3125   + pixelSize.y * 4.0));
+	bloom[7] = GetBloomTile(256, vec2(0.125    + pixelSize.x * 2.0, 0.328125 + pixelSize.y * 6.0));
+	
+	bloom[0] = vec3(0.0);
+	
+	for (int index = 1; index < bloom.length(); index++)
+		bloom[0] += bloom[index];
+	
+	bloom[0] /= bloom.length() - 1.0;
+	
+	return bloom;
+}
+
 void main() {
 	vec3 color = DecodeColor(texture2D(colortex0, texcoord).rgb);
 	
-	vec2 pixelSize = 1.0 / vec2(viewWidth, viewHeight);
+	vec3[8] bloom = GetBloom();
 	
-	// These function calls should be identical to those in composite2.fsh
-	vec3 bloom  = GetBloom(  4, vec2(0.0                         ,                          0.0));
-	     bloom += GetBloom(  8, vec2(0.0                         , 0.25     + pixelSize.y * 2.0));
-	     bloom += GetBloom( 16, vec2(0.125    + pixelSize.x * 2.0, 0.25     + pixelSize.y * 2.0));
-	     bloom += GetBloom( 32, vec2(0.1875   + pixelSize.x * 4.0, 0.25     + pixelSize.y * 2.0));
-	     bloom += GetBloom( 64, vec2(0.125    + pixelSize.x * 2.0, 0.3125   + pixelSize.y * 4.0));
-	     bloom += GetBloom(128, vec2(0.140625 + pixelSize.x * 4.0, 0.3125   + pixelSize.y * 4.0));
-	     bloom += GetBloom(256, vec2(0.125    + pixelSize.x * 2.0, 0.328125 + pixelSize.y * 6.0));
-	     bloom /= 7.0;
+	color = mix(color, pow(bloom[0], vec3(1.25)), 0.125);
 	
-	color = mix(color, pow(bloom, vec3(1.25)), 0.125);
-	
-	gl_FragData[0] = vec4(Uncharted2Tonemap(color), 1.0);
+	gl_FragColor = vec4(Uncharted2Tonemap(color), 1.0);
 }

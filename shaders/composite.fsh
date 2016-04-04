@@ -234,7 +234,7 @@ float ComputeVolumetricFog(in vec4 viewSpacePosition, in float noise1D) {
 		
 		vec3 samplePosition = BiasShadowProjection(WorldSpaceToShadowSpace(ViewSpaceToWorldSpace(vec4(ray, 1.0)))).xyz * 0.5 + 0.5;
 		
-		fog += shadow2D(shadow, samplePosition).x * rayIncrement ;// * CalculateFogFactor(vec4(ray, 1.0), FOGPOW);
+		fog += shadow2D(shadow, samplePosition).x * rayIncrement ;// * CalculateFogFactor(ray, FOGPOW);
 		
 		weight += rayIncrement;
 		
