@@ -13,13 +13,6 @@ varying vec2 texcoord;
 
 #include "/lib/Settings.glsl"
 
-vec3 DecodeColor(in vec3 color) {
-	return pow(color, vec3(2.2)) * 1000.0;
-}
-
-vec3 EncodeColor(in vec3 color) {    // Prepares the color to be sent through a limited dynamic range pipeline
-	return pow(color * 0.001, vec3(1.0 / 2.2));
-}
 
 float cubesmooth(in float x) {
 	return x * x * (3.0 - 2.0 * x);
@@ -77,6 +70,7 @@ vec3 ComputeBloom() {
 	
 	return bloom;
 }
+
 
 void main() {
 	gl_FragData[0] = vec4(pow(ComputeBloom(), vec3(1.0 / 2.2)), 1.0);

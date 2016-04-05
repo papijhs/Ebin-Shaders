@@ -104,73 +104,11 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	position = WorldSpaceToShadowSpace(ViewSpaceToWorldSpace(position)) * 0.5 + 0.5;    // Convert the view-space position to shadow-map coordinates (unbiased)
 	normal   = (shadowModelView * gbufferModelViewInverse * vec4(normal, 0.0)).xyz;     // Convert the normal from view-space to shadow-view-space
 	
-	vec3 GI = vec3(0.0);
-	
-	const float brightness  = 0.0001 * radius * radius;
-	const float interval    = 1.0 / quality;
-	const float scale       = radius / 512.0;
-	const float sampleCount = pow(1.0 / interval * 2.0 + 1.0, 2);
-	
-	if (lightMult < 0.05 && GI_Boost) return vec3(0.0);
-	
-	for(float x = -1.0; x <= 1.0; x += interval) {
-		for(float y = -1.0; y <= 1.0; y += interval) {
-			vec2 offset  = vec2(x, y) + noise * interval;
-			     offset *= scale;
-			
-			vec3 samplePos = vec3(position.xy + offset, 0.0);
-			
-			vec2 mapPos = BiasShadowMap(samplePos.xy * 2.0 - 1.0) * 0.5 + 0.5;
-			
-			samplePos.z = texture2DLod(shadowtex1, mapPos, depthLOD).x;
-			samplePos.z = ((samplePos.z * 2.0 - 1.0) * 4.0) * 0.5 + 0.5;    // Undo z-shrinking
-			
-			vec3 sampleDiff = position.xyz - samplePos.xyz;
-			
-			float distanceCoeff  = length(sampleDiff);
-			      distanceCoeff *= distanceCoeff;
-			
-			vec3 sampleDir    = normalize(sampleDiff);
-			vec3 shadowNormal = texture2DLod(shadowcolor1, mapPos, sampleLOD).xyz * 2.0 - 1.0;
-			
-			float viewNormalCoeff   = max(0.0, dot(      normal, sampleDir * vec3(-1.0, -1.0,  1.0)));
-			float shadowNormalCoeff = max(0.0, dot(shadowNormal, sampleDir * vec3( 1.0,  1.0, -1.0)));
-			
-			viewNormalCoeff   = viewNormalCoeff * (1.0 - GI_TRANSLUCENCE) + GI_TRANSLUCENCE;
-		//	viewNormalCoeff   = viewNormalCoeff * (1.0 - mask.leaves) + mask.leaves * 2.0;
-			
-			vec3 flux = pow(1.0 - texture2DLod(shadowcolor, mapPos, sampleLOD).rgb, vec3(2.2));
-			
-			GI += flux * viewNormalCoeff * shadowNormalCoeff / distanceCoeff;
-		}
-	}
-	
-	GI /= sampleCount;
-	
-	return GI * lightMult * brightness;    // brightness is constant for all pixels for all samples. lightMult is not constant over all pixels, but is constant over each pixels' samples.
-}
-
-vec3 ComputeGlobalIlluminationLinear(in vec4 position, in vec3 normal, const in float radius, const in float quality, in Mask mask, in vec2 noise) {
-	float normalShading = GetNormalShading(normal, mask);
-	
-	float lightMult = 1.0;
-	
-	#ifdef GI_BOOST
-	float sunlight = ComputeDirectSunlight(position, normalShading);
-	lightMult = 1.0 - pow(sunlight, 1) * normalShading * 4.0;
-	#endif
-	
-	float depthLOD	= 2.0 * clamp(1.0 - length(position.xyz) / shadowDistance, 0.0, 1.0);
-	float sampleLOD	= depthLOD * 5.0 / 2.0;
-	
-	position = WorldSpaceToShadowSpace(ViewSpaceToWorldSpace(position)) * 0.5 + 0.5;    // Convert the view-space position to shadow-map coordinates (unbiased)
-	normal   = (shadowModelView * gbufferModelViewInverse * vec4(normal, 0.0)).xyz;     // Convert the normal from view-space to shadow-view-space
-	
 	float biasCoeff = GetShadowBias(position.xy);
 	
 	vec3 GI = vec3(0.0);
 	
-	const float brightness  = 30.0 * radius * radius;
+	const float brightness  = 45.0 * radius * radius;
 	const float interval    = 1.0 / quality;
 	const float scale       = radius / 512.0;
 	const float sampleCount = pow(1.0 / interval * 2.0 + 1.0, 2.0);
@@ -217,12 +155,9 @@ vec3 ComputeGlobalIlluminationLinear(in vec4 position, in vec3 normal, const in 
 	return GI * lightMult * brightness;    // brightness is constant for all pixels for all samples. lightMult is not constant over all pixels, but is constant over each pixels' samples.
 }
 
-
 float ComputeVolumetricFog(in vec4 viewSpacePosition, in float noise1D) {
-	float fog = 0.0;
-	
-	
-	#ifdef FOG_ENABLED
+	#ifdef VOLUMETRIC_FOG
+	float fog    = 0.0;
 	float weight = 0.0;
 	
 	float rayIncrement = gl_Fog.start / 64.0;
@@ -242,10 +177,12 @@ float ComputeVolumetricFog(in vec4 viewSpacePosition, in float noise1D) {
 	}
 	
 	fog /= weight;
-	#endif
-	
+	fog  = pow(fog, VOLUMETRIC_FOG_POWER);
 	
 	return fog;
+	#else
+	return 1.0;
+	#endif
 }
 
 
@@ -267,7 +204,7 @@ void main() {
 	
 	vec3 normal = GetNormal(texcoord);
 	
-	vec3 GI = ComputeGlobalIlluminationLinear(viewSpacePosition, normal, 16.0, 4.0, mask, noise2D);
+	vec3 GI = ComputeGlobalIllumination(viewSpacePosition, normal, GI_RADIUS, GI_QUALITY * 4.0, mask, noise2D);
 	
 	gl_FragData[0] = vec4(EncodeColor(GI), Fog);
 }

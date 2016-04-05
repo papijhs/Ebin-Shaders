@@ -2,7 +2,7 @@
 //#define COMPOSITE0_VERTEX
 //#define COMPOSITE2_VERTEX
 
-#define COMPOSITE0_SCALE 0.5
+#define COMPOSITE0_SCALE 0.4
 
 uniform float viewWidth;
 uniform float viewHeight;

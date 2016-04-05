@@ -94,7 +94,7 @@ void BilateralUpsample(in vec3 normal, in float depth, in Mask mask, out vec3 GI
 			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
 			vec3  sampleNormal = GetNormal(texcoord + offset * 8.0);
 			
-			float weight  = 1.0 - abs(depth - sampleDepth) * 10.0;
+			float weight  = 1.0 - abs(depth - sampleDepth);
 			      weight *= dot(normal, sampleNormal);
 			      weight  = pow(weight, 32);
 			      weight  = max(0.000000001, weight);
@@ -145,13 +145,13 @@ vec3 CalculateSunspot(in vec4 viewSpacePosition) {
 }
 
 void CalculateSky(inout vec3 color, in vec4 viewSpacePosition, in float fogVolume, in Mask mask) {
-	float fogFactor = max(CalculateFogFactor(viewSpacePosition, FOGPOW), mask.sky);
+	float fogFactor = max(CalculateFogFactor(viewSpacePosition, FOG_POWER), mask.sky);
 	vec3  gradient  = CalculateSkyGradient(viewSpacePosition);
 	vec3  sunspot   = CalculateSunspot(viewSpacePosition) * pow(fogFactor, 25);
 	vec4  composite;
 	
 	
-	composite.a   = min(fogVolume * fogFactor + pow(fogFactor, 6), 1.0);
+	composite.a   = min(fogVolume * fogFactor + pow(fogFactor, 6) * float(Volumetric_Fog), 1.0);
 	composite.rgb = gradient + sunspot;
 	
 	color = mix(color, composite.rgb, composite.a);

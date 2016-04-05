@@ -1,14 +1,17 @@
-#define SHADOW_MAP_BIAS 0.8    // [0.0 0.6 0.7 0.8 0.85 0.9]
+#define SHADOW_MAP_BIAS 0.8     // [0.0 0.6 0.7 0.8 0.85 0.9]
 #define EXTENDED_SHADOW_DISTANCE
 #define SOFT_SHADOWS
 
-#define GI_TRANSLUCENCE 0.2    // [0.0 0.2 0.4 0.6 0.8 1.0]
 #define GI_BOOST
+#define GI_TRANSLUCENCE 0.2     // [0.0 0.2 0.4 0.6 0.8 1.0]
+#define GI_RADIUS 16.0     // [4.0 8.0 16.0 24.0 32.0]
+#define GI_QUALITY 1.0     // [0.25 0.5 1.0 2.0 3.0 4.0]
 
-#define COMPOSITE0_SCALE 0.5   // [0.25 0.33 0.4 0.5 0.75 1.0]
+#define COMPOSITE0_SCALE 0.4    // [0.25 0.33 0.4 0.5 0.75 1.0]
 
-#define FOGPOW 3.0
 #define FOG_ENABLED
+#define FOG_POWER 3.0               // [1.0 2.0 3.0 4.0 6.0 8.0]
+#define VOLUMETRIC_FOG_POWER 1.0    // [1.0 2.0 3.0 4.0]
 
 #define FORWARD_SHADING
 
@@ -20,7 +23,6 @@ const float shadowIntervalSize       = 4.0;
 const bool  shadowHardwareFiltering0 = true;
 
 const int RGB8            = 0;
-const int RG16            = 0;
 const int RGB16           = 0;
 const int RGBA16          = 0;
 const int colortex0Format = RGB16;
@@ -46,4 +48,11 @@ const int noiseTextureResolution = 4;
 	#define DEFERRED_SHADING
 	#define Forward_Shading  false
 	#define Deferred_Shading true
+#endif
+
+#ifdef FOG_ENABLED
+	#define VOLUMETRIC_FOG
+	#define Volumetric_Fog true
+#else
+	#define Volumetric_Fog false
 #endif
