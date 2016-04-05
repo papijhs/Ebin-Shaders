@@ -108,7 +108,7 @@ vec3 ComputeGlobalIllumination(in vec4 position, in vec3 normal, const in float 
 	
 	vec3 GI = vec3(0.0);
 	
-	const float brightness  = 45.0 * radius * radius;
+	const float brightness  = 30.0 * radius * radius;
 	const float interval    = 1.0 / quality;
 	const float scale       = radius / 512.0;
 	const float sampleCount = pow(1.0 / interval * 2.0 + 1.0, 2.0);

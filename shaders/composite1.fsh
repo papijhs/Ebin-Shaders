@@ -144,17 +144,26 @@ vec3 CalculateSunspot(in vec4 viewSpacePosition) {
 	return sunspot * colorSunlight * colorSunlight;
 }
 
+vec3 CalculateAtmosphereScattering(in vec4 viewSpacePosition) {
+	float factor  = pow(length(viewSpacePosition.xyz), 1.4) * 0.0002;
+	
+	return pow(colorSkylight, vec3(3.5)) * factor;
+}
+
 void CalculateSky(inout vec3 color, in vec4 viewSpacePosition, in float fogVolume, in Mask mask) {
-	float fogFactor = max(CalculateFogFactor(viewSpacePosition, FOG_POWER), mask.sky);
-	vec3  gradient  = CalculateSkyGradient(viewSpacePosition);
-	vec3  sunspot   = CalculateSunspot(viewSpacePosition) * pow(fogFactor, 25);
-	vec4  composite;
+	float fogFactor  = max(CalculateFogFactor(viewSpacePosition, FOG_POWER), mask.sky);
+	vec3  gradient   = CalculateSkyGradient(viewSpacePosition);
+	vec3  sunspot    = CalculateSunspot(viewSpacePosition) * pow(fogFactor, 25);
+	vec3  atmosphere = CalculateAtmosphereScattering(viewSpacePosition);
+	vec4  skyComposite;
 	
 	
-	composite.a   = min(fogVolume * fogFactor + pow(fogFactor, 6) * float(Volumetric_Fog), 1.0);
-	composite.rgb = gradient + sunspot;
+	skyComposite.a   = min(fogVolume * fogFactor + pow(fogFactor, 6) * float(Volumetric_Fog), 1.0);
+	skyComposite.rgb = gradient + sunspot;
 	
-	color = mix(color, composite.rgb, composite.a);
+	
+	color  = mix(color, skyComposite.rgb, skyComposite.a);
+	color += atmosphere;
 }
 
 
