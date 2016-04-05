@@ -146,7 +146,7 @@ void main() {
 	
 	vec4 position = GetWorldSpacePosition();
 	position.xyz += cameraPosition.xyz;
-	position.xyz += GetWaves(position.xyz);
+//	position.xyz += GetWaves(position.xyz);
 	position.xyz -= cameraPosition.xyz;
 	position      = WorldSpaceToProjectedSpace(position);
 	gl_Position   = position;
