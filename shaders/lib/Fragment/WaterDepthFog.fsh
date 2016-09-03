@@ -1,10 +1,9 @@
-vec3 waterFog(vec3 color, vec4 viewSpacePosition0, vec4 viewSpacePosition1) {
+vec3 WaterFog(vec3 color, vec4 viewSpacePosition0, vec4 viewSpacePosition1) {
 	float waterDepth = distance(viewSpacePosition1.xyz, viewSpacePosition0.xyz) * 0.5; // Depth of the water volume
 	
 	if (isEyeInWater == 1) waterDepth = length(viewSpacePosition0);
 	
-	// Beer's Law
-	float fogAccum = exp(-waterDepth * 0.2);
+	float fogAccum = exp(-waterDepth * 0.2); // Beer's Law
 	
 	vec3 waterDepthColors = vec3(0.015, 0.04, 0.098) * sunlightColor;
 	

@@ -310,7 +310,7 @@ void main() {
 	
 	vec3 sky = CalculateSky(viewSpacePosition1, 1.0 - alpha, false);
 	
-	if (isEyeInWater == 1) sky = waterFog(sky, viewSpacePosition0, vec4(0.0));
+	if (isEyeInWater == 1) sky = WaterFog(sky, viewSpacePosition0, vec4(0.0));
 	
 	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky.rgb), 1.0); exit(); return; }
 	

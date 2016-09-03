@@ -91,8 +91,8 @@ const int noiseTextureResolution = 64;
 
 #define REFLECTION_EDGE_FALLOFF
 
-#define WAVE_MULT 2.0
-#define WAVE_SPEED 0.5
+#define WAVE_MULT 1.0
+#define WAVE_SPEED 0.35
 
 
 #define CUSTOM_HORIZON_HEIGHT
