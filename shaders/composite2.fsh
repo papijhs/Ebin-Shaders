@@ -244,15 +244,15 @@ mat3 DecodeTBN(float tbnIndex) {
 vec4 GetWaterParallaxCoord(vec4 position, vec3 tangentVector) {
 	position.xyz = mat3(gbufferModelViewInverse) * position.xyz + cameraPosition;
 
-	cvec3 stepSize = vec3(1.0);
+	cvec3 stepSize = vec3(0.6);
 	vec3 interval = tangentVector * stepSize;
 
 	float currentHeight = GetWaves(position.xyz);
 	vec3  offset = vec3(0.0, 0.0, 1.0);
 
-	for(int i = 0; offset.z > currentHeight + 0.01 && i < 32; i++) {
-		offset += mix(vec3(0.0), interval, pow(offset.z - currentHeight, 0.8));
-
+	for (int i = 0; currentHeight < offset.z && i < 120; i++) {
+		offset.xy = mix(offset.xy, offset.xy + interval.xy, clamp01((offset.z - currentHeight) / (stepSize.z * 0.2f / (-tangentVector.z + 0.05f))));
+		offset.z += interval.z;
 		currentHeight = GetWaves(position.xyz + vec3(offset.x, 0.0f, offset.y));
 	}
 
