@@ -191,10 +191,22 @@ vec3 RayMarchClouds(vec4 viewSpacePosition) {
 	return clouds.rgb;
 }
 
+vec3 Compute2DCloudPlane(vec4 viewSpacePosition) {
+	cfloat cloudHeight = 512.0;
+	
+	vec3 position = normalize((gbufferModelViewInverse * viewSpacePosition).xyz);
+	     position = normalize(position.xyz);
+	     position = position / position.y * (cloudHeight - cameraPosition.y) + cameraPosition;
+	
+	return swizzle.ggg;
+}
+
 vec3 CompositeClouds(vec4 viewSpacePosition) {
 #ifndef ENABLE_CLOUDS
 	return vec3(0.0);
 #endif
+	
+	return Compute2DCloudPlane(viewSpacePosition);
 	
 	return RayMarchClouds(viewSpacePosition);
 }
