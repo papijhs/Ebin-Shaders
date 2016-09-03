@@ -104,9 +104,9 @@ vec3 GetTangentNormal() {
 #endif
 }
 
-float Get3DNoise(vec3 position) {
-	vec3 part  = floor(position);
-	vec3 whole = position - part;
+float Get3DNoise(vec3 pos) {
+	vec3 part  = floor(pos);
+	vec3 whole = fract(pos);
 	
 	cvec2 zscale = vec2(17.0, 0.0);
 	
