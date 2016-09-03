@@ -185,7 +185,7 @@ void ComputeReflectedLight(inout vec3 color, vec4 viewSpacePosition, vec3 normal
 		#endif
 	}
 	
-	reflection = max(reflection, 0.0);
+	reflection = max0(reflection);
 	
 	color = mix(color, reflection, alpha);
 }
@@ -235,11 +235,32 @@ mat3 DecodeTBN(float tbnIndex) {
 	}
 	
 	vec3 normal = cross(tangent, binormal);
-	
+
 	return mat3(tangent, binormal, normal);
 }
 
 #include "lib/Fragment/WaterDepthFog.fsh"
+
+vec4 GetWaterParallaxCoord(vec4 position, vec3 tangentVector) {
+	vec3 parallaxCoord = (gbufferModelViewInverse * position).xyz + cameraPosition;
+		
+	cvec3 stepSize = vec3(0.2, 0.2, 1.0);
+
+	float waveHeight = GetWaves(parallaxCoord.xyz);
+
+	vec3 offset = vec3(0.0, 0.0, 1.0);
+	vec3 interval = tangentVector * stepSize;
+	
+	for(int i = 0; offset.z > waveHeight + 0.01 && i < 32; i++) {
+		offset += mix(vec3(0.0), interval, pow(offset.z - waveHeight, 0.8));
+			
+		waveHeight = GetWaves(parallaxCoord.xyz + vec3(offset.x, 0.0, offset.y));
+	}
+
+	parallaxCoord += vec3(offset.x, 0.0, offset.y);
+
+	return gbufferModelView * vec4(parallaxCoord - cameraPosition, 0.0);
+}
 
 void main() {
 	float depth0 = GetDepth(texcoord);
@@ -262,11 +283,15 @@ void main() {
 		
 		if (mask.transparent > 0.5) {
 			mat3 tbnMatrix = DecodeTBN(encodedNormal.x);
-			
 			vec3 tangentNormal;
 			
-			if (mask.water > 0.5) tangentNormal.xy = GetWaveNormals(viewSpacePosition0, tbnMatrix[2]);
-			else                  tangentNormal.xy = Decode16(encodedNormal.y) * 2.0 - 1.0;
+			if (mask.water > 0.5) {
+				//vec3 tangentVector = normalize(tbnMatrix * normalize(viewSpacePosition0.xyz));
+				//vec4 parallaxModPosition = GetWaterParallaxCoord(viewSpacePosition0, tangentVector);
+
+				tangentNormal.xy = GetWaveNormals(viewSpacePosition0, tbnMatrix[2]);
+			} else 
+				tangentNormal.xy = Decode16(encodedNormal.y) * 2.0 - 1.0;
 			
 			tangentNormal.z = sqrt(1.0 - lengthSquared(tangentNormal.xy)); // Solve the equation "length(normal.xyz) = 1.0" for normal.z
 			
