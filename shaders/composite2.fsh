@@ -239,27 +239,30 @@ mat3 DecodeTBN(float tbnIndex) {
 	return mat3(tangent, binormal, normal);
 }
 
+mat3 createNormalMatrix() {
+	mat4 M = transpose(inverse(gbufferModelView));
+	return mat3(M);
+}
+
 #include "lib/Fragment/WaterDepthFog.fsh"
 
 vec4 GetWaterParallaxCoord(vec4 position, vec3 tangentVector) {
-	vec3 parallaxCoord = (gbufferModelViewInverse * position).xyz + cameraPosition;
-		
-	cvec3 stepSize = vec3(0.2, 0.2, 1.0);
+	position = (gbufferModelViewInverse * position) + vec4(cameraPosition, 0.0);
 
-	float waveHeight = GetWaves(parallaxCoord.xyz);
-
-	vec3 offset = vec3(0.0, 0.0, 1.0);
+	cvec3 stepSize = vec3(1.0);
 	vec3 interval = tangentVector * stepSize;
-	
-	for(int i = 0; offset.z > waveHeight + 0.01 && i < 32; i++) {
-		offset += mix(vec3(0.0), interval, pow(offset.z - waveHeight, 0.8));
-			
-		waveHeight = GetWaves(parallaxCoord.xyz + vec3(offset.x, 0.0, offset.y));
+
+	float currentHeight = GetWaves(position.xyz);
+	vec3  offset = vec3(0.0, 0.0, 1.0);
+
+	for(int i = 0; offset.z > currentHeight + 0.01 && i < 32; i++) {
+		offset += mix(vec3(0.0), interval, pow(offset.z - currentHeight, 0.8));
+
+		currentHeight = GetWaves(position.xyz + vec3(offset.x, 0.0f, offset.y));
 	}
 
-	parallaxCoord += vec3(offset.x, 0.0, offset.y);
-
-	return gbufferModelView * vec4(parallaxCoord - cameraPosition, 0.0);
+	position.xyz = position.xyz + vec3(offset.x, 0.0f, offset.y);
+	return gbufferModelView * vec4(position.xyz - cameraPosition, 0.0);
 }
 
 void main() {
@@ -286,10 +289,12 @@ void main() {
 			vec3 tangentNormal;
 			
 			if (mask.water > 0.5) {
-				//vec3 tangentVector = normalize(tbnMatrix * normalize(viewSpacePosition0.xyz));
-				//vec4 parallaxModPosition = GetWaterParallaxCoord(viewSpacePosition0, tangentVector);
+				mat3 tbnMat = createNormalMatrix() * tbnMatrix;
+				vec3 tangentVector = normalize(viewSpacePosition0.xyz * tbnMat);
 
-				tangentNormal.xy = GetWaveNormals(viewSpacePosition0, tbnMatrix[2]);
+				vec4 parallaxModPosition = GetWaterParallaxCoord(viewSpacePosition0, tangentVector);
+				
+				tangentNormal.xy = GetWaveNormals(parallaxModPosition, tbnMatrix[2]);
 			} else 
 				tangentNormal.xy = Decode16(encodedNormal.y) * 2.0 - 1.0;
 			
