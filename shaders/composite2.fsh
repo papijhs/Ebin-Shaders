@@ -163,8 +163,7 @@ void ComputeReflectedLight(inout vec3 color, vec4 viewSpacePosition, vec3 normal
 	
 	float sunlight = ComputeShadows(viewSpacePosition, 1.0);
 	
-	vec3 reflectedSky  = CalculateSky(vec4(reflect(viewSpacePosition.xyz, normal), 1.0), 1.0, true).rgb;
-	     reflectedSky *= 1.0;
+	vec3 reflectedSky = CalculateSky(vec4(reflect(viewSpacePosition.xyz, normal), 1.0), 1.0, true).rgb;
 	
 	float reflectedSunspot = specularBRDF(lightVector, normal, F0, -normalize(viewSpacePosition.xyz), roughness) * sunlight;
 	
@@ -285,7 +284,7 @@ void main() {
 			
 			if (mask.water > 0.5) {
 			#ifdef WATER_PARALLAX
-				mat3 tbnMat = mat3(transpose(gbufferModelViewInverse)) * tbnMatrix;
+				mat3 tbnMat = transpose(mat3(gbufferModelViewInverse)) * tbnMatrix;
 				vec3 tangentVector = normalize(viewSpacePosition0.xyz * tbnMat);
 				
 				viewSpacePosition0 = GetWaterParallaxCoord(viewSpacePosition0, tangentVector);
@@ -297,7 +296,7 @@ void main() {
 			
 			tangentNormal.z = sqrt(1.0 - lengthSquared(tangentNormal.xy)); // Solve the equation "length(normal.xyz) = 1.0" for normal.z
 			
-			normal = normalize((gbufferModelView * vec4(tbnMatrix * tangentNormal, 0.0)).xyz);
+			normal = mat3(gbufferModelView) * tbnMatrix * tangentNormal;
 			
 			
 			refractedCoord = GetRefractedCoord(texcoord, viewSpacePosition0, tangentNormal);

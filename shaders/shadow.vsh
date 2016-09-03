@@ -70,7 +70,7 @@ void main() {
 	texcoord      = gl_MultiTexCoord0.st;
 	lightmapCoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).st;
 	
-	vertNormal    = normalize((shadowView * shadowModelViewInverse * vec4(gl_NormalMatrix * gl_Normal, 0.0)).xyz);
+	vertNormal    = normalize(mat3(shadowView) * mat3(shadowModelViewInverse) * gl_NormalMatrix * gl_Normal);
 	
 	
 	vec4 position = GetWorldSpacePositionShadow();

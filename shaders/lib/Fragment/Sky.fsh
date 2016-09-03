@@ -53,7 +53,7 @@ vec3 CalculateAtmosphereScattering(vec4 viewSpacePosition) {
 #include "/lib/Fragment/Atmosphere.fsh"
 
 vec3 CalculateAtmosphericSky(vec3 worldSpacePosition) {
-	vec3 worldLightVector = (gbufferModelViewInverse * vec4(lightVector, 0.0)).xyz;
+	vec3 worldLightVector = mat3(gbufferModelViewInverse) * lightVector;
 	vec3 worldPosition    = vec3(0.0, planetRadius + 1.061e3 + max0(cameraPosition.y - HORIZON_HEIGHT) * 400.0, 0.0);
 	
 	/*
@@ -76,7 +76,7 @@ vec3 CalculateSky(vec4 viewSpacePosition, float alpha, cbool reflection) {
 	if (  visibility < 0.001 && !reflection) return vec3(0.0);
 	
 	
-	vec3 worldSpacePosition = (gbufferModelViewInverse * viewSpacePosition).xyz;
+	vec3 worldSpacePosition = mat3(gbufferModelViewInverse) * viewSpacePosition.xyz;
 	vec3 worldSpaceVector   = normalize(worldSpacePosition.xyz);
 	
 	vec3 clouds = Compute2DCloudPlane(worldSpacePosition, worldSpaceVector);
