@@ -12,7 +12,6 @@ varying vec3 color;
 varying vec2 texcoord;
 
 varying mat3 tbnMatrix;
-varying vec4 verts;
 varying vec2 vertLightmap;
 
 varying float mcID;
@@ -55,8 +54,15 @@ vec4 WorldSpaceToProjectedSpace(vec4 worldSpacePosition) {
 
 #include "/lib/Vertex/Waving.vsh"
 #include "/lib/Vertex/Vertex_Displacements.vsh"
-#include "/lib/Vertex/CalculateTBN.vsh"
 
+mat3 CalculateTBN() {
+	vec3 tangent = normalize(at_tangent.xyz);
+	vec3 normal  = gl_Normal;
+	
+	vec3 binormal = -cross(normal, tangent);
+	
+	return mat3(gbufferModelView) * mat3(tangent, binormal, normal);
+}
 
 float EncodePlanarTBN(vec3 worldSpaceNormal) { // Encode the TBN matrix into a 3-bit float
 	// Only valid for axis-oriented TBN matrices
@@ -90,9 +96,8 @@ void main() {
 	gl_Position   = WorldSpaceToProjectedSpace(position);
 	
 	
-	CalculateTBN(position.xyz, tbnMatrix);
-	verts = gl_Vertex;
 	worldNormal = gl_Normal;
+	tbnMatrix   = CalculateTBN();
 	
 	viewSpacePosition = gbufferModelView * position;
 	worldPosition     = position.xyz + cameraPosition;

@@ -9,6 +9,6 @@ vec3 WaterFog(vec3 color, vec4 viewSpacePosition0, vec4 viewSpacePosition1) {
 	
 	color *= pow(vec3(0.1, 0.5, 0.8), vec3(waterDepth));
 	color  = mix(waterDepthColors, color, clamp01(fogAccum));
-
+	
 	return color;
 }

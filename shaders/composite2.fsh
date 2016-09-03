@@ -149,10 +149,9 @@ void ComputeReflectedLight(inout vec3 color, vec4 viewSpacePosition, vec3 normal
 	vec3 viewVector = -normalize(viewSpacePosition.xyz);
 	vec3 halfVector = normalize(lightVector - viewVector);
 	
-	float vdotn   = clamp01(dot(viewVector, normal));
-	float vdoth   = clamp01(dot(viewVector, halfVector));
+	float vdoth = clamp01(dot(viewVector, halfVector));
 	
-	cfloat F0 = 0.15; //To be replaced with metalloic
+	cfloat F0 = 0.15; // To be replaced with metallic
 	
 	float lightFresnel = Fresnel(F0, vdoth);
 	
@@ -167,7 +166,7 @@ void ComputeReflectedLight(inout vec3 color, vec4 viewSpacePosition, vec3 normal
 	
 	float reflectedSunspot = specularBRDF(lightVector, normal, F0, -normalize(viewSpacePosition.xyz), roughness) * sunlight;
 	
-	vec3 offscreen = reflectedSky + reflectedSunspot * sunlightColor * 10.0;
+	vec3 offscreen = (reflectedSky + reflectedSunspot * sunlightColor * 10.0) * skyLightmap;
 	
 	if (!ComputeRaytracedIntersection(viewSpacePosition.xyz, rayDirection, firstStepSize, 1.55, 30, 1, reflectedCoord, reflectedViewSpacePosition))
 		reflection = offscreen;
@@ -180,7 +179,7 @@ void ComputeReflectedLight(inout vec3 color, vec4 viewSpacePosition, vec3 normal
 			float angleCoeff = clamp(pow(dot(vec3(0.0, 0.0, 1.0), normal) + 0.15, 0.25) * 2.0, 0.0, 1.0) * 0.2 + 0.8;
 			float dist       = length8(abs(reflectedCoord.xy - vec2(0.5)));
 			float edge       = clamp(1.0 - pow2(dist * 2.0 * angleCoeff), 0.0, 1.0);
-			reflection       = mix(reflection, reflectedSky, pow(1.0 - edge, 10.0));
+			reflection       = mix(reflection, offscreen, pow(1.0 - edge, 10.0));
 		#endif
 	}
 	
@@ -284,8 +283,7 @@ void main() {
 			
 			if (mask.water > 0.5) {
 			#ifdef WATER_PARALLAX
-				mat3 tbnMat = transpose(mat3(gbufferModelViewInverse)) * tbnMatrix;
-				vec3 tangentVector = normalize(viewSpacePosition0.xyz * tbnMat);
+				vec3 tangentVector = normalize(mat3(gbufferModelViewInverse) * viewSpacePosition0.xyz) * tbnMatrix;
 				
 				viewSpacePosition0 = GetWaterParallaxCoord(viewSpacePosition0, tangentVector);
 			#endif

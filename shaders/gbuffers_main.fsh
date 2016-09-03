@@ -14,7 +14,6 @@ varying vec3 color;
 varying vec2 texcoord;
 
 varying mat3 tbnMatrix;
-varying vec4 verts;
 varying vec2 vertLightmap;
 
 varying float mcID;
@@ -48,33 +47,31 @@ vec4 TileCoordinate(vec2 coord) {
 
 vec2 NormalCoord(vec4 tileCoord) {
 	ivec2 atlasTiles = atlasSize / TEXTURE_PACK_RESOLUTION;
-	return (tileCoord.zw + fract(tileCoord.xy)) / atlasTiles;
+	return (fract(tileCoord.xy) + tileCoord.zw) / atlasTiles;
 }
 
 vec2 GetParallaxCoord(vec2 coord) {
 	if (length(viewSpacePosition.xyz) > 15.0) return coord;
 	
-	vec3 direction = normalize(normalize(viewSpacePosition.xyz) * tbnMatrix);
+	vec3 direction = normalize(viewSpacePosition.xyz) * tbnMatrix;
 	
-	show(direction);
+	cvec3 stepSize = vec3(0.2, 0.2, 1.0) / 16.0;
 	
-	cvec3 stepSize = vec3(0.2, 0.2, 1.0) * 32.0 / TEXTURE_PACK_RESOLUTION;
-
-	vec3 interval = direction * stepSize;
+	vec3 interval = direction * stepSize / -direction.z;
 	vec4 tileCoord = TileCoordinate(coord);
-
+	
 	// Start state
 	float currentHeight = texture2D(normals, coord).a;
 	vec3  offset = vec3(0.0, 0.0, 1.0);
-
+	
 	for(int i = 0; offset.z > currentHeight + 0.01 && i < 32; i++) {
 		offset += mix(vec3(0.0), interval, pow(offset.z - currentHeight, 0.8));
-
+		
 		currentHeight = texture2D(normals, NormalCoord(vec4(tileCoord.xy + offset.xy, tileCoord.zw))).a;
 	}
-
+	
 	tileCoord.xy += offset.xy;
-
+	
 	return NormalCoord(tileCoord);
 }
 
@@ -93,7 +90,7 @@ vec4 GetNormal(vec2 coord) {
 	vec4 normal = vec4(0.5, 0.5, 1.0, 1.0);
 #endif
 	
-	normal.xyz = normalize(tbnMatrix * (normal.xyz * 2.0 - 1.0));
+	normal.xyz = tbnMatrix * normalize(normal.xyz * 2.0 - 1.0);
 	
 	return normal;
 }
@@ -106,20 +103,7 @@ vec3 GetTangentNormal() {
 #endif
 }
 
-float Get3DNoise(vec3 pos) {
-	vec3 part  = floor(pos);
-	vec3 whole = fract(pos);
-	
-	cvec2 zscale = vec2(17.0, 0.0);
-	
-	vec4 coord  = part.xyxy + whole.xyxy + part.z * zscale.x + zscale.yyxx + 0.5;
-	     coord /= noiseTextureResolution;
-	
-	float Noise1 = texture2D(noisetex, coord.xy).x;
-	float Noise2 = texture2D(noisetex, coord.zw).x;
-	
-	return mix(Noise1, Noise2, whole.z);
-}
+#include "/lib/Misc/Get3DNoise.glsl"
 
 float GetRainAlpha(float height, float skyLightmap) {
 	float randWaterSpot  = Get3DNoise(worldPosition);
@@ -172,7 +156,7 @@ void main() {
 	float wetnessAlpha = GetRainAlpha(normal.a, vertLightmap.t);
 	
 	diffuse.rgb *= mix(vec3(1.0), vec3(0.74, 0.71, 0.87), wetnessAlpha);
-	normal       = mix(normal, vec4(normalize(tbnMatrix * (vec3(0.5, 0.5, 1.0) * 2.0 - 1.0)), 1.0), wetnessAlpha * worldNormal.y);
+	normal       = mix(normal, vec4(tbnMatrix * vec3(0.0, 0.0, 1.0), 1.0), wetnessAlpha * worldNormal.y);
 	
 	vec2 specularity = GetSpecularity(coord, wetnessAlpha);	
 	

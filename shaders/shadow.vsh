@@ -40,7 +40,6 @@ vec4 GetWorldSpacePositionShadow() {
 
 #include "/lib/Vertex/Waving.vsh"
 #include "/lib/Vertex/Vertex_Displacements.vsh"
-#include "/lib/Vertex/CalculateTBN.vsh"
 
 #include "/lib/Misc/Bias_Functions.glsl"
 
@@ -70,7 +69,7 @@ void main() {
 	texcoord      = gl_MultiTexCoord0.st;
 	lightmapCoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).st;
 	
-	vertNormal    = normalize(mat3(shadowView) * mat3(shadowModelViewInverse) * gl_NormalMatrix * gl_Normal);
+	vertNormal    = normalize(mat3(shadowView) * gl_Normal);
 	
 	
 	vec4 position = GetWorldSpacePositionShadow();

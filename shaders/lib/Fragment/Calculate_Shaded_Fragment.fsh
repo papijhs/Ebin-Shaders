@@ -1,8 +1,6 @@
 struct Shading {      // Contains scalar light levels without any color
-	float normal;     // Coefficient of light intensity based on the dot product of the normal vector and the light vector
 	float sunlight;
 	float skylight;
-	float caustics;
 	float torchlight;
 	float ambient;
 };
@@ -10,8 +8,8 @@ struct Shading {      // Contains scalar light levels without any color
 struct Lightmap {    // Contains vector light levels with color
 	vec3 sunlight;
 	vec3 skylight;
-	vec3 ambient;
 	vec3 torchlight;
+	vec3 ambient;
 	vec3 GI;
 };
 
@@ -36,15 +34,9 @@ struct Lightmap {    // Contains vector light levels with color
 vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, vec4 viewSpacePosition) {
 	Shading shading;
 	
-	shading.normal = GetLambertianShading(normal, mask);
-	
-	shading.sunlight  = shading.normal;
+	shading.sunlight  = GetLambertianShading(normal, mask);
 	shading.sunlight *= pow2(skyLightmap);
 	shading.sunlight  = ComputeShadows(viewSpacePosition, shading.sunlight);
-	
-	#if defined composite1
-		// Underwater light caustics
-	#endif
 	
 	
 	shading.torchlight = 1.0 - pow(clamp01(torchLightmap - 0.075), 4.0);
