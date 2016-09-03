@@ -55,7 +55,9 @@ vec2 GetParallaxCoord(vec2 coord) {
 	if (length(viewSpacePosition.xyz) > 15.0) return coord;
 	
 	vec3 direction = normalize(normalize(viewSpacePosition.xyz) * tbnMatrix);
-
+	
+	show(direction);
+	
 	cvec3 stepSize = vec3(0.2, 0.2, 1.0) * 32.0 / TEXTURE_PACK_RESOLUTION;
 
 	vec3 interval = direction * stepSize;

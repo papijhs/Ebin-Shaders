@@ -239,15 +239,10 @@ mat3 DecodeTBN(float tbnIndex) {
 	return mat3(tangent, binormal, normal);
 }
 
-mat3 createNormalMatrix() {
-	mat4 M = transpose(inverse(gbufferModelView));
-	return mat3(M);
-}
-
 #include "lib/Fragment/WaterDepthFog.fsh"
 
 vec4 GetWaterParallaxCoord(vec4 position, vec3 tangentVector) {
-	position = (gbufferModelViewInverse * position) + vec4(cameraPosition, 0.0);
+	position.xyz = mat3(gbufferModelViewInverse) * position.xyz + cameraPosition;
 
 	cvec3 stepSize = vec3(1.0);
 	vec3 interval = tangentVector * stepSize;
@@ -261,8 +256,8 @@ vec4 GetWaterParallaxCoord(vec4 position, vec3 tangentVector) {
 		currentHeight = GetWaves(position.xyz + vec3(offset.x, 0.0f, offset.y));
 	}
 
-	position.xyz = position.xyz + vec3(offset.x, 0.0f, offset.y);
-	return gbufferModelView * vec4(position.xyz - cameraPosition, 0.0);
+	position.xyz = position.xyz + vec3(offset.x, 0.0f, offset.y) - cameraPosition;
+	return vec4(mat3(gbufferModelView) * position.xyz, position.w);
 }
 
 void main() {
@@ -289,12 +284,14 @@ void main() {
 			vec3 tangentNormal;
 			
 			if (mask.water > 0.5) {
-				mat3 tbnMat = createNormalMatrix() * tbnMatrix;
+			#ifdef WATER_PARALLAX
+				mat3 tbnMat = mat3(transpose(gbufferModelViewInverse)) * tbnMatrix;
 				vec3 tangentVector = normalize(viewSpacePosition0.xyz * tbnMat);
-
-				vec4 parallaxModPosition = GetWaterParallaxCoord(viewSpacePosition0, tangentVector);
 				
-				tangentNormal.xy = GetWaveNormals(parallaxModPosition, tbnMatrix[2]);
+				viewSpacePosition0 = GetWaterParallaxCoord(viewSpacePosition0, tangentVector);
+			#endif
+				
+				tangentNormal.xy = GetWaveNormals(viewSpacePosition0, tbnMatrix[2]);
 			} else 
 				tangentNormal.xy = Decode16(encodedNormal.y) * 2.0 - 1.0;
 			
