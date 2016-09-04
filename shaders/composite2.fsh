@@ -239,23 +239,28 @@ mat3 DecodeTBN(float tbnIndex) {
 
 #include "lib/Fragment/WaterDepthFog.fsh"
 
-vec4 GetWaterParallaxCoord(vec4 position, vec3 tangentVector) {
-	position.xyz = mat3(gbufferModelViewInverse) * position.xyz + cameraPosition;
-
+vec3 GetWaterParallaxCoord(vec3 position, mat3 tbnMatrix) {
+	vec3 direction = tbnMatrix * normalize(mat3(gbufferModelViewInverse) * position);
+	
+	position = mat3(gbufferModelViewInverse) * position + cameraPosition;
+	
 	cvec3 stepSize = vec3(0.6);
-	vec3 interval = tangentVector * stepSize;
-
-	float currentHeight = GetWaves(position.xyz);
+	vec3 interval  = direction * stepSize / -direction.z;
+	
+	float currentHeight = GetWaves(position);
 	vec3  offset = vec3(0.0, 0.0, 1.0);
-
+	
 	for (int i = 0; currentHeight < offset.z && i < 120; i++) {
-		offset.xy = mix(offset.xy, offset.xy + interval.xy, clamp01((offset.z - currentHeight) / (stepSize.z * 0.2f / (-tangentVector.z + 0.05f))));
-		offset.z += interval.z;
-		currentHeight = GetWaves(position.xyz + vec3(offset.x, 0.0f, offset.y));
+		offset += interval * pow(offset.z - currentHeight, 0.8);
+		
+		currentHeight = GetWaves(position + vec3(offset.x, 0.0, offset.y));
 	}
-
-	position.xyz = position.xyz + vec3(offset.x, 0.0f, offset.y) - cameraPosition;
-	return vec4(mat3(gbufferModelView) * position.xyz, position.w);
+	
+	show(interval);
+	
+	position = position + vec3(offset.x, 0.0, offset.y) - cameraPosition;
+	
+	return mat3(gbufferModelView) * position;
 }
 
 void main() {
@@ -283,14 +288,11 @@ void main() {
 			
 			if (mask.water > 0.5) {
 			#ifdef WATER_PARALLAX
-				vec3 tangentVector = normalize(mat3(gbufferModelViewInverse) * viewSpacePosition0.xyz) * tbnMatrix;
-				
-				viewSpacePosition0 = GetWaterParallaxCoord(viewSpacePosition0, tangentVector);
+				viewSpacePosition0.xyz = GetWaterParallaxCoord(viewSpacePosition0.xyz, tbnMatrix);
 			#endif
 				
 				tangentNormal.xy = GetWaveNormals(viewSpacePosition0, tbnMatrix[2]);
-			} else 
-				tangentNormal.xy = Decode16(encodedNormal.y) * 2.0 - 1.0;
+			} else tangentNormal.xy = Decode16(encodedNormal.y) * 2.0 - 1.0;
 			
 			tangentNormal.z = sqrt(1.0 - lengthSquared(tangentNormal.xy)); // Solve the equation "length(normal.xyz) = 1.0" for normal.z
 			
@@ -305,7 +307,7 @@ void main() {
 			alpha = texture2D(colortex2, refractedCoord).r;
 		}
 	}
-	
+	show(normal);
 	vec3 sky = CalculateSky(viewSpacePosition1, 1.0 - alpha, false);
 	
 	if (isEyeInWater == 1) sky = WaterFog(sky, viewSpacePosition0, vec4(0.0));

@@ -53,11 +53,10 @@ vec2 NormalCoord(vec4 tileCoord) {
 vec2 GetParallaxCoord(vec2 coord) {
 	if (length(viewSpacePosition.xyz) > 15.0) return coord;
 	
-	vec3 direction = normalize(viewSpacePosition.xyz) * tbnMatrix;
-	
 	cvec3 stepSize = vec3(0.2, 0.2, 1.0) / 16.0;
 	
-	vec3 interval = direction * stepSize / -direction.z;
+	vec3 direction = normalize(viewSpacePosition.xyz) * tbnMatrix;
+	vec3 interval  = direction * stepSize / -direction.z;
 	vec4 tileCoord = TileCoordinate(coord);
 	
 	// Start state
@@ -65,10 +64,12 @@ vec2 GetParallaxCoord(vec2 coord) {
 	vec3  offset = vec3(0.0, 0.0, 1.0);
 	
 	for(int i = 0; offset.z > currentHeight + 0.01 && i < 32; i++) {
-		offset += mix(vec3(0.0), interval, pow(offset.z - currentHeight, 0.8));
+		offset += interval * pow(offset.z - currentHeight, 0.8);
 		
 		currentHeight = texture2D(normals, NormalCoord(vec4(tileCoord.xy + offset.xy, tileCoord.zw))).a;
 	}
+	
+	show(interval);
 	
 	tileCoord.xy += offset.xy;
 	

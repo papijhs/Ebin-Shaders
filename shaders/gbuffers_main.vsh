@@ -61,13 +61,13 @@ mat3 CalculateTBN() {
 	
 	vec3 binormal = -cross(normal, tangent);
 	
-	return mat3(gbufferModelView) * mat3(tangent, binormal, normal);
+	return gl_NormalMatrix * mat3(tangent, binormal, normal);
 }
 
 float EncodePlanarTBN(vec3 worldSpaceNormal) { // Encode the TBN matrix into a 3-bit float
 	// Only valid for axis-oriented TBN matrices
 	
-	float tbnIndex = 6.0; // Default is 5.0, which corresponds to an upward facing block, such as ocean
+	float tbnIndex = 6.0; // Default is 6.0, which corresponds to an upward facing block, such as ocean
 	
 	cfloat sqrt2 = sqrt(2.0) * 0.5;
 	
