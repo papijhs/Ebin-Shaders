@@ -1,6 +1,6 @@
 #include "/lib/Misc/Get3DNoise.glsl"
 
-vec3 Compute2DCloudPlane(vec3 worldSpacePosition, vec3 worldSpaceVector) {
+vec3 Compute2DCloudPlane(vec3 worldSpacePosition, vec3 worldSpaceVector, float sunglow) {
 #ifndef ENABLE_CLOUDS
 	return vec3(0.0);
 #endif

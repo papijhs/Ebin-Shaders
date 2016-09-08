@@ -5,7 +5,7 @@ float CalculateSunglow(vec4 viewSpacePosition) {
 	return sunglow;
 }
 
-vec3 CalculateSkyGradient(vec4 viewSpacePosition, vec3 worldSpacePosition) {
+vec3 CalculateSkyGradient(vec3 worldSpacePosition, float sunglow) {
 #ifdef CUSTOM_HORIZON_HEIGHT
 	float radius = max(176.0, far * sqrt(2.0));
 	
@@ -15,8 +15,6 @@ vec3 CalculateSkyGradient(vec4 viewSpacePosition, vec3 worldSpacePosition) {
 	
 	
 	float gradientCoeff = pow(1.0 - abs(normalize(worldSpacePosition.xyz).y) * 0.5, 4.0);
-	
-	float sunglow = CalculateSunglow(viewSpacePosition);
 	
 	vec3 primaryHorizonColor  = SetSaturationLevel(skylightColor, mix(1.0, 0.5, gradientCoeff * timeDay));
 	     primaryHorizonColor  = SetSaturationLevel(primaryHorizonColor, mix(1.0, 1.1, timeDay));
@@ -76,16 +74,18 @@ vec3 CalculateSky(vec4 viewSpacePosition, float alpha, cbool reflection) {
 	if (  visibility < 0.001 && !reflection) return vec3(0.0);
 	
 	
+	float sunglow = CalculateSunglow(viewSpacePosition);
+	
 	vec3 worldSpacePosition = mat3(gbufferModelViewInverse) * viewSpacePosition.xyz;
 	vec3 worldSpaceVector   = normalize(worldSpacePosition.xyz);
 	
-	vec3 clouds = Compute2DCloudPlane(worldSpacePosition, worldSpaceVector);
+	vec3 clouds = Compute2DCloudPlane(worldSpacePosition, worldSpaceVector, sunglow);
 	
 #ifdef PHYSICAL_ATMOSPHERE
 	vec3 gradient = CalculateAtmosphericSky(worldSpacePosition);
 	vec3 sunspot  = vec3(0.0);
 #else
-	vec3 gradient = CalculateSkyGradient(viewSpacePosition, worldSpacePosition);
+	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow);
 	vec3 sunspot  = reflection ? vec3(0.0) : CalculateSunspot(viewSpacePosition) * pow(visibility, 25) * alpha;
 #endif
 	
