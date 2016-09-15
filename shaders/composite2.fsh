@@ -162,11 +162,9 @@ void ComputeReflectedLight(inout vec3 color, vec4 viewSpacePosition, vec3 normal
 	
 	float sunlight = ComputeShadows(viewSpacePosition, 1.0);
 	
-	vec3 reflectedSky = CalculateSky(vec4(reflect(viewSpacePosition.xyz, normal), 1.0), 1.0, true).rgb;
+	vec3 reflectedSky = CalculateSky(vec4(reflect(viewSpacePosition.xyz, normal), 1.0), viewSpacePosition, 1.0, true).rgb;
 	
-	float reflectedSunspot = specularBRDF(lightVector, normal, F0, -normalize(viewSpacePosition.xyz), roughness) * sunlight;
-	
-	vec3 offscreen = (reflectedSky + reflectedSunspot * sunlightColor * 10.0) * skyLightmap;
+	vec3 offscreen = reflectedSky * skyLightmap;
 	
 	if (!ComputeRaytracedIntersection(viewSpacePosition.xyz, rayDirection, firstStepSize, 1.55, 30, 1, reflectedCoord, reflectedViewSpacePosition))
 		reflection = offscreen;
@@ -307,8 +305,8 @@ void main() {
 			alpha = texture2D(colortex2, refractedCoord).r;
 		}
 	}
-	show(normal);
-	vec3 sky = CalculateSky(viewSpacePosition1, 1.0 - alpha, false);
+	
+	vec3 sky = CalculateSky(viewSpacePosition1, vec4(0.0), 1.0 - alpha, false);
 	
 	if (isEyeInWater == 1) sky = WaterFog(sky, viewSpacePosition0, vec4(0.0));
 	

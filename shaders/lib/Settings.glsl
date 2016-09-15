@@ -86,8 +86,7 @@ const int noiseTextureResolution = 64;
 #define GI_TRANSLUCENCE 0.2  // [0.0 0.2 0.4 0.6 0.8 1.0]
 #define GI_BRIGHTNESS   1.00 // [0.25 0.50 0.75 1.00 2.00 4.00]
 
-#define TERRAIN_PARALLAX
-#define WATER_PARALLAX
+//#define WATER_PARALLAX
 
 #define REFLECTION_EDGE_FALLOFF
 
@@ -119,6 +118,10 @@ const int noiseTextureResolution = 64;
 	
 	#define SPECULARITY_MAPS
 	//#define PBR_TEXTURE_PACK
+	
+#ifdef NORMAL_MAPS
+	#define TERRAIN_PARALLAX
+#endif
 	
 	#ifdef PBR_TEXTURE_PACK
 		#define PBR
