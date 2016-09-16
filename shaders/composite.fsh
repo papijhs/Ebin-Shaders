@@ -83,30 +83,35 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 #ifndef GI_ENABLED
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
 #elif GI_MODE == 1
-vec3 ComputeGlobalIllumination(vec4 position, vec3 normal, float skyLightmap, const float radius, vec2 noise, Mask mask) {
+vec3 ComputeGlobalIllumination(vec4 position, vec3 normal, float skyLightmap, cfloat radius, vec2 noise, Mask mask) {
 	float lightMult = skyLightmap;
 	
-	#ifdef GI_BOOST
-		float sunlight  = GetLambertianShading(normal, mask);
-		      sunlight *= skyLightmap;
-		      sunlight  = ComputeHardShadows(position, sunlight);
-		
-		lightMult = 1.0 - sunlight * 4.0;
-	#endif
+#ifdef GI_BOOST
+	float sunlight  = GetLambertianShading(normal, mask);
+	      sunlight *= skyLightmap;
+	      sunlight  = ComputeHardShadows(position, sunlight);
+	
+	lightMult = 1.0 - sunlight * 4.0;
+#endif
 	
 	if (lightMult < 0.05) return vec3(0.0);
 	
-	float LodCoeff = clamp(1.0 - length(position.xyz) / shadowDistance, 0.0, 1.0);
+	float LodCoeff = clamp01(1.0 - length(position.xyz) / shadowDistance);
 	
 	float depthLOD	= 2.0 * LodCoeff;
 	float sampleLOD	= 5.0 * LodCoeff;
 	
-	vec4 shadowViewPosition = shadowModelView * gbufferModelViewInverse * position;    // For linear comparisons (GI_MODE = 1)
+	vec4 shadowViewPosition = shadowModelView * gbufferModelViewInverse * position;
 	
-	position = shadowProjection * shadowViewPosition; // "position" now represents shadow-projection-space position. Position can also be used for exponential comparisons (GI_MODE = 2)
-	normal   = -(mat3(shadowModelView) * mat3(gbufferModelViewInverse) * normal); // Convert the normal so it can be compared with the shadow normal samples
+	position = shadowProjection * shadowViewPosition;
+	normal   = mat3(shadowModelView) * mat3(gbufferModelViewInverse) * -normal;
 	
-	float  brightness = 12.5 * pow(radius, 2) * GI_BRIGHTNESS * SUN_LIGHT_LEVEL;
+	vec3 projMult = mat3(shadowProjectionInverse) * -vec3(1.0, 1.0, 8.0);
+	vec3 projDisp = shadowViewPosition.xyz - shadowProjectionInverse[3].xyz - vec3(0.0, 0.0, 0.5 * projMult.z);
+	
+	cvec3 sampleMax = vec3(0.0, 0.0, pow(radius, 2));
+	
+	cfloat brightness = 12.5 * pow(radius, 2) * GI_BRIGHTNESS * SUN_LIGHT_LEVEL;
 	cfloat scale      = radius / 256.0;
 	
 	vec3 GI = vec3(0.0);
@@ -116,41 +121,33 @@ vec3 ComputeGlobalIllumination(vec4 position, vec3 normal, float skyLightmap, co
 	for (int i = 0; i < GI_SAMPLE_COUNT; i++) {
 		vec2 offset = samples[i] * scale;
 		
-		vec4 samplePos = vec4(position.xy + offset, 0.0, 1.0);
+		vec3 samplePos = vec3(position.xy + offset, 0.0);
 		
 		vec2 mapPos = BiasShadowMap(samplePos.xy) * 0.5 + 0.5;
 		
 		samplePos.z = texture2DLod(shadowtex1, mapPos, depthLOD).x;
-		samplePos.z = samplePos.z * 8.0 - 4.0;    // Convert range from unsigned to signed and undo z-shrinking
 		
-		samplePos = shadowProjectionInverse * samplePos; // Convert sample position to shadow-view-space for a linear comparison against the pixel's position
+		vec3 sampleDiff = samplePos * projMult + projDisp.xyz;
 		
-		vec3 sampleDiff = shadowViewPosition.xyz - samplePos.xyz;
-		
-		float distanceCoeff = lengthSquared(sampleDiff); // Inverse-square law
-		      distanceCoeff = 1.0 / max(distanceCoeff, pow(radius, 2));
-		
-		vec3 sampleDir = normalize(sampleDiff);
+		float sampleLengthSqrd = lengthSquared(sampleDiff);
 		
 		vec3 shadowNormal;
 		     shadowNormal.xy = texture2DLod(shadowcolor1, mapPos, sampleLOD).xy * 2.0 - 1.0;
 		     shadowNormal.z  = sqrt(1.0 - lengthSquared(shadowNormal.xy));
 		
-		float viewNormalCoeff   = max0(dot(      normal, sampleDir));
-		float shadowNormalCoeff = max0(dot(shadowNormal, sampleDir));
-		
-		viewNormalCoeff = mix(viewNormalCoeff, 1.0, GI_TRANSLUCENCE);
-		
-		shadowNormalCoeff = sqrt(shadowNormalCoeff);
+		vec3 lightCoeffs   = vec3(inversesqrt(sampleLengthSqrd) * sampleDiff * mat2x3(normal, shadowNormal), sampleLengthSqrd);
+		     lightCoeffs   = max(lightCoeffs, sampleMax);
+		     lightCoeffs.x = mix(lightCoeffs.x, 1.0, GI_TRANSLUCENCE);
+		     lightCoeffs.y = sqrt(lightCoeffs.y);
 		
 		vec3 flux = pow(texture2DLod(shadowcolor, mapPos, sampleLOD).rgb, vec3(2.2));
 		
-		GI += flux * viewNormalCoeff * shadowNormalCoeff * distanceCoeff;
+		GI += flux * lightCoeffs.x * lightCoeffs.y / lightCoeffs.z;
 	}
 	
 	GI /= GI_SAMPLE_COUNT;
 	
-	return GI * lightMult * brightness; // brightness is constant for all pixels for all samples. lightMult is not constant over all pixels, but is constant over each pixels' samples.
+	return GI * lightMult * brightness;
 }
 #endif
 

@@ -12,9 +12,6 @@ varying vec2 texcoord;
 
 varying vec3 vertNormal;
 
-#include "/lib/Settings.glsl"
-#include "/lib/Utility.glsl"
-
 
 void main() {
 	vec4 diffuse = color * texture2D(texture, texcoord);
