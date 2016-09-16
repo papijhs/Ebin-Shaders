@@ -101,10 +101,10 @@ vec3 ComputeGlobalIllumination(vec4 position, vec3 normal, float skyLightmap, cf
 	float depthLOD	= 2.0 * LodCoeff;
 	float sampleLOD	= 5.0 * LodCoeff;
 	
-	vec4 shadowViewPosition = shadowModelView * gbufferModelViewInverse * position;
+	vec4 shadowViewPosition = shadowViewMatrix * gbufferModelViewInverse * position;
 	
 	position = shadowProjection * shadowViewPosition;
-	normal   = mat3(shadowModelView) * mat3(gbufferModelViewInverse) * -normal;
+	normal   = mat3(shadowViewMatrix) * mat3(gbufferModelViewInverse) * -normal;
 	
 	vec3 projMult = mat3(shadowProjectionInverse) * -vec3(1.0, 1.0, 8.0);
 	vec3 projDisp = shadowViewPosition.xyz - shadowProjectionInverse[3].xyz - vec3(0.0, 0.0, 0.5 * projMult.z);
