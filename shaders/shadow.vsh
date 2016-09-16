@@ -79,6 +79,8 @@ void main() {
 	gl_Position = ProjectShadowMap(position);
 	
 	
+	color.rgb *= pow(max0(vertNormal.z), 1.0 / 2.2);
+	
 	#ifndef PLAYER_SHADOW
 	if (   mc_Entity.x == 0 // If the vertex is an entity
 		&& abs(position.x) < 1.0

@@ -1,7 +1,7 @@
 // {
 	float isNight = CalculateShadowView();
 	
-	lightVector = (gbufferModelView * shadowViewInverse[2]).xyz;
+	lightVector = mat3(gbufferModelView) * shadowViewInverse[2].xyz;
 	
 	vec3 sunVector = lightVector * (1.0 - isNight * 2.0);
 	
