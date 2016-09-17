@@ -114,12 +114,14 @@ vec3 ComputeGlobalIllumination(vec4 position, vec3 normal, float skyLightmap, cf
 	cfloat brightness = 12.5 * pow(radius, 2) * GI_BRIGHTNESS * SUN_LIGHT_LEVEL;
 	cfloat scale      = radius / 256.0;
 	
+	noise *= scale;
+	
 	vec3 GI = vec3(0.0);
 	
 	#include "/lib/Samples/GI.glsl"
 	
 	for (int i = 0; i < GI_SAMPLE_COUNT; i++) {
-		vec2 offset = samples[i] * scale;
+		vec2 offset = samples[i] * scale + noise;
 		
 		vec3 samplePos = vec3(position.xy + offset, 0.0);
 		

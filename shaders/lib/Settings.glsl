@@ -98,6 +98,17 @@ const int noiseTextureResolution = 64;
 #define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]
 
 
+//#define FOV_OVERRIDE
+
+#define FOV_DEFAULT_TENS  110 // [100 110 120 130 140 150]
+#define FOV_DEFAULT_FIVES 0   // [0 5]
+#define FOV_DEFAULT_ONES  0   // [0 1 2 3 4]
+
+#define FOV_TRUE_TENS  90 // [70 80 90 100 110]
+#define FOV_TRUE_FIVES 0  // [0 5]
+#define FOV_TRUE_ONES  0  // [0 1 2 3 4]
+
+
 #define DEBUG_VIEW 1 // [-1 0 1 2 3 7]
 
 

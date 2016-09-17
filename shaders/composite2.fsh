@@ -72,6 +72,8 @@ vec4 CalculateViewSpacePosition(vec2 coord, float depth) {
 }
 
 vec3 ViewSpaceToScreenSpace(vec4 viewSpacePosition) {
+	return (viewSpacePosition.xyz * vec3(gbufferProjection[0].x, gbufferProjection[1].y, gbufferProjection[2].z) + swizzle.ggr * gbufferProjection[3].z) / -viewSpacePosition.z * 0.5 + 0.5;
+	
 	vec4 screenSpace = gbufferProjection * viewSpacePosition;
 	
 	return (screenSpace.xyz / screenSpace.w) * 0.5 + 0.5;

@@ -27,6 +27,7 @@ varying float waterMask;
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
+#include "/lib/Uniform/Projection_Matrix.glsl"
 
 #if defined gbuffers_water
 #include "/lib/Uniform/Global_Composite_Variables.glsl"
@@ -46,7 +47,7 @@ vec4 GetWorldSpacePosition() {
 
 vec4 WorldSpaceToProjectedSpace(vec4 worldSpacePosition) {
 #if !defined gbuffers_hand
-	return gbufferProjection * gbufferModelView * worldSpacePosition;
+	return projectionMatrix * gbufferModelView * worldSpacePosition;
 #else
 	return gl_ProjectionMatrix * gbufferModelView * worldSpacePosition;
 #endif
@@ -81,6 +82,10 @@ float EncodePlanarTBN(vec3 worldSpaceNormal) { // Encode the TBN matrix into a 3
 }
 
 void main() {
+#ifdef FOV_OVERRIDE
+	SetupProjectionMatrix();
+#endif
+	
 	color        = gl_Color.rgb;
 	texcoord     = gl_MultiTexCoord0.st;
 	mcID         = mc_Entity.x;
