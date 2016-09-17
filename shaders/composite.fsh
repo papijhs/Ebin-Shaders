@@ -19,6 +19,7 @@ uniform sampler2D colortex4;
 uniform sampler2D colortex5;
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
+uniform sampler2D noisetex;
 uniform sampler2D shadowcolor;
 uniform sampler2D shadowcolor1;
 uniform sampler2D shadowtex1;
@@ -67,21 +68,12 @@ vec3 GetNormal(vec2 coord) {
 	return DecodeNormal(texture2DRaw(colortex4, coord).xy);
 }
 
-float Calculate8x8DitherPattern(vec2 coord, float n) {
-	cint[64] ditherPattern = int[64](1, 49, 13, 61,  4, 52, 16, 64,
-	                                 33, 17, 45, 29, 36, 20, 48, 32,
-	                                 9, 57,  5, 53, 12, 60,  8, 56,
-	                                 41, 25, 37, 21, 44, 28, 40, 24,
-										               3, 51, 15, 63,  2, 50, 14, 62,
-	                                 35, 19, 47, 31, 34, 18, 46, 30,
-	                                 11, 59,  7, 55, 10, 58,  6, 54,
-	                                 43, 27, 39, 23, 42, 26, 38, 22);
 
+vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise pattern ranging {-1.0 to 1.0} that repeats every n pixels
 	coord *= vec2(viewWidth, viewHeight);
-	vec2 count = floor(mod(coord, n));
-	int dither = ditherPattern[int(count.x) + int(count.y) * n];
-
-	return float(dither) / 65.0;
+	coord  = mod(coord, vec2(n));
+	coord /= noiseTextureResolution;
+	return texture2D(noisetex, coord).xy;
 }
 
 #include "/lib/Misc/Bias_Functions.glsl"
@@ -166,7 +158,7 @@ void main() {
 	
 	
 #ifdef COMPOSITE0_NOISE
-	vec2 noise2D = Calculate8x8DitherPattern(texcoord * COMPOSITE0_SCALE, 8.0) * 2.0 - 1.0;
+	vec2 noise2D = GetDitherred2DNoise(texcoord * COMPOSITE0_SCALE, 4.0) * 2.0 - 1.0;
 #else
 	vec2 noise2D = vec2(0.0);
 #endif
