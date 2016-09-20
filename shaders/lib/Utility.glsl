@@ -24,6 +24,8 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 
 #include "/lib/Utility/blending.glsl"
 
+#include "/lib/Utility/fastMath.glsl"
+
 
 float pow2(float x) {
 	return dot(x, x);

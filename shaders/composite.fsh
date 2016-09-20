@@ -135,12 +135,12 @@ vec3 ComputeGlobalIllumination(vec4 position, vec3 normal, float skyLightmap, cf
 		
 		vec3 shadowNormal;
 		     shadowNormal.xy = texture2DLod(shadowcolor1, mapPos, sampleLOD).xy * 2.0 - 1.0;
-		     shadowNormal.z  = sqrt(1.0 - lengthSquared(shadowNormal.xy));
+		     shadowNormal.z  = fsqrt(1.0 - lengthSquared(shadowNormal.xy));
 		
-		vec3 lightCoeffs   = vec3(inversesqrt(sampleLengthSqrd) * sampleDiff * mat2x3(normal, shadowNormal), sampleLengthSqrd);
+		vec3 lightCoeffs   = vec3(finversesqrt(sampleLengthSqrd) * sampleDiff * mat2x3(normal, shadowNormal), sampleLengthSqrd);
 		     lightCoeffs   = max(lightCoeffs, sampleMax);
 		     lightCoeffs.x = mix(lightCoeffs.x, 1.0, GI_TRANSLUCENCE);
-		     lightCoeffs.y = sqrt(lightCoeffs.y);
+		     lightCoeffs.y = fsqrt(lightCoeffs.y);
 		
 		vec3 flux = pow(texture2DLod(shadowcolor, mapPos, sampleLOD).rgb, vec3(2.2));
 		
@@ -148,7 +148,7 @@ vec3 ComputeGlobalIllumination(vec4 position, vec3 normal, float skyLightmap, cf
 	}
 	
 	GI /= GI_SAMPLE_COUNT;
-	
+
 	return GI * lightMult * brightness;
 }
 #endif
@@ -165,7 +165,7 @@ void main() {
 	vec2 noise2D = vec2(0.0);
 #endif
 	
-	
+
 	vec2  buffer0     = Decode16(texture2D(colortex4, texcoord).b);
 	float smoothness  = buffer0.r;
 	float skyLightmap = buffer0.g;
@@ -188,7 +188,7 @@ void main() {
 	if (depth1 >= 1.0 || isEyeInWater != mask.water)
 		{ gl_FragData[0] = vec4(vec3(0.0), 1.0); exit(); return; }
 	
-	
+
 	vec3 GI = ComputeGlobalIllumination(viewSpacePosition1, normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
 	
 	
