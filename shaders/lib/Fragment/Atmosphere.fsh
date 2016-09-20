@@ -1,5 +1,5 @@
-#define iSteps 20
-#define jSteps 2
+#define iSteps 18
+#define jSteps 1
 
 cfloat     planetRadius = 6371.0e2;
 cfloat atmosphereRadius = 6471.0e2 * 1.3;
