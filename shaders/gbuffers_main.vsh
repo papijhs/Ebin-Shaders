@@ -12,17 +12,12 @@ varying vec3 color;
 varying vec2 texcoord;
 
 varying mat3 tbnMatrix;
-varying vec2 vertLightmap;
 
-varying float mcID;
-varying float materialIDs;
+varying vec4 blockData; // x = mcID, y = materialIDs, zw = vertLightmap	(done for memory caching)
+varying mat2x4 positions; //positions[0] = viewSpace positions[1] = worldSpace	(done for memory caching)
 
-varying vec4 viewSpacePosition;
-varying vec3 worldPosition;
-
-varying vec3 worldNormal;
+varying float upNormal;
 varying float tbnIndex;
-varying float waterMask;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
@@ -88,25 +83,26 @@ void main() {
 	
 	color        = gl_Color.rgb;
 	texcoord     = gl_MultiTexCoord0.st;
-	mcID         = mc_Entity.x;
-	waterMask    = float(abs(mc_Entity.x - 8.5) < 0.6);
-	vertLightmap = GetDefaultLightmap((gl_TextureMatrix[1] * gl_MultiTexCoord1).st);
-	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
+	blockData.x  = mc_Entity.x;
+	blockData.zw = GetDefaultLightmap((gl_TextureMatrix[1] * gl_MultiTexCoord1).st);
+	blockData.y  = GetMaterialIDs(int(mc_Entity.x));
 	tbnIndex     = EncodePlanarTBN(gl_Normal);
 	
 	vec4 position = GetWorldSpacePosition();
 	
-	position.xyz += CalculateVertexDisplacements(position.xyz, vertLightmap.g);
+	position.xyz += CalculateVertexDisplacements(position.xyz, blockData.w);
 	
 	gl_Position   = WorldSpaceToProjectedSpace(position);
 	
 	
-	worldNormal = gl_Normal;
+	upNormal = gl_Normal.y;
 	tbnMatrix   = CalculateTBN();
 	
-	viewSpacePosition = gbufferModelView * position;
-	worldPosition     = position.xyz + cameraPosition;
-	
+	vec4 viewSpacePosition = gbufferModelView * position;
+	vec3 worldPosition     = position.xyz + cameraPosition;
+
+	positions[0] = viewSpacePosition;
+	positions[1] = vec4(worldPosition, 0.0);
 	
 #if defined gbuffers_water
 	#include "/lib/Uniform/Composite_Calculations.vsh"
