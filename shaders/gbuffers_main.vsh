@@ -17,7 +17,7 @@ varying vec2 vertLightmap;
 varying float mcID;
 varying float materialIDs;
 
-varying vec4 viewSpacePosition;
+varying vec3 viewSpacePosition;
 varying vec3 worldPosition;
 
 varying vec3 worldNormal;
@@ -40,15 +40,15 @@ vec2 GetDefaultLightmap(vec2 lightmapCoord) { // Gets the lightmap from the defa
 
 #include "/lib/Vertex/Materials.vsh"
 
-vec4 GetWorldSpacePosition() {
-	return gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+vec3 GetWorldSpacePosition() {
+	return mat3(gbufferModelViewInverse) * mat4x3(gl_ModelViewMatrix) * gl_Vertex;
 }
 
-vec4 WorldSpaceToProjectedSpace(vec4 worldSpacePosition) {
+vec4 ProjectViewSpace(vec3 viewSpacePosition) {
 #if !defined gbuffers_hand
-	return gbufferProjection * gbufferModelView * worldSpacePosition;
+	return vec4(projMAD(gbufferProjection, viewSpacePosition), viewSpacePosition.z * gbufferProjection[2].w);
 #else
-	return gl_ProjectionMatrix * gbufferModelView * worldSpacePosition;
+	return vec4(projMAD(gl_ProjectionMatrix, viewSpacePosition), viewSpacePosition.z * gbufferProjection[2].w);
 #endif
 }
 
@@ -81,30 +81,27 @@ float EncodePlanarTBN(vec3 worldSpaceNormal) { // Encode the TBN matrix into a 3
 }
 
 void main() {
-#ifdef FOV_OVERRIDE
-	SetupProjectionMatrix();
-#endif
-	
 	color        = gl_Color.rgb;
 	texcoord     = gl_MultiTexCoord0.st;
 	mcID         = mc_Entity.x;
 	waterMask    = float(abs(mc_Entity.x - 8.5) < 0.6);
-	vertLightmap = GetDefaultLightmap((gl_TextureMatrix[1] * gl_MultiTexCoord1).st);
+	vertLightmap = GetDefaultLightmap(mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st);
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
 	tbnIndex     = EncodePlanarTBN(gl_Normal);
 	
-	vec4 position = GetWorldSpacePosition();
+	vec3 position = GetWorldSpacePosition();
 	
-	position.xyz += CalculateVertexDisplacements(position.xyz, vertLightmap.g);
+	position += CalculateVertexDisplacements(position, vertLightmap.g);
 	
-	gl_Position   = WorldSpaceToProjectedSpace(position);
+	viewSpacePosition = mat3(gbufferModelView) * position;
+	
+	gl_Position = ProjectViewSpace(viewSpacePosition);
 	
 	
 	worldNormal = gl_Normal;
 	tbnMatrix   = CalculateTBN();
 	
-	viewSpacePosition = gbufferModelView * position;
-	worldPosition     = position.xyz + cameraPosition;
+	worldPosition = position + cameraPosition;
 	
 	
 #if defined gbuffers_water

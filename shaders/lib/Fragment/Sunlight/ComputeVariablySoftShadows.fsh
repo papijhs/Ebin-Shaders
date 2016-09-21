@@ -6,12 +6,12 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 }
 
 #define ComputeShadows(x, y) ComputeVariablySoftShadows(x, y)
-float ComputeVariablySoftShadows(vec4 viewSpacePosition, float sunlightCoeff) { // Variable softness shadows (PCSS)
+float ComputeVariablySoftShadows(vec3 viewSpacePosition, float sunlightCoeff) { // Variable softness shadows (PCSS)
 	if (sunlightCoeff <= 0.01) return 0.0;
 	
 	float biasCoeff;
 	
-	vec3 shadowPosition = BiasShadowProjection((shadowProjection * shadowViewMatrix * gbufferModelViewInverse * viewSpacePosition).xyz, biasCoeff) * 0.5 + 0.5;
+	vec3 shadowPosition = BiasShadowProjection(projMAD(shadowProjection, transMAD(shadowViewMatrix, transMAD(gbufferModelViewInverse, viewSpacePosition))), biasCoeff) * 0.5 + 0.5;
 	
 	if (any(greaterThan(abs(shadowPosition.xyz - 0.5), vec3(0.5)))) return 1.0;
 	

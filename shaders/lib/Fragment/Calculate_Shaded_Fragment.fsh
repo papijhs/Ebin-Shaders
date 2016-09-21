@@ -31,7 +31,7 @@ struct Lightmap {    // Contains vector light levels with color
 
 
 
-vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, vec4 viewSpacePosition) {
+vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, vec3 viewSpacePosition) {
 	Shading shading;
 	
 	shading.sunlight  = GetLambertianShading(normal, mask);

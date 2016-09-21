@@ -11,6 +11,7 @@
 #endif
 
 varying vec3 lightVector;
+varying vec3 worldLightVector;
 varying vec3 sunVector;
 
 varying float timeDay;

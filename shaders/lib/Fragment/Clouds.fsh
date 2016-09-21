@@ -1,13 +1,13 @@
 #include "/lib/Misc/Get3DNoise.glsl"
 
-vec3 Compute2DCloudPlane(vec3 worldSpacePosition, vec3 worldSpaceVector, vec4 viewRayPosition, float sunglow) {
+vec3 Compute2DCloudPlane(vec3 worldSpacePosition, vec3 worldSpaceVector, vec3 rayPosition, float sunglow) {
 #ifndef ENABLE_CLOUDS
 	return vec3(0.0);
 #endif
 	
 	cfloat cloudHeight = 512.0;
 	
-	vec3 camPos = cameraPosition + mat3(gbufferModelViewInverse) * viewRayPosition.xyz;
+	vec3 camPos = cameraPosition + rayPosition;
 	
 	if (worldSpaceVector.y <= 0.0 != camPos.y >= cloudHeight) return vec3(0.0);
 	

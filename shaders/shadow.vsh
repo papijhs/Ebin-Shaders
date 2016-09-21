@@ -12,6 +12,8 @@ uniform mat4 shadowProjection;
 uniform mat4 shadowProjectionInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
+uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
 
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
@@ -30,8 +32,8 @@ varying vec3 vertNormal;
 #include "/lib/Utility.glsl"
 #include "/lib/Uniform/ShadowViewMatrix.vsh"
 
-vec4 GetWorldSpacePositionShadow() {
-	return shadowModelViewInverse * shadowProjectionInverse * ftransform();
+vec3 GetWorldSpacePositionShadow() {
+	return transMAD(shadowModelViewInverse, projMAD(shadowProjectionInverse, ftransform().xyz));
 }
 
 
@@ -41,7 +43,7 @@ vec4 GetWorldSpacePositionShadow() {
 #include "/lib/Misc/Bias_Functions.glsl"
 
 vec4 ProjectShadowMap(vec4 position) {
-	position = shadowProjection * shadowViewMatrix * position;
+	position = vec4(projMAD(shadowProjection, transMAD(shadowViewMatrix, position.xyz)), position.z * shadowProjection[2].w + shadowProjection[3].w);
 	
 	float biasCoeff = GetShadowBias(position.xy);
 	
@@ -66,16 +68,16 @@ void main() {
 	
 	color         = gl_Color;
 	texcoord      = gl_MultiTexCoord0.st;
-	lightmapCoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).st;
+	lightmapCoord = mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st;
 	
 	vertNormal    = normalize(mat3(shadowViewMatrix) * gl_Normal);
 	
 	
-	vec4 position = GetWorldSpacePositionShadow();
+	vec3 position = GetWorldSpacePositionShadow();
 	
-	position.xyz += CalculateVertexDisplacements(position.xyz, lightmapCoord.g);
+	position += CalculateVertexDisplacements(position, lightmapCoord.g);
 	
-	gl_Position = ProjectShadowMap(position);
+	gl_Position = ProjectShadowMap(position.xyzz);
 	
 	
 	color.rgb *= pow(max0(vertNormal.z), 1.0 / 2.2);

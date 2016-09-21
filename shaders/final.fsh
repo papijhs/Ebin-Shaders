@@ -32,12 +32,6 @@ float GetDepth(vec2 coord) {
 	return texture2D(gdepthtex, coord).x;
 }
 
-vec4 CalculateViewSpacePosition(vec2 coord, float depth) {
-	vec4 position  = gbufferProjectionInverse * vec4(vec3(coord, depth) * 2.0 - 1.0, 1.0);
-	     position /= position.w;
-	
-	return position;
-}
 
 void MotionBlur(inout vec3 color, float depth) {
 #ifdef MOTION_BLUR
@@ -127,8 +121,6 @@ vec3 Uncharted2Tonemap(vec3 color) {
 void main() {
 	float depth = GetDepth(texcoord);
 	vec3  color = GetColor(texcoord);
-	
-	vec4 viewSpacePosition = CalculateViewSpacePosition(texcoord, depth);
 	
 	
 	MotionBlur(color, depth);

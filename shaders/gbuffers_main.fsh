@@ -19,7 +19,7 @@ varying vec2 vertLightmap;
 varying float mcID;
 varying float materialIDs;
 
-varying vec4 viewSpacePosition;
+varying vec3 viewSpacePosition;
 varying vec3 worldPosition;
 
 varying vec3 worldNormal;
@@ -51,11 +51,11 @@ vec2 NormalCoord(vec4 tileCoord) {
 }
 
 vec2 GetParallaxCoord(vec2 coord) {
-	if (length(viewSpacePosition.xyz) > 15.0) return coord;
+	if (length(viewSpacePosition) > 15.0) return coord;
 	
 	cvec3 stepSize = vec3(0.2, 0.2, 1.0) / 16.0;
 	
-	vec3 direction = normalize(viewSpacePosition.xyz) * tbnMatrix;
+	vec3 direction = normalize(viewSpacePosition) * tbnMatrix;
 	vec3 interval  = direction * stepSize / -direction.z;
 	vec4 tileCoord = TileCoordinate(coord);
 	

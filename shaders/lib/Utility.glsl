@@ -11,6 +11,12 @@ cvec4 swizzle = vec4(1.0, 0.0, -1.0, 0.5);
 
 cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 
+#define diagonal2(mat) vec3(mat[0].x, mat[1].y)
+#define diagonal3(mat) vec3(mat[0].x, mat[1].y, mat[2].z)
+
+#define transMAD(mat, x) (mat3(mat) * x + mat[3].xyz)
+#define  projMAD(mat, x) (x * diagonal3(mat) + mat[3].xyz)
+
 
 #include "/lib/Utility/smoothing.glsl"
 

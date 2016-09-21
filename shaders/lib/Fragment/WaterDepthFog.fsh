@@ -1,5 +1,5 @@
-vec3 WaterFog(vec3 color, vec4 viewSpacePosition0, vec4 viewSpacePosition1) {
-	float waterDepth = distance(viewSpacePosition1.xyz, viewSpacePosition0.xyz) * 0.5; // Depth of the water volume
+vec3 WaterFog(vec3 color, vec3 viewSpacePosition0, vec3 viewSpacePosition1) {
+	float waterDepth = distance(viewSpacePosition1, viewSpacePosition0) * 0.5; // Depth of the water volume
 	
 	if (isEyeInWater == 1) waterDepth = length(viewSpacePosition0);
 	
