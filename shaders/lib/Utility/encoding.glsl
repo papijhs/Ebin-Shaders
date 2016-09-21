@@ -7,15 +7,15 @@ float Encode4x32F(in vec4 a) {
 	
 	float encode = dot(a.rgb, exp2(vec3(0.0, 8.0, 16.0)));
 	
-	float buffer = 0.5 + encode * exp2(-24.0);
-	buffer = ldexp(buffer * z_sign, int(a.a - 125.0));
+	float encodebuffer = 0.5 + encode * exp2(-24.0);
+	encodebuffer = ldexp(encodebuffer * z_sign, int(a.a - 125.0));
 	
-	return buffer;
+	return encodebuffer;
 }
 
-vec4 Decode4x32F(in float buffer) {
+vec4 Decode4x32F(in float encodebuffer) {
 	int exp;
-	float decode = (frexp(buffer, exp) - 0.5) * exp2(24.0);
+	float decode = (frexp(encodebuffer, exp) - 0.5) * exp2(24.0);
 	
 	float z_sign2 = sign(decode);
 	decode *= z_sign2;
