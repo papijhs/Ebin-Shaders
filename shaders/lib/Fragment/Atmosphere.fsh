@@ -79,7 +79,7 @@ vec3 ComputeAtmosphericSky(vec3 playerSpacePosition, vec3 worldPosition, vec3 pS
 	
     // Sample the primary ray
 	for (int i = 0; i < iSteps; i++) {
-		float iHeight = length(iPos) - planetRadius; // Calculate the height of the sample
+		float iHeight = flength(iPos) - planetRadius; // Calculate the height of the sample
 		
 		vec2 opticalStep = exp(iHeight * invScatterHeight) * iStepSize; // Calculate the optical depth of the Rayleigh and Mie scattering for this step
 		
@@ -95,7 +95,7 @@ vec3 ComputeAtmosphericSky(vec3 playerSpacePosition, vec3 worldPosition, vec3 pS
 		for (int j = 0; j < jSteps; j++) {
 			vec3 jPos = iPos + pSun * (jCount + jStepSize * 0.5); // Calculate the secondary ray sample position.
 			
-			float jHeight = length(jPos) - planetRadius; // Calculate the height of the sample
+			float jHeight = flength(jPos) - planetRadius; // Calculate the height of the sample
 			
 			opticalDepth.ba += exp(jHeight * invScatterHeight) * jStepSize; // Accumulate optical depth.
 			
