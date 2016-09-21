@@ -47,7 +47,7 @@ vec3 CalculatePhysicalSunspot(vec4 viewSpacePosition) {
 	      sunspot  = min(sunspot, 30.0);
 	      sunspot += 100.0 * float(sunspot == 15.0);
 	
-	return sunspot * vec3(1.0, 0.6, 0.6) + 1.0;
+	return sunspot * vec3(1.0, 0.6, 0.6);
 }
 
 vec3 CalculateAtmosphereScattering(vec4 viewSpacePosition) {

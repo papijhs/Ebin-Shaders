@@ -309,10 +309,11 @@ void main() {
 	}
 	
 	vec3 sky = CalculateSky(viewSpacePosition1, vec4(0.0), 1.0 - alpha, false);
+	vec3 sun = CalculatePhysicalSunspot(viewSpacePosition1) * pow(sky, vec3(0.25));
 	
 	if (isEyeInWater == 1) sky = WaterFog(sky, viewSpacePosition0, vec4(0.0));
 	
-	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(min(sky.rgb * CalculatePhysicalSunspot(viewSpacePosition1), 30)), 1.0); exit(); return; }
+	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(min(sky.rgb + sun, 30)), 1.0); exit(); return; }
 	
 	
 	float smoothness;
