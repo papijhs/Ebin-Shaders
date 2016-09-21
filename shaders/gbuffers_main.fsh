@@ -14,12 +14,17 @@ varying vec3 color;
 varying vec2 texcoord;
 
 varying mat3 tbnMatrix;
+varying vec2 vertLightmap;
 
-varying vec4 blockData; // x = mcID, y = materialIDs, zw = vertLightmap	(done for memory caching)
-varying mat2x4 positions; //positions[0] = viewSpace positions[1] = worldSpace	(done for memory caching)
+varying float mcID;
+varying float materialIDs;
 
-varying float upNormal;
+varying vec4 viewSpacePosition;
+varying vec3 worldPosition;
+
+varying vec3 worldNormal;
 varying float tbnIndex;
+varying float waterMask;
 
 #include "/lib/Misc/Menu_Initializer.glsl"
 #include "/lib/Settings.glsl"
@@ -46,11 +51,11 @@ vec2 NormalCoord(vec4 tileCoord) {
 }
 
 vec2 GetParallaxCoord(vec2 coord) {
-	if (length(positions[0].xyz) > 15.0) return coord;
+	if (length(viewSpacePosition.xyz) > 15.0) return coord;
 	
 	cvec3 stepSize = vec3(0.2, 0.2, 1.0) / 16.0;
 	
-	vec3 direction = normalize(positions[0].xyz) * tbnMatrix;
+	vec3 direction = normalize(viewSpacePosition.xyz) * tbnMatrix;
 	vec3 interval  = direction * stepSize / -direction.z;
 	vec4 tileCoord = TileCoordinate(coord);
 	
@@ -102,8 +107,8 @@ vec3 GetTangentNormal() {
 #include "/lib/Misc/Get3DNoise.glsl"
 
 float GetRainAlpha(float height, float skyLightmap) {
-	float randWaterSpot  = Get3DNoise(positions[1].xyz);
-	      randWaterSpot += Get3DNoise(positions[1].xyz / 4.0) * 2.0;
+	float randWaterSpot  = Get3DNoise(worldPosition);
+	      randWaterSpot += Get3DNoise(worldPosition / 4.0) * 2.0;
 	
 	float heightOffset = max(0.25, (1.0 - height) * 0.2 + randWaterSpot * 0.8);
 	
@@ -128,7 +133,7 @@ vec2 GetSpecularity(vec2 coord, float wetnessAlpha) {
 vec2 EncodeNormalData(vec3 normalTexture, float tbnIndex) {
 	vec2 encode;
 	
-	encode.r = (tbnIndex + 8.0 * float(abs(blockData.x - 8.5) < 0.6)) / 16.0;
+	encode.r = (tbnIndex + 8.0 * waterMask) / 16.0;
 	encode.g = Encode16(normalTexture.xy);
 	
 	return encode;
@@ -136,7 +141,7 @@ vec2 EncodeNormalData(vec3 normalTexture, float tbnIndex) {
 
 
 void main() {
-	if (CalculateFogFactor(positions[0], FOG_POWER) >= 1.0) discard;
+	if (CalculateFogFactor(viewSpacePosition, FOG_POWER) >= 1.0) discard;
 	
 	vec2 coord = texcoord;
 	
@@ -149,18 +154,18 @@ void main() {
 	
 	vec4 normal = GetNormal(coord);
 	
-	float wetnessAlpha = GetRainAlpha(normal.a, blockData.w);
+	float wetnessAlpha = GetRainAlpha(normal.a, vertLightmap.t);
 	
 	diffuse.rgb *= mix(vec3(1.0), vec3(0.74, 0.71, 0.87), wetnessAlpha);
-	normal       = mix(normal, vec4(tbnMatrix * vec3(0.0, 0.0, 1.0), 1.0), wetnessAlpha * upNormal);
+	normal       = mix(normal, vec4(tbnMatrix * vec3(0.0, 0.0, 1.0), 1.0), wetnessAlpha * worldNormal.y);
 	
 	vec2 specularity = GetSpecularity(coord, wetnessAlpha);	
 	
 	
 #if !defined gbuffers_water
-	float encodedMaterialIDs = EncodeMaterialIDs(blockData.y, specularity.g, 0.0, 0.0, 0.0);
+	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, specularity.g, 0.0, 0.0, 0.0);
 	
-	vec2 encode = vec2(Encode16(vec2(specularity.r, blockData.w)), Encode16(vec2(blockData.z, encodedMaterialIDs)));
+	vec2 encode = vec2(Encode16(vec2(specularity.r, vertLightmap.g)), Encode16(vec2(vertLightmap.r, encodedMaterialIDs)));
 	
 	gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
@@ -169,15 +174,15 @@ void main() {
 	gl_FragData[4] = vec4(EncodeNormal(normal.xyz), encode.r, 1.0);
 	gl_FragData[5] = vec4(encode.g, 0.0, 0.0, 1.0);
 #else
-	float encode = Encode16(vec2(specularity.r, blockData.w));
+	float encode = Encode16(vec2(specularity.r, vertLightmap.g));
 	
 	vec2 encodedNormal = EncodeNormalData(GetTangentNormal(), tbnIndex);
 	
 	Mask mask;
 	
-	if (abs(blockData.x - 8.5) < 0.6) diffuse = vec4(0.215, 0.356, 0.533, 0.75); // Force water information color is average water color over a lake.
+	if (abs(mcID - 8.5) < 0.6) diffuse.a = 0.5; // Force water alpha
 	
-	vec3 composite  = CalculateShadedFragment(mask, blockData.z, blockData.w, vec3(0.0), normal.xyz, specularity.r, positions[0]);
+	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz, specularity.r, viewSpacePosition);
 	     composite *= pow(diffuse.rgb, vec3(2.2));
 	
 	gl_FragData[0] = vec4(encodedNormal, encode, 1.0);

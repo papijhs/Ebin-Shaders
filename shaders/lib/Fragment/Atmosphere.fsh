@@ -52,8 +52,8 @@ float AtmosphereLength(vec3 worldPosition, vec3 worldDirection) {
 	// Simplified ray-sphere intersection
 	// To be used on samples which are always inside the atmosphere
 	
-	float b  = -dot(worldPosition, worldDirection);
-	float c  = radiiSquared.y - dot(worldPosition, worldPosition);
+	float b = -dot(worldPosition, worldDirection);
+	float c = radiiSquared.y - dot(worldPosition, worldPosition);
 	
 	return b + sqrt(b*b + c);
 }
@@ -101,9 +101,6 @@ vec3 ComputeAtmosphericSky(vec3 playerSpacePosition, vec3 worldPosition, vec3 pS
 			
 			jCount += jStepSize; // Increment the secondary ray counter
 		}
-		
-		// Accumulate scattering
-		
 		
 		vec3 attn = exp(rayleighCoeff * dot(opticalDepth.rb, swizzle.bb) + mieCoeff * dot(opticalDepth.ga, swizzle.bb));
 		

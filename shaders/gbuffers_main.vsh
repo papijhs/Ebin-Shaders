@@ -12,17 +12,21 @@ varying vec3 color;
 varying vec2 texcoord;
 
 varying mat3 tbnMatrix;
+varying vec2 vertLightmap;
 
-varying vec4 blockData; // x = mcID, y = materialIDs, zw = vertLightmap	(done for memory caching)
-varying mat2x4 positions; //positions[0] = viewSpace positions[1] = worldSpace	(done for memory caching)
+varying float mcID;
+varying float materialIDs;
 
-varying float upNormal;
+varying vec4 viewSpacePosition;
+varying vec3 worldPosition;
+
+varying vec3 worldNormal;
 varying float tbnIndex;
+varying float waterMask;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
-#include "/lib/Uniform/Projection_Matrix.glsl"
 
 #if defined gbuffers_water
 #include "/lib/Uniform/Global_Composite_Variables.glsl"
@@ -42,7 +46,7 @@ vec4 GetWorldSpacePosition() {
 
 vec4 WorldSpaceToProjectedSpace(vec4 worldSpacePosition) {
 #if !defined gbuffers_hand
-	return projectionMatrix * gbufferModelView * worldSpacePosition;
+	return gbufferProjection * gbufferModelView * worldSpacePosition;
 #else
 	return gl_ProjectionMatrix * gbufferModelView * worldSpacePosition;
 #endif
@@ -83,26 +87,25 @@ void main() {
 	
 	color        = gl_Color.rgb;
 	texcoord     = gl_MultiTexCoord0.st;
-	blockData.x  = mc_Entity.x;
-	blockData.zw = GetDefaultLightmap((gl_TextureMatrix[1] * gl_MultiTexCoord1).st);
-	blockData.y  = GetMaterialIDs(int(mc_Entity.x));
+	mcID         = mc_Entity.x;
+	waterMask    = float(abs(mc_Entity.x - 8.5) < 0.6);
+	vertLightmap = GetDefaultLightmap((gl_TextureMatrix[1] * gl_MultiTexCoord1).st);
+	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
 	tbnIndex     = EncodePlanarTBN(gl_Normal);
 	
 	vec4 position = GetWorldSpacePosition();
 	
-	position.xyz += CalculateVertexDisplacements(position.xyz, blockData.w);
+	position.xyz += CalculateVertexDisplacements(position.xyz, vertLightmap.g);
 	
 	gl_Position   = WorldSpaceToProjectedSpace(position);
 	
 	
-	upNormal = gl_Normal.y;
+	worldNormal = gl_Normal;
 	tbnMatrix   = CalculateTBN();
 	
-	vec4 viewSpacePosition = gbufferModelView * position;
-	vec3 worldPosition     = position.xyz + cameraPosition;
-
-	positions[0] = viewSpacePosition;
-	positions[1] = vec4(worldPosition, 0.0);
+	viewSpacePosition = gbufferModelView * position;
+	worldPosition     = position.xyz + cameraPosition;
+	
 	
 #if defined gbuffers_water
 	#include "/lib/Uniform/Composite_Calculations.vsh"

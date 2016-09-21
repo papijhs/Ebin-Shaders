@@ -50,8 +50,6 @@ vec3 CalculateAtmosphereScattering(vec4 viewSpacePosition) {
 
 #include "/lib/Fragment/Atmosphere.fsh"
 
-#include "/lib/Misc/dither.glsl"
-
 vec3 CalculateAtmosphericSky(vec3 worldSpacePosition) {
 	vec3 worldLightVector = mat3(gbufferModelViewInverse) * normalize(sunVector);
 	vec3 worldPosition    = vec3(0.0, planetRadius + 1.061e3 + max0(cameraPosition.y - HORIZON_HEIGHT) * 400.0, 0.0);
@@ -84,7 +82,7 @@ vec3 CalculateSky(vec4 viewSpacePosition, vec4 viewRayPosition, float alpha, cbo
 	vec3 clouds = Compute2DCloudPlane(worldSpacePosition, worldSpaceVector, viewRayPosition, sunglow);
 	
 #ifdef PHYSICAL_ATMOSPHERE
-	vec3 gradient = CalculateAtmosphericSky(worldSpacePosition) + get8x8Dither(texcoord);
+	vec3 gradient = CalculateAtmosphericSky(worldSpacePosition);
 	vec3 sunspot  = vec3(0.0);
 #else
 	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow);

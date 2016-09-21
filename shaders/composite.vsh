@@ -8,7 +8,6 @@ uniform mat4 gbufferModelView;
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 
-uniform vec3 upPosition;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 
