@@ -109,9 +109,9 @@ vec3 ComputeGlobalIllumination(vec4 position, vec3 normal, float skyLightmap, cf
 	vec3 projMult = mat3(shadowProjectionInverse) * -vec3(1.0, 1.0, 8.0);
 	vec3 projDisp = shadowViewPosition.xyz - shadowProjectionInverse[3].xyz - vec3(0.0, 0.0, 0.5 * projMult.z);
 	
-	cvec3 sampleMax = vec3(0.0, 0.0, pow(radius, 2));
+	cvec3 sampleMax = vec3(0.0, 0.0, radius * radius);
 	
-	cfloat brightness = 12.5 * pow(radius, 2) * GI_BRIGHTNESS * SUN_LIGHT_LEVEL;
+	cfloat brightness = 12.5 * radius * radius * GI_BRIGHTNESS * SUN_LIGHT_LEVEL;
 	cfloat scale      = radius / 256.0;
 	
 	noise *= scale;
