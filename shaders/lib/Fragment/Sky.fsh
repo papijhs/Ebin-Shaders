@@ -40,14 +40,14 @@ vec3 CalculateSunspot(vec3 worldSpaceVector) {
 	return sunspot * sunlightColor * sunlightColor * vec3(1.0, 0.8, 0.6);
 }
 
-vec3 CalculatePhysicalSunspot(vec3 worldSpacePosition) {
-	float sunspot  = max0(dot(normalize(worldSpacePosition), sunVector));
-	      sunspot  = pow(sunspot, 450.0);
-	      sunspot  = pow(sunspot + 1.0, 200.0) - 1.0;
-	      sunspot  = min(sunspot, 30.0);
-	      sunspot += 100.0 * float(sunspot == 15.0);
+vec3 CalculatePhysicalSunspot(vec3 worldSpaceVector) {
+	float sunspot  = max0(dot(worldSpaceVector, sunVector) - 0.01);
+	      sunspot  = pow(sunspot, 350.0);
+	      sunspot  = pow(sunspot + 1.0, 400.0) - 1.0;
+	      sunspot  = min(sunspot, 20.0);
+	      sunspot += 100.0 * float(sunspot == 20.0);
 	
-	return sunspot * vec3(1.0, 0.6, 0.6);
+	return sunspot * vec3(1.0, 0.8, 0.6);
 }
 
 vec3 CalculateAtmosphereScattering(vec3 position) {
@@ -72,7 +72,7 @@ vec3 CalculateAtmosphericSky(vec3 worldSpacePosition) {
 #endif
 	*/
 	
-	return ComputeAtmosphericSky(worldSpacePosition, worldPosition, worldLightVector, 2.0);
+	return ComputeAtmosphericSky(worldSpacePosition, worldPosition, sunVector, 2.0);
 	
 	return vec3(0.0);
 }

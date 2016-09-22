@@ -308,10 +308,16 @@ void main() {
 	}
 	
 	vec3 sky = CalculateSky(backPos[0], backPos[1], vec3(0.0), 1.0 - alpha, false);
+	vec3 renderedSky = sky;
 	
+	#ifdef PHYSICAL_ATMOSPHERE //Bruce, until you can come up with a way to render the sun without it being applied to the fog of the world this is the best solution I can come up with.
+		vec3 sun = min(CalculatePhysicalSunspot(normalize(backPos[1])) * pow(sky, vec3(0.25)), 30);
+		renderedSky += sun;
+	#endif
+
 	if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
 	
-	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky.rgb), 1.0); exit(); return; }
+	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(renderedSky), 1.0); exit(); return; }
 	
 	
 	float smoothness;
