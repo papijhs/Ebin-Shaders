@@ -146,10 +146,10 @@ option.GI_TRANSLUCENCE.comment=Higher values make global illumination seem to "b
 
 option.GI_BRIGHTNESS=GI Brightness
 
+
 option.AO_ENABLED=Ambient Occlusion
 option.AO_ENABLED.comment=Ambient Occlusion darkens corners semi naturally to give the effect of depth and changes in geometry.
 
-<<<<<<< HEAD
 option.AO_MODE=Ambient Occlusion Mode
 option.AO_MODE.comment=1: AlchemyAO. 2: HBAO
 
@@ -177,10 +177,10 @@ option.PBR_GEOMETRY_MODEL.comment=This is an advanced option! Different geometry
 
 option.PBR_DISTROBUTION_MODEL=PBR Microfacet distribution
 option.PBR_DISTROBUTION_MODEL.comment=This is an advanced option! This option determines how direct light spreads across a surface based on roughness. 1: Phong. 2: Beckmann. 3: GGX.
-=======
+
+
 option.TERRAIN_PARALLAX=Terrain Parallax
 option.WATER_PARALLAX=Water Parallax
->>>>>>> dev
 
 
 

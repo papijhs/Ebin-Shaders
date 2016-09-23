@@ -29,22 +29,12 @@ struct Lightmap {    // Contains vector light levels with color
 // Underwater light caustics
 #endif
 
-<<<<<<< HEAD
-vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, float AO, vec3 normal, float smoothness, vec4 viewSpacePosition) {
-	Shading shading;
-	
-	shading.normal = 1.0;
-	GetNormalShading(shading, mask, viewSpacePosition, normal, 1.0 - smoothness);
-	
-	shading.sunlight  = shading.normal;
-=======
 
 
-vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, vec3 viewSpacePosition) {
+vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, float AO, vec3 normal, float smoothness, vec3 viewSpacePosition) {
 	Shading shading;
 	
-	shading.sunlight  = GetLambertianShading(normal, mask);
->>>>>>> dev
+	shading.sunlight  = GetNormalShading(normal, mask, viewSpacePosition, 1.0 - smoothness);
 	shading.sunlight *= pow2(skyLightmap);
 	shading.sunlight  = ComputeShadows(viewSpacePosition, shading.sunlight);
 	
@@ -72,9 +62,9 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	
 	lightmap.GI = GI * sunlightColor * AO;
 	
-	lightmap.ambient = shading.ambient * vec3(AO);
+	lightmap.ambient = vec3(shading.ambient * AO);
 	
-	lightmap.torchlight = shading.torchlight * vec3(0.7, 0.3, 0.1) * pow(AO, 0.7);
+	lightmap.torchlight = shading.torchlight * vec3(0.7, 0.3, 0.1);
 	
 	
 	return vec3(

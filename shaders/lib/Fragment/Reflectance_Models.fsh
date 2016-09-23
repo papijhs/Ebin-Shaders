@@ -30,11 +30,11 @@ float diffuseFresnel(float F0, float NoL, float NoV) {
 }
 
 
-float lambertDiffuse(vec4 viewSpacePosition, vec3 normal, float roughness) {
+float lambertDiffuse(vec3 viewSpacePosition, vec3 normal, float roughness) {
 	return 2.0 / PI * dot(normal, lightVector);
 }
 
-float GetBurleyDiffuse(vec4 viewSpacePosition, vec3 normal, float roughness) {
+float GetBurleyDiffuse(vec3 viewSpacePosition, vec3 normal, float roughness) {
 	vec3 viewVector = -normalize(viewSpacePosition.xyz);
 	vec3 halfVector = normalize(viewVector + lightVector);
 	
@@ -49,7 +49,7 @@ float GetBurleyDiffuse(vec4 viewSpacePosition, vec3 normal, float roughness) {
 	return (1.0 / PI) * FdV * FdL;
 }
 
-float GetOrenNayarDiffuse(vec4 viewSpacePosition, vec3 normal, float roughness, float F0) {
+float GetOrenNayarDiffuse(vec3 viewSpacePosition, vec3 normal, float roughness, float F0) {
 	vec3 viewVector = -normalize(viewSpacePosition.xyz);
 	vec3 halfVector = normalize(lightVector + viewVector);
 	cfloat albedo = 3.0;
@@ -76,7 +76,7 @@ float GetOrenNayarDiffuse(vec4 viewSpacePosition, vec3 normal, float roughness, 
 	return albedo * (1.0 - F0) * NoL * (Fdiff * C1 + C2 * (Cosri / CosriT));
 }
 
-float GetGotandaDiffuse(vec4 viewSpacePosition, vec3 normal, float roughness, float F0) {
+float GetGotandaDiffuse(vec3 viewSpacePosition, vec3 normal, float roughness, float F0) {
 	vec3 viewVector = -normalize(viewSpacePosition.xyz);
 	vec3 halfVector = normalize(viewVector + lightVector);
 	
@@ -101,7 +101,7 @@ float GetGotandaDiffuse(vec4 viewSpacePosition, vec3 normal, float roughness, fl
 	return 2.0 * Lr;
 }
 
-float GetGGXSubsurfaceDiffuse(vec4 viewSpacePosition, vec3 normal, float roughness) {
+float GetGGXSubsurfaceDiffuse(vec3 viewSpacePosition, vec3 normal, float roughness) {
 	cfloat wrap = 0.5;
 	
 	vec3 viewVector = normalize(viewSpacePosition.xyz);
@@ -115,7 +115,7 @@ float GetGGXSubsurfaceDiffuse(vec4 viewSpacePosition, vec3 normal, float roughne
 	return NoL * GGX * 2.0;
 }
 
-float diffuse(float F0, vec4 viewSpacePosition, vec3 normal, float roughness) {
+float diffuse(float F0, vec3 viewSpacePosition, vec3 normal, float roughness) {
 float diffuse;
 	#if PBR_Diffuse == 1
 		diffuse = lambertDiffuse(viewSpacePosition, normal, roughness);
@@ -363,13 +363,7 @@ float CalculateNormalizationFactor(float NoL, float NoV, float alpha) {
  *
  * \return The color of the specular highlight at the current fragment
  */
-float specularBRDF(
-	vec3 inVector,
-	vec3 normal,
-	float F0,
-	vec3 viewVector,
-	float alpha) {
-	
+float specularBRDF(vec3 inVector, vec3 normal, float F0, vec3 viewVector, float alpha) {
 	vec3 halfVector = (viewVector + inVector) / length(viewVector + inVector);
 	
 	float NoL = dot(normal, inVector);

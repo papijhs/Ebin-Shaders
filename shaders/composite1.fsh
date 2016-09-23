@@ -77,7 +77,7 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI, out float AO) {
 #if defined GI_ENABLED || defined AO_ENABLED
 	depth = ExpToLinearDepth(depth);
 	
-	float totalGIWeight = 0.0;
+	float totalWeight = 0.0;
 	
 	cfloat kernal = 2.0;
 	cfloat range = kernal * 0.5 - 0.5;
@@ -89,37 +89,26 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI, out float AO) {
 			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x );
 			vec3  sampleNormal =     DecodeNormal(texture2D(colortex4, texcoord + offset * 8.0).xy);
 		
-		#ifdef GI_ENABLED
 			float weight  = 1.0 - abs(depth - sampleDepth);
 			      weight *= dot(normal, sampleNormal);
 			      weight  = pow(weight, 32);
 			      weight  = max(1.0e-6, weight);
 			
 			GI += pow(texture2DLod(colortex6, texcoord * COMPOSITE0_SCALE + offset * 2.0, 1).rgb, vec3(2.2)) * weight;
+			AO += texture2DLod(colortex6, texcoord * COMPOSITE0_SCALE + offset * 2.0, 1).a * weight;
 			
-			totalGIWeight += weight;
-		#endif
-		
-		#ifdef AO_ENABLED
-			float AOWeight = 1.0 - abs(depth - sampleDepth);
-						AOWeight *= dot(normal, sampleNormal);
-			      AOWeight = pow(AOWeight, 32);
-			      AOWeight = max(1.0e-6, AOWeight);
-			
-			AO += texture2DLod(colortex6, texcoord * COMPOSITE0_SCALE + offset * 2.0, 1).a * AOWeight;
-			
-			totalAOWeight += AOWeight;
-		#endif
+			totalWeight += weight;
 		}
 	}
 	
-	GI *= 5.0 / totalGIWeight;
-	AO /= totalAOWeight;
+	GI *= 5.0 / totalWeight;
+	AO /= totalWeight;
 #endif
-	
+
 #ifndef AO_ENABLED
 	AO = 1.0;
 #endif
+
 }
 
 #include "lib/Fragment/WaterDepthFog.fsh"
@@ -167,7 +156,8 @@ void main() {
 	if (depth1 >= 1.0) return;
 	
 	
-	vec3 GI; float AO;
+	vec3  GI;
+	float AO;
 	BilateralUpsample(normal, depth1, GI, AO);
 	
 	

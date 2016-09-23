@@ -75,15 +75,13 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 	return texture2D(noisetex, coord).xy;
 }
 
+
+#include "lib/Fragment/Ambient_Occlusion.fsh"
+
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight/GetSunlightShading.fsh"
 #include "/lib/Fragment/Sunlight/ComputeHardShadows.fsh"
 
-<<<<<<< HEAD
-#include "/lib/Fragment/Global_Illumination.fsh"
-
-#include "lib/Fragment/Ambient_Occlusion.fsh"
-=======
 #ifndef GI_ENABLED
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
 #elif GI_MODE == 1
@@ -157,7 +155,6 @@ vec3 ComputeGlobalIllumination(vec3 viewSpacePosition, vec3 normal, float skyLig
 	return GI * lightMult * brightness;
 }
 #endif
->>>>>>> dev
 
 void main() {
 	float depth0 = GetDepth(texcoord);
@@ -188,7 +185,6 @@ void main() {
 	}
 	
 	vec3 normal = DecodeNormal(texture2D(colortex4, texcoord).xy);
-	
 	
 	float AO = CalculateSSAO(viewSpacePosition1, normal);
 	

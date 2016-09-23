@@ -46,7 +46,7 @@ varying vec2 pixelSize;
 #include "/lib/Uniform/Global_Composite_Variables.glsl"
 #include "/lib/Fragment/Masks.fsh"
 #include "/lib/Misc/Calculate_Fogfactor.glsl"
-#include "/lib/Fragment/Reflectance_Models.fsh"
+
 
 vec3 GetColor(vec2 coord) {
 	return texture2D(colortex1, coord).rgb;
@@ -130,61 +130,9 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight/ComputeUniformlySoftShadows.fsh"
-<<<<<<< HEAD
-#include "/lib/Fragment/Reflection_Functions.fsh"
-=======
 #include "/lib/Fragment/Reflectance_Models.fsh"
 
-void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
-	if (isEyeInWater == 1) return;
-	
-	vec3  refViewRay  = reflect(position[0], normal);
-	vec3  refWorldRay = transMAD(gbufferModelViewInverse, refViewRay);
-	float firstStepSize = mix(1.0, 30.0, pow2(length(position[1].xz) / 144.0));
-	vec3  reflectedCoord;
-	vec3  reflectedViewSpacePosition;
-	vec3  reflection;
-	
-	float roughness = 1.0 - smoothness;
-	
-	vec3 viewVector = -normalize(position[0]);
-	vec3 halfVector = normalize(lightVector - viewVector);
-	
-	float vdoth = clamp01(dot(viewVector, halfVector));
-	
-	cfloat F0 = 0.15; // To be replaced with metallic
-	
-	float lightFresnel = Fresnel(F0, vdoth);
-	
-	vec3 alpha = vec3(lightFresnel * smoothness) * 0.25;
-	
-	if (length(alpha) < 0.005) return;
-	
-	
-	float sunlight = ComputeShadows(position[0], 1.0);
-	
-	vec3 reflectedSky = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true).rgb;
-	
-	vec3 offscreen = reflectedSky * skyLightmap;
-	
-	if (!ComputeRaytracedIntersection(position[0], normalize(refViewRay), firstStepSize, 1.55, 30, 1, reflectedCoord, reflectedViewSpacePosition))
-		reflection = offscreen;
-	else {
-		reflection = GetColor(reflectedCoord.st);
-		
-		reflection = mix(reflection, reflectedSky, CalculateFogFactor(reflectedViewSpacePosition, FOG_POWER));
-		
-		#ifdef REFLECTION_EDGE_FALLOFF
-			float angleCoeff = clamp(pow(dot(vec3(0.0, 0.0, 1.0), normal) + 0.15, 0.25) * 2.0, 0.0, 1.0) * 0.2 + 0.8;
-			float dist       = length8(abs(reflectedCoord.xy - vec2(0.5)));
-			float edge       = clamp(1.0 - pow2(dist * 2.0 * angleCoeff), 0.0, 1.0);
-			reflection       = mix(reflection, offscreen, pow(1.0 - edge, 10.0));
-		#endif
-	}
-	
-	color = mix(color, reflection, alpha);
-}
->>>>>>> dev
+#include "/lib/Fragment/Reflection_Functions.fsh"
 
 vec2 GetRefractedCoord(vec2 coord, vec3 viewSpacePosition, vec3 tangentNormal) {
 	vec4 screenSpacePosition = gbufferProjection * vec4(viewSpacePosition, 1.0);
@@ -345,7 +293,7 @@ void main() {
 	color0 = mix(color1, color0, mask.transparent - mask.water);
 	
 	
-	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
+	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap, mask);
 	
 	
 	if (depth1 >= 1.0)

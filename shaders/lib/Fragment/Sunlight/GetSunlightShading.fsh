@@ -2,14 +2,14 @@ float GetLambertianShading(vec3 normal, Mask mask) {
 	float shading = max0(dot(normal, lightVector));
 	      shading = shading * (1.0 - mask.grass       ) + mask.grass       ;
 	      shading = shading * (1.0 - mask.leaves * 0.5) + mask.leaves * 0.5;
-				
+	
 	return shading;
 }
 
+#if ShaderStage >= 1
 #include "/lib/Fragment/Reflectance_Models.fsh"
 
-#ifndef composite0
-void GetNormalShading(inout Shading shading, Mask mask, vec4 viewSpacePosition, vec3 normal, float roughness) {
+float GetNormalShading(vec3 normal, Mask mask, vec3 viewSpacePosition, float roughness) {
 	float directDiffuse;
 	float lambert = max0(dot(normal, lightVector));
 	
@@ -37,8 +37,9 @@ void GetNormalShading(inout Shading shading, Mask mask, vec4 viewSpacePosition, 
 	directDiffuse = directDiffuse * (1.0 - mask.grass       ) + mask.grass       ;
 	directDiffuse = directDiffuse * (1.0 - mask.leaves * 0.5) + mask.leaves * 0.5;
 	
-	shading.normal = directDiffuse;
+	return directDiffuse;
 }
-#endif
 
-#define GetDiffuseShading(a, b, c, d) GetLambertianShading(b, d)
+#else
+#define GetNormalShading(a, b, c, d) GetLambertianShading(a, b)
+#endif

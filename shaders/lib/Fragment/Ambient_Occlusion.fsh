@@ -1,7 +1,7 @@
 #ifndef AO_ENABLED
 	#define CalculateSSAO(a, b) 1.0
 #elif AO_MODE == 1 // AlchemyAO
-float CalculateSSAO(vec4 viewSpacePosition, vec3 normal) {
+float CalculateSSAO(vec3 viewSpacePosition, vec3 normal) {
 	cint samples = 12;
 	cfloat radius = 0.7;
 	cfloat intensity = 0.10;
@@ -16,7 +16,7 @@ float CalculateSSAO(vec4 viewSpacePosition, vec3 normal) {
 
 	for(int i = 0; i < samples; i++) {
 		vec2 pixelOffset = texcoord + vec2(sampleStep * cos(randomAngle), sampleStep * sin(randomAngle));
-		vec3 offsetPosition = CalculateViewSpacePosition(pixelOffset, texture2D(depthtex1, pixelOffset).x).xyz;
+		vec3 offsetPosition = CalculateViewSpacePosition(vec3(pixelOffset, texture2D(depthtex1, pixelOffset).x)).xyz;
 		
 		vec3 differential = offsetPosition - viewSpacePosition.xyz;
 		float diffLength = lengthSquared(differential);
@@ -34,7 +34,7 @@ float CalculateSSAO(vec4 viewSpacePosition, vec3 normal) {
 
 // HBAO paper http://rdimitrov.twistedsanity.net/HBAO_SIGGRAPH08.pdf
 // HBAO SIGGRAPH presentation http://developer.download.nvidia.com/presentations/2008/SIGGRAPH/HBAO_SIG08b.pdf
-float CalculateSSAO(vec4 viewSpacePosition, vec3 normal) {
+float CalculateSSAO(vec3 viewSpacePosition, vec3 normal) {
 	cfloat sampleRadius     = 0.5;
 	cint   sampleDirections = 6;
 	cfloat sampleStep       = 0.016;
@@ -64,7 +64,7 @@ float CalculateSSAO(vec4 viewSpacePosition, vec3 normal) {
 			
 			float offsetDepth = texture2D(depthtex1, offsetCoord).x;
 			
-			vec3 offsetViewSpace = CalculateViewSpacePosition(offsetCoord, offsetDepth).xyz;
+			vec3 offsetViewSpace = CalculateViewSpacePosition(vec3(offsetCoord, offsetDepth)).xyz;
 			vec3 differential    = offsetViewSpace - viewSpacePosition.xyz;
 			
 			if(length(differential) < sampleRadius) {
