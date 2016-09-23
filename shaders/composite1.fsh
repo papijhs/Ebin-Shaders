@@ -132,10 +132,10 @@ void main() {
 		mask.transparent = 1.0;
 		mask.water   = float(encode0.r >= 0.5);
 		mask.matIDs  = 1.0;
-		mask.bit[0] *= 1.0 - mask.transparent;
-		mask.bit[1]  = mask.transparent;
-		mask.bit[2]  = mask.water;
-		mask.materialIDs = EncodeMaterialIDs(mask.matIDs, mask.bit[0], mask.bit[1], mask.bit[2], mask.bit[3]);
+		mask.bits.x *= 1.0 - mask.transparent;
+		mask.bits.y  = mask.transparent;
+		mask.bits.z  = mask.water;
+		mask.materialIDs = EncodeMaterialIDs(mask.matIDs, mask.bits);
 		
 		encode0.r = mod(encode0.r, 0.5);
 		

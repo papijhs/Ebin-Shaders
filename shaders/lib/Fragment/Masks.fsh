@@ -2,7 +2,7 @@ struct Mask {
 	float materialIDs;
 	float matIDs;
 	
-	float[4] bit;
+	vec4 bits;
 	
 	float grass;
 	float leaves;
@@ -13,16 +13,8 @@ struct Mask {
 	float transparent;
 };
 
-float EncodeMaterialIDs(float materialIDs, float bit0, float bit1, float bit2, float bit3) {
-	bit0 = float(bit0 > 0.5);
-	bit1 = float(bit1 > 0.5);
-	bit2 = float(bit2 > 0.5);
-	bit3 = float(bit3 > 0.5);
-	
-	materialIDs += 128.0 * bit0;
-	materialIDs +=  64.0 * bit1;
-	materialIDs +=  32.0 * bit2;
-	materialIDs +=  16.0 * bit3;
+float EncodeMaterialIDs(float materialIDs, vec4 bits) {
+	materialIDs += dot(vec4(greaterThan(bits, vec4(0.5))), vec4(128.0, 64.0, 32.0, 16.0));
 	
 	materialIDs += 0.1;
 	materialIDs /= 255.0;
@@ -30,20 +22,14 @@ float EncodeMaterialIDs(float materialIDs, float bit0, float bit1, float bit2, f
 	return materialIDs;
 }
 
-void DecodeMaterialIDs(inout float matID, out float[4] bit) {
+void DecodeMaterialIDs(inout float matID, out vec4 bits) {
 	matID *= 255.0;
 	
-	bit[0] = float(matID >= 128.0);
-	matID -= bit[0] * 128.0;
+	bits = mod(vec4(matID), vec4(256.0, 128.0, 64.0, 32.0));
 	
-	bit[1] = float(matID >=  64.0);
-	matID -= bit[1] * 64.0;
+	bits = vec4(greaterThanEqual(bits, vec4(128.0, 64.0, 32.0, 16.0)));
 	
-	bit[2] = float(matID >=  32.0);
-	matID -= bit[2] * 32.0;
-	
-	bit[3] = float(matID >=  16.0);
-	matID -= bit[3] * 16.0;
+	matID -= dot(bits, vec4(128.0, 64.0, 32.0, 16.0));
 }
 
 float GetMaterialMask(float mask, float materialID) {
@@ -56,15 +42,15 @@ Mask CalculateMasks(float materialIDs) {
 	mask.materialIDs = materialIDs;
 	mask.matIDs      = materialIDs;
 	
-	DecodeMaterialIDs(mask.matIDs, mask.bit);
+	DecodeMaterialIDs(mask.matIDs, mask.bits);
 	
 	mask.grass  = GetMaterialMask(2, mask.matIDs);
 	mask.leaves = GetMaterialMask(3, mask.matIDs);
 	mask.hand   = GetMaterialMask(5, mask.matIDs);
 	
-	mask.metallic    = mask.bit[0];
-	mask.transparent = mask.bit[1];
-	mask.water       = mask.bit[2];
+	mask.metallic    = mask.bits.x;
+	mask.transparent = mask.bits.y;
+	mask.water       = mask.bits.z;
 	
 	return mask;
 }
