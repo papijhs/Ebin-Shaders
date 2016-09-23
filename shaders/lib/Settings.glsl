@@ -128,13 +128,4 @@ const int noiseTextureResolution = 64;
 	#define NORMAL_MAPS
 	
 	#define SPECULARITY_MAPS
-	//#define PBR_TEXTURE_PACK
-	
-#ifdef NORMAL_MAPS
-	//#define TERRAIN_PARALLAX
-#endif
-	
-	#ifdef PBR_TEXTURE_PACK
-		#define PBR
-	#endif
 #endif

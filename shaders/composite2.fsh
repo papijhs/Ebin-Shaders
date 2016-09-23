@@ -130,10 +130,14 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight/ComputeUniformlySoftShadows.fsh"
-#include "/lib/Fragment/Reflectance_Models.fsh"
 
 void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
 	if (isEyeInWater == 1) return;
+	
+	float alpha = (pow2(min1(1.0 + dot(normalize(position[0]), normal))) * 0.99 + 0.01) * smoothness;
+	
+	if (length(alpha) < 0.005) return;
+	
 	
 	vec3  refViewRay  = reflect(position[0], normal);
 	vec3  refWorldRay = transMAD(gbufferModelViewInverse, refViewRay);
@@ -142,29 +146,13 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	vec3  reflectedViewSpacePosition;
 	vec3  reflection;
 	
-	float roughness = 1.0 - smoothness;
-	
-	vec3 viewVector = -normalize(position[0]);
-	vec3 halfVector = normalize(lightVector - viewVector);
-	
-	float vdoth = clamp01(dot(viewVector, halfVector));
-	
-	cfloat F0 = 0.15; // To be replaced with metallic
-	
-	float lightFresnel = Fresnel(F0, vdoth);
-	
-	vec3 alpha = vec3(lightFresnel * smoothness) * 0.25;
-	
-	if (length(alpha) < 0.005) return;
-	
-	
 	float sunlight = ComputeShadows(position[0], 1.0);
 	
-	vec3 reflectedSky = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true).rgb;
+	vec3 reflectedSky = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true, sunlight);
 	
 	vec3 offscreen = reflectedSky * skyLightmap;
 	
-	if (!ComputeRaytracedIntersection(position[0], normalize(refViewRay), firstStepSize, 1.55, 30, 1, reflectedCoord, reflectedViewSpacePosition))
+	if (!ComputeRaytracedIntersection(position[0], normalize(refViewRay), firstStepSize, 1.5, 30, 1, reflectedCoord, reflectedViewSpacePosition))
 		reflection = offscreen;
 	else {
 		reflection = GetColor(reflectedCoord.st);
@@ -231,31 +219,7 @@ mat3 DecodeTBN(float tbnIndex) {
 	return mat3(tangent, binormal, normal);
 }
 
-#include "lib/Fragment/WaterDepthFog.fsh"
-
-vec3 GetWaterParallaxCoord(vec3 position, mat3 tbnMatrix) {
-	vec3 direction = tbnMatrix * normalize(mat3(gbufferModelViewInverse) * position);
-	
-	position = mat3(gbufferModelViewInverse) * position + cameraPosition;
-	
-	cvec3 stepSize = vec3(0.6);
-	vec3 interval  = direction * stepSize / -direction.z;
-	
-	float currentHeight = GetWaves(position);
-	vec3  offset = vec3(0.0, 0.0, 1.0);
-	
-	for (int i = 0; currentHeight < offset.z && i < 120; i++) {
-		offset += interval * pow(offset.z - currentHeight, 0.8);
-		
-		currentHeight = GetWaves(position + vec3(offset.x, 0.0, offset.y));
-	}
-	
-	show(interval);
-	
-	position = position + vec3(offset.x, 0.0, offset.y) - cameraPosition;
-	
-	return mat3(gbufferModelView) * position;
-}
+#include "lib/Fragment/Water_Depth_Fog.fsh"
 
 void main() {
 	float depth0 = GetDepth(texcoord);
@@ -283,13 +247,9 @@ void main() {
 			mat3 tbnMatrix = DecodeTBN(encodedNormal.x);
 			vec3 tangentNormal;
 			
-			if (mask.water > 0.5) {
-			#ifdef WATER_PARALLAX
-				frontPos[0] = GetWaterParallaxCoord(frontPos[0], tbnMatrix);
-			#endif
-				
-				tangentNormal.xy = GetWaveNormals(frontPos[0], tbnMatrix[2]);
-			} else tangentNormal.xy = Decode16(encodedNormal.y) * 2.0 - 1.0;
+			tangentNormal.xy = mask.water > 0.5 ?
+				GetWaveNormals(frontPos[0], tbnMatrix[2]) :
+				Decode16(encodedNormal.y) * 2.0 - 1.0;
 			
 			tangentNormal.z = sqrt(1.0 - lengthSquared(tangentNormal.xy));
 			
@@ -307,17 +267,11 @@ void main() {
 		}
 	}
 	
-	vec3 sky = CalculateSky(backPos[0], backPos[1], vec3(0.0), 1.0 - alpha, false);
-	vec3 renderedSky = sky;
+	vec3 sky = CalculateSky(backPos[0], backPos[1], vec3(0.0), 1.0 - alpha, false, 1.0);
 	
-	#ifdef PHYSICAL_ATMOSPHERE //Bruce, until you can come up with a way to render the sun without it being applied to the fog of the world this is the best solution I can come up with.
-		vec3 sun = min(CalculatePhysicalSunspot(normalize(backPos[1])) * pow(sky, vec3(0.25)), 30);
-		renderedSky += sun;
-	#endif
-
 	if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
 	
-	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(renderedSky), 1.0); exit(); return; }
+	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }
 	
 	
 	float smoothness;

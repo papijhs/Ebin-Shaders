@@ -103,7 +103,7 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 #endif
 }
 
-#include "lib/Fragment/WaterDepthFog.fsh"
+#include "lib/Fragment/Water_Depth_Fog.fsh"
 
 void main() {
 	float depth0 = GetDepth(texcoord);

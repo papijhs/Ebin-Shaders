@@ -129,9 +129,6 @@ option.GI_ENABLED=GI Enabled
 option.PLAYER_GI_BOUNCE=Player GI Bounce
 option.PLAYER_GI_BOUNCE.comment=If this is enabled the player will cause GI to bounce off the player. This usually looks unnatural so it is off be default.
 
-option.GI_MODE=GI Mode
-option.GI_MODE.comment=1: Better for natural terrain and general gameplay. 2: Mix of 1 & 3. 3: More Physically accurate. Higher values may have medium performance cost!
-
 option.GI_RADIUS=GI Radius
 option.GI_RADIUS.comment=The radius of global illumination light bounces
 
@@ -145,11 +142,6 @@ option.GI_TRANSLUCENCE=GI Translucence
 option.GI_TRANSLUCENCE.comment=Higher values make global illumination seem to "bounce through" surfaces, similar to subsurface scattering
 
 option.GI_BRIGHTNESS=GI Brightness
-
-
-option.TERRAIN_PARALLAX=Terrain Parallax
-option.WATER_PARALLAX=Water Parallax
-
 
 
 option.CUSTOM_HORIZON_HEIGHT=Custom Horizon Height

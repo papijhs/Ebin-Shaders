@@ -40,16 +40,6 @@ vec3 CalculateSunspot(vec3 worldSpaceVector) {
 	return sunspot * sunlightColor * sunlightColor * vec3(1.0, 0.8, 0.6);
 }
 
-vec3 CalculatePhysicalSunspot(vec3 worldSpaceVector) {
-	float sunspot  = max0(dot(worldSpaceVector, sunVector) - 0.01);
-	      sunspot  = pow(sunspot, 350.0);
-	      sunspot  = pow(sunspot + 1.0, 400.0) - 1.0;
-	      sunspot  = min(sunspot, 20.0);
-	      sunspot += 100.0 * float(sunspot == 20.0);
-	
-	return sunspot * vec3(1.0, 0.8, 0.6);
-}
-
 vec3 CalculateAtmosphereScattering(vec3 position) {
 	float factor = pow(length(position), 1.4) * 0.0001 * ATMOSPHERIC_SCATTERING_AMOUNT;
 	
@@ -63,22 +53,11 @@ vec3 CalculateAtmosphereScattering(vec3 position) {
 vec3 CalculateAtmosphericSky(vec3 worldSpacePosition) {
 	vec3 worldPosition = vec3(0.0, planetRadius + 1.061e3 + max0(cameraPosition.y - HORIZON_HEIGHT) * 400.0, 0.0);
 	
-	/*
-#ifdef CUSTOM_HORIZON_HEIGHT
-	float radius = max(176.0, far * sqrt(2.0) * 2.0);
-	
-	worldSpacePosition.y  = radius * worldSpacePosition.y / length(worldSpacePosition.xz) + cameraPosition.y - HORIZON_HEIGHT; // Reproject the world vector to have a consistent horizon height
-	worldSpacePosition.xz = normalize(worldSpacePosition.xz) * radius;
-#endif
-	*/
-	
 	return ComputeAtmosphericSky(worldSpacePosition, worldPosition, sunVector, 2.0);
-	
-	return vec3(0.0);
 }
 
 
-vec3 CalculateSky(vec3 viewSpacePosition, vec3 worldSpacePosition, vec3 rayPosition, float alpha, cbool reflection) {
+vec3 CalculateSky(vec3 viewSpacePosition, vec3 worldSpacePosition, vec3 rayPosition, float alpha, cbool reflection, float sunlight) {
 	float visibility = CalculateFogFactor(viewSpacePosition, FOG_POWER);
 	if (  visibility < 0.001 && !reflection) return vec3(0.0);
 	
@@ -94,7 +73,7 @@ vec3 CalculateSky(vec3 viewSpacePosition, vec3 worldSpacePosition, vec3 rayPosit
 	vec3 sunspot  = vec3(0.0);
 #else
 	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow);
-	vec3 sunspot  = CalculateSunspot(worldSpaceVector) * (reflection ? 1.0 : pow(visibility, 25) * alpha);
+	vec3 sunspot  = CalculateSunspot(worldSpaceVector) * (reflection ? sunlight : pow(visibility, 25) * alpha);
 #endif
 	
 	return (gradient + sunspot + clouds) * SKY_BRIGHTNESS;
