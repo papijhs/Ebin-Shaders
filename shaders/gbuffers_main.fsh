@@ -14,13 +14,12 @@ varying vec3 color;
 varying vec2 texcoord;
 
 varying mat3 tbnMatrix;
-varying vec4 verts;
 varying vec2 vertLightmap;
 
 varying float mcID;
 varying float materialIDs;
 
-varying vec4 viewSpacePosition;
+varying vec3 viewSpacePosition;
 varying vec3 worldPosition;
 
 varying vec3 worldNormal;
@@ -48,9 +47,10 @@ vec4 tileCoordinate(vec2 coord) {
 
 vec2 normalCoord(vec4 tileCoord) {
 	ivec2 atlasTiles = atlasSize / TEXTURE_PACK_RESOLUTION;
-	return (tileCoord.zw + fract(tileCoord.xy)) / atlasTiles;
+	return (fract(tileCoord.xy) + tileCoord.zw) / atlasTiles;
 }
 
+<<<<<<< HEAD
 vec2 getParallaxCoord(in vec2 coord, in vec3 direction) {
 	if(length(viewSpacePosition.xyz) > 10.0) return coord;
 	
@@ -65,18 +65,41 @@ vec2 getParallaxCoord(in vec2 coord, in vec3 direction) {
 
 	vec3 interval = direction * stepSize / direction.z;
 	vec4 tileCoord = tileCoordinate(coord);
+=======
+vec2 GetParallaxCoord(vec2 coord) {
+	if (length(viewSpacePosition) > 15.0) return coord;
+	
+	cvec3 stepSize = vec3(0.2, 0.2, 1.0) / 16.0;
+	
+	vec3 direction = normalize(viewSpacePosition) * tbnMatrix;
+	vec3 interval  = direction * stepSize / -direction.z;
+	vec4 tileCoord = TileCoordinate(coord);
+>>>>>>> dev
 	
 	// Start state
 	vec3  offset = vec3(0.0, 0.0, 1.0);
-
+	
 	for(int i = 0; offset.z > currentHeight + 0.01 && i < 32; i++) {
+<<<<<<< HEAD
 		offset += mix(vec3(0.0), interval, pow(offset.z - currentHeight, 0.8));
 
 		currentHeight = texture2D(normals, normalCoord(vec4(tileCoord.xy + offset.xy, tileCoord.zw))).a;
+=======
+		offset += interval * pow(offset.z - currentHeight, 0.8);
+		
+		currentHeight = texture2D(normals, NormalCoord(vec4(tileCoord.xy + offset.xy, tileCoord.zw))).a;
+>>>>>>> dev
 	}
-
+	
+	show(interval);
+	
 	tileCoord.xy += offset.xy;
+<<<<<<< HEAD
 	return normalCoord(tileCoord);
+=======
+	
+	return NormalCoord(tileCoord);
+>>>>>>> dev
 }
 
 
@@ -94,7 +117,7 @@ vec4 GetNormal(vec2 coord) {
 	vec4 normal = vec4(0.5, 0.5, 1.0, 1.0);
 #endif
 	
-	normal.xyz = normalize(tbnMatrix * (normal.xyz * 2.0 - 1.0));
+	normal.xyz = tbnMatrix * normalize(normal.xyz * 2.0 - 1.0);
 	
 	return normal;
 }
@@ -107,6 +130,7 @@ vec3 GetTangentNormal() {
 #endif
 }
 
+<<<<<<< HEAD
 float Get3DNoise(vec3 pos) {
 	vec3 part  = floor(pos);
 	vec3 whole = fract(pos);
@@ -121,6 +145,9 @@ float Get3DNoise(vec3 pos) {
 
 	return mix(Noise1, Noise2, whole.z);
 }
+=======
+#include "/lib/Misc/Get3DNoise.glsl"
+>>>>>>> dev
 
 float rainAlpha(float height, float skyLightmap) {
   float randWaterSpot  = Get3DNoise(worldPosition);
@@ -162,7 +189,10 @@ vec2 EncodeNormalData(vec3 normalTexture, float tbnIndex) {
 void main() {
 	if (CalculateFogFactor(viewSpacePosition, FOG_POWER) >= 1.0) discard;
 	
+<<<<<<< HEAD
 	vec3 tangentVector = normalize(normalize(viewSpacePosition.xyz) * tbnMatrix);
+=======
+>>>>>>> dev
 	vec2 coord = texcoord;
 	
 	#ifdef gbuffers_terrain
@@ -176,8 +206,13 @@ void main() {
 	
   float wetnessAlpha = rainAlpha(normal.a, vertLightmap.t);
 	
+<<<<<<< HEAD
   diffuse = mix(diffuse, diffuse * vec4(1.0, 0.970588, 0.8745098, 1.0) * 0.74, wetnessAlpha);
 	normal = mix(normal, vec4(normalize(tbnMatrix * (vec3(0.5, 0.5, 1.0) * 2.0 - 1.0)), 1.0), wetnessAlpha * worldNormal.y);
+=======
+	diffuse.rgb *= mix(vec3(1.0), vec3(0.74, 0.71, 0.87), wetnessAlpha);
+	normal       = mix(normal, vec4(tbnMatrix * vec3(0.0, 0.0, 1.0), 1.0), wetnessAlpha * worldNormal.y);
+>>>>>>> dev
 	
 	vec2 specularity = GetSpecularity(coord, wetnessAlpha, vertLightmap.t);	
 	

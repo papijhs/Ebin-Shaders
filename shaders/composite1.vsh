@@ -3,13 +3,11 @@
 #define vsh
 #define ShaderStage 10
 #include "/lib/Syntax.glsl"
-#line 7
 
 uniform mat4 gbufferModelView;
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 
-uniform vec3 upPosition;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 
@@ -22,7 +20,6 @@ varying vec2 texcoord;
 #include "/lib/Utility.glsl"
 #include "/lib/Uniform/Global_Composite_Variables.glsl"
 #include "/lib/Uniform/ShadowViewMatrix.vsh"
-#line 26
 
 void main() {
 	texcoord    = gl_MultiTexCoord0.st;
@@ -30,5 +27,4 @@ void main() {
 	
 	
 	#include "/lib/Uniform/Composite_Calculations.vsh"
-	#line 34
 }

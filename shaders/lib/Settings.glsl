@@ -86,16 +86,20 @@ const int noiseTextureResolution = 64;
 #define GI_TRANSLUCENCE 0.2  // [0.0 0.2 0.4 0.6 0.8 1.0]
 #define GI_BRIGHTNESS   1.00 // [0.25 0.50 0.75 1.00 2.00 4.00]
 
+<<<<<<< HEAD
 #if !defined low_profile
 	#define AO_ENABLED
 #endif
 
 #define AO_MODE 1 // [1 2]
+=======
+//#define WATER_PARALLAX
+>>>>>>> dev
 
 #define REFLECTION_EDGE_FALLOFF
 
-#define WAVE_MULT 2.0
-#define WAVE_SPEED 0.5
+#define WAVE_MULT 1.0
+#define WAVE_SPEED 0.35
 
 
 #define FRESNEL 4 // [1 2 3 4]
@@ -108,6 +112,17 @@ const int noiseTextureResolution = 64;
 
 #define CUSTOM_HORIZON_HEIGHT
 #define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]
+
+
+//#define FOV_OVERRIDE
+
+#define FOV_DEFAULT_TENS  110 // [100 110 120 130 140 150]
+#define FOV_DEFAULT_FIVES 0   // [0 5]
+#define FOV_DEFAULT_ONES  0   // [0 1 2 3 4]
+
+#define FOV_TRUE_TENS  90 // [70 80 90 100 110]
+#define FOV_TRUE_FIVES 0  // [0 5]
+#define FOV_TRUE_ONES  0  // [0 1 2 3 4]
 
 
 #define DEBUG_VIEW 1 // [-1 0 1 2 3 7]
@@ -133,6 +148,10 @@ const int noiseTextureResolution = 64;
 	
 	#define SPECULARITY_MAPS
 	//#define PBR_TEXTURE_PACK
+	
+#ifdef NORMAL_MAPS
+	//#define TERRAIN_PARALLAX
+#endif
 	
 	#ifdef PBR_TEXTURE_PACK
 		#define PBR

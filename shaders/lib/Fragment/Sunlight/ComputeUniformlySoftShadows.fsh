@@ -1,10 +1,10 @@
 #define ComputeShadows(x, y) ComputeUniformlySoftShadows(x, y)
-float ComputeUniformlySoftShadows(vec4 viewSpacePosition, float sunlightCoeff) { // Soft shadows
+float ComputeUniformlySoftShadows(vec3 viewSpacePosition, float sunlightCoeff) { // Soft shadows
 	if (sunlightCoeff <= 0.01) return 0.0;
 	
 	float biasCoeff;
 	
-	vec3 shadowPosition = BiasShadowProjection((shadowProjection * shadowModelView * gbufferModelViewInverse * viewSpacePosition).xyz, biasCoeff) * 0.5 + 0.5;
+	vec3 shadowPosition = BiasShadowProjection(projMAD(shadowProjection, transMAD(shadowViewMatrix, transMAD(gbufferModelViewInverse, viewSpacePosition))), biasCoeff) * 0.5 + 0.5;
 	
 	if (any(greaterThan(abs(shadowPosition.xyz - 0.5), vec3(0.5)))) return 1.0;
 	

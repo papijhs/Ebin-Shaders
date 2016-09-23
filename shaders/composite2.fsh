@@ -64,26 +64,23 @@ float GetTransparentDepth(vec2 coord) {
 	return texture2D(depthtex1, coord).x;
 }
 
-vec4 CalculateViewSpacePosition(vec2 coord, float depth) {
-	vec4 position  = gbufferProjectionInverse * vec4(vec3(coord, depth) * 2.0 - 1.0, 1.0);
-	     position /= position.w;
+vec3 CalculateViewSpacePosition(vec3 screenPos) {
+	screenPos = screenPos * 2.0 - 1.0;
 	
-	return position;
+	return projMAD(gbufferProjectionInverse, screenPos) / (screenPos.z * gbufferProjectionInverse[2].w + gbufferProjectionInverse[3].w);
 }
 
-vec3 ViewSpaceToScreenSpace(vec4 viewSpacePosition) {
-	vec4 screenSpace = gbufferProjection * viewSpacePosition;
-	
-	return (screenSpace.xyz / screenSpace.w) * 0.5 + 0.5;
+vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
+	return projMAD(gbufferProjection, viewSpacePosition) / -viewSpacePosition.z * 0.5 + 0.5;
 }
 
 
 #include "/lib/Fragment/Water_Waves.fsh"
 #include "/lib/Fragment/Sky.fsh"
 
-bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, float firstStepSize, cfloat rayGrowth, cint maxSteps, cint maxRefinements, out vec3 screenSpacePosition, out vec4 viewSpacePosition) {
+bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, float firstStepSize, cfloat rayGrowth, cint maxSteps, cint maxRefinements, out vec3 screenSpacePosition, out vec3 viewSpacePosition) {
 	vec3 rayStep = rayDirection * firstStepSize;
-	vec4 ray = vec4(startingViewPosition + rayStep, 1.0);
+	vec3 ray = startingViewPosition + rayStep;
 	
 	screenSpacePosition = ViewSpaceToScreenSpace(ray);
 	
@@ -100,7 +97,7 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 		
 		float sampleDepth = GetTransparentDepth(screenSpacePosition.st);
 		
-		viewSpacePosition = CalculateViewSpacePosition(screenSpacePosition.st, sampleDepth);
+		viewSpacePosition = CalculateViewSpacePosition(vec3(screenSpacePosition.st, sampleDepth));
 		
 		float diff = viewSpacePosition.z - ray.z;
 		
@@ -109,7 +106,7 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 				float error = firstStepSize * pow(rayGrowth, i) * refinementCoeff;
 				
 				if(diff <= error * 2.0 && refinements <= maxRefinements) {
-					ray.xyz -= rayStep * refinementCoeff;
+					ray -= rayStep * refinementCoeff;
 					refinements += 1.0;
 					refinementCoeff = exp2(-refinements);
 				} else if (diff <= error * 4.0 && refinements > maxRefinements) {
@@ -121,7 +118,7 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 			else return true;
 		}
 		
-		ray.xyz += rayStep * refinementCoeff;
+		ray += rayStep * refinementCoeff;
 		
 		rayStep *= rayGrowth;
 		
@@ -133,10 +130,64 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight/ComputeUniformlySoftShadows.fsh"
+<<<<<<< HEAD
 #include "/lib/Fragment/Reflection_Functions.fsh"
+=======
+#include "/lib/Fragment/Reflectance_Models.fsh"
 
-vec2 GetRefractedCoord(vec2 coord, vec4 viewSpacePosition, vec3 tangentNormal) {
-	vec4 screenSpacePosition = gbufferProjection * viewSpacePosition;
+void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
+	if (isEyeInWater == 1) return;
+	
+	vec3  refViewRay  = reflect(position[0], normal);
+	vec3  refWorldRay = transMAD(gbufferModelViewInverse, refViewRay);
+	float firstStepSize = mix(1.0, 30.0, pow2(length(position[1].xz) / 144.0));
+	vec3  reflectedCoord;
+	vec3  reflectedViewSpacePosition;
+	vec3  reflection;
+	
+	float roughness = 1.0 - smoothness;
+	
+	vec3 viewVector = -normalize(position[0]);
+	vec3 halfVector = normalize(lightVector - viewVector);
+	
+	float vdoth = clamp01(dot(viewVector, halfVector));
+	
+	cfloat F0 = 0.15; // To be replaced with metallic
+	
+	float lightFresnel = Fresnel(F0, vdoth);
+	
+	vec3 alpha = vec3(lightFresnel * smoothness) * 0.25;
+	
+	if (length(alpha) < 0.005) return;
+	
+	
+	float sunlight = ComputeShadows(position[0], 1.0);
+	
+	vec3 reflectedSky = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true).rgb;
+	
+	vec3 offscreen = reflectedSky * skyLightmap;
+	
+	if (!ComputeRaytracedIntersection(position[0], normalize(refViewRay), firstStepSize, 1.55, 30, 1, reflectedCoord, reflectedViewSpacePosition))
+		reflection = offscreen;
+	else {
+		reflection = GetColor(reflectedCoord.st);
+		
+		reflection = mix(reflection, reflectedSky, CalculateFogFactor(reflectedViewSpacePosition, FOG_POWER));
+		
+		#ifdef REFLECTION_EDGE_FALLOFF
+			float angleCoeff = clamp(pow(dot(vec3(0.0, 0.0, 1.0), normal) + 0.15, 0.25) * 2.0, 0.0, 1.0) * 0.2 + 0.8;
+			float dist       = length8(abs(reflectedCoord.xy - vec2(0.5)));
+			float edge       = clamp(1.0 - pow2(dist * 2.0 * angleCoeff), 0.0, 1.0);
+			reflection       = mix(reflection, offscreen, pow(1.0 - edge, 10.0));
+		#endif
+	}
+	
+	color = mix(color, reflection, alpha);
+}
+>>>>>>> dev
+
+vec2 GetRefractedCoord(vec2 coord, vec3 viewSpacePosition, vec3 tangentNormal) {
+	vec4 screenSpacePosition = gbufferProjection * vec4(viewSpacePosition, 1.0);
 	
 	float fov = atan(1.0 / gbufferProjection[1].y) * 2.0 / RAD;
 	
@@ -180,58 +231,97 @@ mat3 DecodeTBN(float tbnIndex) {
 	}
 	
 	vec3 normal = cross(tangent, binormal);
-	
+
 	return mat3(tangent, binormal, normal);
 }
 
 #include "lib/Fragment/WaterDepthFog.fsh"
 
+vec3 GetWaterParallaxCoord(vec3 position, mat3 tbnMatrix) {
+	vec3 direction = tbnMatrix * normalize(mat3(gbufferModelViewInverse) * position);
+	
+	position = mat3(gbufferModelViewInverse) * position + cameraPosition;
+	
+	cvec3 stepSize = vec3(0.6);
+	vec3 interval  = direction * stepSize / -direction.z;
+	
+	float currentHeight = GetWaves(position);
+	vec3  offset = vec3(0.0, 0.0, 1.0);
+	
+	for (int i = 0; currentHeight < offset.z && i < 120; i++) {
+		offset += interval * pow(offset.z - currentHeight, 0.8);
+		
+		currentHeight = GetWaves(position + vec3(offset.x, 0.0, offset.y));
+	}
+	
+	show(interval);
+	
+	position = position + vec3(offset.x, 0.0, offset.y) - cameraPosition;
+	
+	return mat3(gbufferModelView) * position;
+}
+
 void main() {
 	float depth0 = GetDepth(texcoord);
-	vec4  viewSpacePosition0 = CalculateViewSpacePosition(texcoord, depth0);
+	
+	mat2x3 frontPos; // Position matrices: [0] = View Space, [1] = World Space
+	frontPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth0));
+	frontPos[1] = transMAD(gbufferModelViewInverse, frontPos[0]);
 	
 	
 	vec2 encode = Decode16(texture2D(colortex5, texcoord).r);
 	float torchLightmap = encode.r;
 	Mask mask = CalculateMasks(encode.g);
 	
-	vec2  refractedCoord     = texcoord;
-	float depth1             = depth0;
-	vec4  viewSpacePosition1 = viewSpacePosition0;
-	vec2  encodedNormal      = vec2(0.0);
-	vec3  normal             = vec3(0.0);
-	float alpha              = 0.0;
+	vec2   refractedCoord = texcoord;
+	float  depth1         = depth0;
+	mat2x3 backPos        = frontPos;
+	vec2   encodedNormal  = vec2(0.0);
+	vec3   normal         = vec3(0.0);
+	float  alpha          = 0.0;
 	
-	if (depth0 < 1.0) {
+	if (depth0 < 1.0) { // NOT sky
 		encodedNormal = texture2D(colortex4, texcoord).xy;
 		
-		if (mask.transparent > 0.5) {
+		if (mask.transparent > 0.5) { // Layered fragment, back layer is unique and needs to be computed
 			mat3 tbnMatrix = DecodeTBN(encodedNormal.x);
-			
 			vec3 tangentNormal;
 			
-			if (mask.water > 0.5) tangentNormal.xy = GetWaveNormals(viewSpacePosition0, tbnMatrix[2]);
-			else                  tangentNormal.xy = Decode16(encodedNormal.y) * 2.0 - 1.0;
+			if (mask.water > 0.5) {
+			#ifdef WATER_PARALLAX
+				frontPos[0] = GetWaterParallaxCoord(frontPos[0], tbnMatrix);
+			#endif
+				
+				tangentNormal.xy = GetWaveNormals(frontPos[0], tbnMatrix[2]);
+			} else tangentNormal.xy = Decode16(encodedNormal.y) * 2.0 - 1.0;
 			
-			tangentNormal.z = sqrt(1.0 - lengthSquared(tangentNormal.xy)); // Solve the equation "length(normal.xyz) = 1.0" for normal.z
+			tangentNormal.z = sqrt(1.0 - lengthSquared(tangentNormal.xy));
 			
-			normal = normalize((gbufferModelView * vec4(tbnMatrix * tangentNormal, 0.0)).xyz);
+			normal = mat3(gbufferModelView) * tbnMatrix * tangentNormal;
 			
 			
-			refractedCoord = GetRefractedCoord(texcoord, viewSpacePosition0, tangentNormal);
+			refractedCoord = GetRefractedCoord(texcoord, frontPos[0], tangentNormal);
 			
 			depth1 = (mask.hand > 0.5 ? depth0 : GetTransparentDepth(refractedCoord));
-			viewSpacePosition1 = CalculateViewSpacePosition(refractedCoord, depth1);
+			
+			backPos[0] = CalculateViewSpacePosition(vec3(refractedCoord, depth1));
+			backPos[1] = transMAD(gbufferModelViewInverse, backPos[0]);
 			
 			alpha = texture2D(colortex2, refractedCoord).r;
 		}
 	}
 	
-	vec3 sky = CalculateSky(viewSpacePosition1, 1.0 - alpha, false);
+	vec3 sky = CalculateSky(backPos[0], backPos[1], vec3(0.0), 1.0 - alpha, false);
+	vec3 renderedSky = sky;
 	
-	if (isEyeInWater == 1) sky = waterFog(sky, viewSpacePosition0, vec4(0.0));
+	#ifdef PHYSICAL_ATMOSPHERE //Bruce, until you can come up with a way to render the sun without it being applied to the fog of the world this is the best solution I can come up with.
+		vec3 sun = min(CalculatePhysicalSunspot(normalize(backPos[1])) * pow(sky, vec3(0.25)), 30);
+		renderedSky += sun;
+	#endif
+
+	if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
 	
-	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky.rgb), 1.0); exit(); return; }
+	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(renderedSky), 1.0); exit(); return; }
 	
 	
 	float smoothness;
@@ -255,15 +345,15 @@ void main() {
 	color0 = mix(color1, color0, mask.transparent - mask.water);
 	
 	
-	ComputeReflectedLight(color0, viewSpacePosition0, normal, smoothness, skyLightmap, mask);
+	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
 	
 	
 	if (depth1 >= 1.0)
 		color0 = mix(sky.rgb, color0, mix(alpha, 0.0, isEyeInWater == 1));
 	
 	
-	color0 = mix(color0, sky.rgb, CalculateFogFactor(viewSpacePosition0, FOG_POWER));
-	color1 = mix(color1, sky.rgb, CalculateFogFactor(viewSpacePosition1, FOG_POWER));
+	color0 = mix(color0, sky.rgb, CalculateFogFactor(frontPos[0], FOG_POWER));
+	color1 = mix(color1, sky.rgb, CalculateFogFactor(frontPos[0], FOG_POWER));
 	
 	if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
 	

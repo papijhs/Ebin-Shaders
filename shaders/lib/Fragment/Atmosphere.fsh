@@ -1,18 +1,18 @@
-#define iSteps 50
+#define iSteps 18
 #define jSteps 1
 
-cfloat     planetRadius = 6371.0e3;
-cfloat atmosphereRadius = 6471.0e3 * 1.2;
+cfloat     planetRadius = 6371.0e2;
+cfloat atmosphereRadius = 6471.0e2 * 1.3;
 
 cfloat atmosphereHeight = atmosphereRadius - planetRadius;
 
 cvec2 radiiSquared = pow(vec2(planetRadius, atmosphereRadius), vec2(2.0));
 
-cvec3  rayleighCoeff = vec3(5.8e-6, 1.35e-5, 3.31e-5) * 0.4;
-cfloat      mieCoeff = 21e-6;
+cvec3  rayleighCoeff = vec3(5.8e-6, 1.35e-5, 3.31e-5);
+cfloat      mieCoeff = 7e-6;
 
 cfloat g = 0.9;
-cfloat rayleighHeight = 8.0e3 * 2.0;
+cfloat rayleighHeight = 8.0e3 * 1.5;
 cfloat      mieHeight = 1.2e3 * 3.0;
 
 cvec2 invScatterHeight = -1.0 / vec2(rayleighHeight, mieHeight); // Optical step constant to save computations inside the loop
@@ -52,8 +52,8 @@ float AtmosphereLength(vec3 worldPosition, vec3 worldDirection) {
 	// Simplified ray-sphere intersection
 	// To be used on samples which are always inside the atmosphere
 	
-	float b  = -dot(worldPosition, worldDirection);
-	float c  = radiiSquared.y - dot(worldPosition, worldPosition);
+	float b = -dot(worldPosition, worldDirection);
+	float c = radiiSquared.y - dot(worldPosition, worldPosition);
 	
 	return b + sqrt(b*b + c);
 }
@@ -79,7 +79,7 @@ vec3 ComputeAtmosphericSky(vec3 playerSpacePosition, vec3 worldPosition, vec3 pS
 	
     // Sample the primary ray
 	for (int i = 0; i < iSteps; i++) {
-		float iHeight = length(iPos) - planetRadius; // Calculate the height of the sample
+		float iHeight = flength(iPos) - planetRadius; // Calculate the height of the sample
 		
 		vec2 opticalStep = exp(iHeight * invScatterHeight) * iStepSize; // Calculate the optical depth of the Rayleigh and Mie scattering for this step
 		
@@ -95,15 +95,12 @@ vec3 ComputeAtmosphericSky(vec3 playerSpacePosition, vec3 worldPosition, vec3 pS
 		for (int j = 0; j < jSteps; j++) {
 			vec3 jPos = iPos + pSun * (jCount + jStepSize * 0.5); // Calculate the secondary ray sample position.
 			
-			float jHeight = length(jPos) - planetRadius; // Calculate the height of the sample
+			float jHeight = flength(jPos) - planetRadius; // Calculate the height of the sample
 			
 			opticalDepth.ba += exp(jHeight * invScatterHeight) * jStepSize; // Accumulate optical depth.
 			
 			jCount += jStepSize; // Increment the secondary ray counter
 		}
-		
-		// Accumulate scattering
-		
 		
 		vec3 attn = exp(rayleighCoeff * dot(opticalDepth.rb, swizzle.bb) + mieCoeff * dot(opticalDepth.ga, swizzle.bb));
 		

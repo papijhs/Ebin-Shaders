@@ -12,13 +12,12 @@ varying vec3 color;
 varying vec2 texcoord;
 
 varying mat3 tbnMatrix;
-varying vec4 verts;
 varying vec2 vertLightmap;
 
 varying float mcID;
 varying float materialIDs;
 
-varying vec4 viewSpacePosition;
+varying vec3 viewSpacePosition;
 varying vec3 worldPosition;
 
 varying vec3 worldNormal;
@@ -41,27 +40,34 @@ vec2 GetDefaultLightmap(vec2 lightmapCoord) { // Gets the lightmap from the defa
 
 #include "/lib/Vertex/Materials.vsh"
 
-vec4 GetWorldSpacePosition() {
-	return gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+vec3 GetWorldSpacePosition() {
+	return mat3(gbufferModelViewInverse) * mat4x3(gl_ModelViewMatrix) * gl_Vertex;
 }
 
-vec4 WorldSpaceToProjectedSpace(vec4 worldSpacePosition) {
+vec4 ProjectViewSpace(vec3 viewSpacePosition) {
 #if !defined gbuffers_hand
-	return gbufferProjection * gbufferModelView * worldSpacePosition;
+	return vec4(projMAD(gbufferProjection, viewSpacePosition), viewSpacePosition.z * gbufferProjection[2].w);
 #else
-	return gl_ProjectionMatrix * gbufferModelView * worldSpacePosition;
+	return vec4(projMAD(gl_ProjectionMatrix, viewSpacePosition), viewSpacePosition.z * gbufferProjection[2].w);
 #endif
 }
 
 #include "/lib/Vertex/Waving.vsh"
 #include "/lib/Vertex/Vertex_Displacements.vsh"
-#include "/lib/Vertex/CalculateTBN.vsh"
 
+mat3 CalculateTBN() {
+	vec3 tangent = normalize(at_tangent.xyz);
+	vec3 normal  = gl_Normal;
+	
+	vec3 binormal = -cross(normal, tangent);
+	
+	return gl_NormalMatrix * mat3(tangent, binormal, normal);
+}
 
 float EncodePlanarTBN(vec3 worldSpaceNormal) { // Encode the TBN matrix into a 3-bit float
 	// Only valid for axis-oriented TBN matrices
 	
-	float tbnIndex = 6.0; // Default is 5.0, which corresponds to an upward facing block, such as ocean
+	float tbnIndex = 6.0; // Default is 6.0, which corresponds to an upward facing block, such as ocean
 	
 	cfloat sqrt2 = sqrt(2.0) * 0.5;
 	
@@ -79,23 +85,23 @@ void main() {
 	texcoord     = gl_MultiTexCoord0.st;
 	mcID         = mc_Entity.x;
 	waterMask    = float(abs(mc_Entity.x - 8.5) < 0.6);
-	vertLightmap = GetDefaultLightmap((gl_TextureMatrix[1] * gl_MultiTexCoord1).st);
+	vertLightmap = GetDefaultLightmap(mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st);
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
 	tbnIndex     = EncodePlanarTBN(gl_Normal);
 	
-	vec4 position = GetWorldSpacePosition();
+	vec3 position = GetWorldSpacePosition();
 	
-	position.xyz += CalculateVertexDisplacements(position.xyz, vertLightmap.g);
+	position += CalculateVertexDisplacements(position, vertLightmap.g);
 	
-	gl_Position   = WorldSpaceToProjectedSpace(position);
+	viewSpacePosition = mat3(gbufferModelView) * position;
+	
+	gl_Position = ProjectViewSpace(viewSpacePosition);
 	
 	
-	CalculateTBN(position.xyz, tbnMatrix);
-	verts = gl_Vertex;
 	worldNormal = gl_Normal;
+	tbnMatrix   = CalculateTBN();
 	
-	viewSpacePosition = gbufferModelView * position;
-	worldPosition     = position.xyz + cameraPosition;
+	worldPosition = position + cameraPosition;
 	
 	
 #if defined gbuffers_water

@@ -20,7 +20,6 @@ uniform sampler2D noisetex;
 uniform sampler2D shadowtex1;
 uniform sampler2DShadow shadow;
 
-uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 shadowProjection;
@@ -45,7 +44,6 @@ varying vec2 texcoord;
 #include "/lib/Debug.glsl"
 #include "/lib/Uniform/Global_Composite_Variables.glsl"
 #include "/lib/Fragment/Masks.fsh"
-#include "/lib/Misc/Calculate_Fogfactor.glsl"
 
 vec3 GetDiffuse(vec2 coord) {
 	return texture2D(colortex1, coord).rgb;
@@ -63,11 +61,10 @@ float ExpToLinearDepth(float depth) {
 	return 2.0 * near * (far + near - depth * (far - near));
 }
 
-vec4 CalculateViewSpacePosition(vec2 coord, float depth) {
-	vec4 position  = gbufferProjectionInverse * vec4(vec3(coord, depth) * 2.0 - 1.0, 1.0);
-	     position /= position.w;
+vec3 CalculateViewSpacePosition(vec3 screenPos) {
+	screenPos = screenPos * 2.0 - 1.0;
 	
-	return position;
+	return projMAD(gbufferProjectionInverse, screenPos) / (screenPos.z * gbufferProjectionInverse[2].w + gbufferProjectionInverse[3].w);
 }
 
 
@@ -81,11 +78,9 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI, out float AO) {
 	depth = ExpToLinearDepth(depth);
 	
 	float totalGIWeight = 0.0;
-	float totalAOWeight = 0.0;
 	
 	cfloat kernal = 2.0;
-	cfloat range = kernal - kernal * 0.5 - 0.5;
-	
+	cfloat range = kernal * 0.5 - 0.5;
 	
 	for(float i = -range; i <= range; i++) {
 		for(float j = -range; j <= range; j++) {
@@ -177,13 +172,13 @@ void main() {
 	
 	
 	vec3 diffuse = GetDiffuse(texcoord);
-	vec4 viewSpacePosition0 = CalculateViewSpacePosition(texcoord, depth0);
-	vec4 viewSpacePosition1 = CalculateViewSpacePosition(texcoord, depth1);
+	vec3 viewSpacePosition0 = CalculateViewSpacePosition(vec3(texcoord, depth0));
+	vec3 viewSpacePosition1 = CalculateViewSpacePosition(vec3(texcoord, depth1));
 	
 	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, AO, normal, smoothness, viewSpacePosition1);
 	     composite *= pow(diffuse * 1.2, vec3(2.8));
-			 
-	if (mask.water > 0.5 || isEyeInWater == 1) composite = waterFog(composite, viewSpacePosition0, viewSpacePosition1);
+	
+	if (mask.water > 0.5 || isEyeInWater == 1) composite = WaterFog(composite, viewSpacePosition0, viewSpacePosition1);
 	
 	gl_FragData[0] = vec4(max0(composite), 1.0);
 	

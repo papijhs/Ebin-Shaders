@@ -1,11 +1,12 @@
 // {
-	float isNight = CalculateShadowView();
+	float isNight;
 	
-	lightVector = (gbufferModelView * shadowViewInverse[2]).xyz;
+	GetDaylightVariables(isNight, worldLightVector);
 	
-	vec3 sunVector = lightVector * (1.0 - isNight * 2.0);
+	lightVector = mat3(gbufferModelView) * worldLightVector;
+	sunVector   = worldLightVector * (1.0 - isNight * 2.0);
 	
-	float LdotUp = dot(sunVector, normalize(upPosition));
+	float LdotUp = worldLightVector.y * (1.0 - isNight * 2.0);
 	
 	cfloat timePower = 4.0;
 	
