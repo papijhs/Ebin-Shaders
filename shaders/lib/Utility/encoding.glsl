@@ -1,36 +1,11 @@
-float Encode4x32F(in vec4 a) {
-	a = clamp01(a);
-	a = round(a * vec4(254.0, 255.0, 255.0, 252.0));
+float Encode4x8F(in vec4 a) {
+	uvec4 v = uvec4(round(clamp01(a) * 255.0)) << uvec4(0, 8, 16, 24);
 	
-	float z_sign = (a.b < 128.0 ? 1.0 : -1.0);
-	a.b = mod(a.b, 128.0);
-	
-	float encode = dot(a.rgb, exp2(vec3(0.0, 8.0, 16.0)));
-	
-	float encodebuffer = 0.5 + encode * exp2(-24.0);
-	encodebuffer = ldexp(encodebuffer * z_sign, int(a.a - 125.0));
-	
-	return encodebuffer;
+	return uintBitsToFloat(v.x + v.y + v.z + v.w);
 }
 
-vec4 Decode4x32F(in float encodebuffer) {
-	int exp;
-	float decode = (frexp(encodebuffer, exp) - 0.5) * exp2(24.0);
-	
-	float z_sign2 = sign(decode);
-	decode *= z_sign2;
-	
-	vec4 b;
-	b.rgb  = mod(vec3(decode), exp2(vec3(8.0, 16.0, 24.0)));
-	b.gb  -= b.rg;
-	b.rgb *= exp2(-vec3(0.0, 8.0, 16.0));
-	b.a    = exp + 125.0;
-	
-	if (z_sign2 < 0.0) b.b += 128.0;
-	
-	b /= vec4(254.0, 255.0, 255.0, 252.0);
-	
-	return b;
+vec4 Decode4x8F(in float encodebuffer) {
+	return vec4(floatBitsToUint(encodebuffer) >> uvec4(0, 8, 16, 24) & 255) / 255.0;
 }
 
 float Encode16(vec2 encodedBuffer) {
