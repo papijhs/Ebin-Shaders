@@ -1,11 +1,11 @@
 float Encode4x8F(in vec4 a) {
 	uvec4 v = uvec4(round(clamp01(a) * 255.0)) << uvec4(0, 8, 16, 24);
 	
-	return uintBitsToFloat(v.x + v.y + v.z + v.w);
+	return uintBitsToFloat(sum4(v));
 }
 
-vec4 Decode4x8F(in float encodebuffer) {
-	return vec4(floatBitsToUint(encodebuffer) >> uvec4(0, 8, 16, 24) & 255) / 255.0;
+vec4 Decode4x8F(in float encodedbuffer) {
+	return vec4(floatBitsToUint(encodedbuffer) >> uvec4(0, 8, 16, 24) & 255) / 255.0;
 }
 
 float Encode16(vec2 encodedBuffer) {
@@ -54,13 +54,12 @@ vec3 DecodeColor(vec3 color) {
 }
 
 vec2 EncodeNormal(vec3 normal) {
-    float p = sqrt(normal.z * 8.0 + 8.0);
-    return vec2(normal.xy / p + 0.5);
+    return vec2(normal.xy * inversesqrt(normal.z * 8.0 + 8.0) + 0.5);
 }
 
 vec3 DecodeNormal(vec2 encodedNormal) {
-    vec2 fenc = encodedNormal * 4.0 - 2.0;
-	float f = lengthSquared(fenc);
+	encodedNormal = encodedNormal * 4.0 - 2.0;
+	float f = lengthSquared(encodedNormal);
 	float g = sqrt(1.0 - f * 0.25);
-	return vec3(fenc * g, 1.0 - f * 0.5);
+	return vec3(encodedNormal * g, 1.0 - f * 0.5);
 }
