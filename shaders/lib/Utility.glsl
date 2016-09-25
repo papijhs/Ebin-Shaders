@@ -11,11 +11,15 @@ cvec4 swizzle = vec4(1.0, 0.0, -1.0, 0.5);
 
 cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 
+#define sum4(v) ((v.x + v.y) + (v.z + v.w))
+
 #define diagonal2(mat) vec3(mat[0].x, mat[1].y)
 #define diagonal3(mat) vec3(mat[0].x, mat[1].y, mat[2].z)
 
-#define transMAD(mat, x) (mat3(mat) * x + mat[3].xyz)
-#define  projMAD(mat, x) (x * diagonal3(mat) + mat[3].xyz)
+#define transMAD(mat, v) (mat3(mat) * v + mat[3].xyz)
+#define  projMAD(mat, v) (v * diagonal3(mat) + mat[3].xyz)
+
+// #define texture2DRaw(samplr) texelFetch(samplr, ivec2(gl_FragCoord.st), 0)
 
 
 #include "/lib/Utility/smoothing.glsl"
@@ -33,8 +37,8 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 #include "/lib/Utility/fastMath.glsl"
 
 
-float pow2(float x) {
-	return dot(x, x);
+float pow2(float f) {
+	return dot(f, f);
 }
 
 vec2 clampScreen(vec2 coord, vec2 pixel) {
