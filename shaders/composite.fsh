@@ -75,16 +75,13 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 	return texture2D(noisetex, coord).xy;
 }
 
-
-#include "lib/Fragment/Ambient_Occlusion.fsh"
-
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight/GetSunlightShading.fsh"
 #include "/lib/Fragment/Sunlight/ComputeHardShadows.fsh"
 
 #ifndef GI_ENABLED
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
-#elif GI_MODE == 1
+#else
 vec3 ComputeGlobalIllumination(vec3 viewSpacePosition, vec3 normal, float skyLightmap, cfloat radius, vec2 noise, Mask mask) {
 	float lightMult = skyLightmap;
 	
@@ -186,17 +183,15 @@ void main() {
 	
 	vec3 normal = DecodeNormal(texture2D(colortex4, texcoord).xy);
 	
-	float AO = CalculateSSAO(viewSpacePosition1, normal);
-	
 	
 	if (depth1 >= 1.0 || isEyeInWater != mask.water)
-		{ gl_FragData[0] = vec4(vec3(0.0), AO); exit(); return; }
+		{ gl_FragData[0] = vec4(vec3(0.0), 1.0); exit(); return; }
 	
 	
 	vec3 GI = ComputeGlobalIllumination(viewSpacePosition1, normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
 	
 	
-	gl_FragData[0] = vec4(pow(GI * 0.2, vec3(1.0 / 2.2)), AO);
+	gl_FragData[0] = vec4(pow(GI * 0.2, vec3(1.0 / 2.2)), 1.0);
 	
 	exit();
 }

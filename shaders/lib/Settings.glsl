@@ -76,10 +76,8 @@ const int noiseTextureResolution = 64;
 
 #if !defined low_profile
 	#define GI_ENABLED
-	#define AO_ENABLED
 #endif
 
-#define AO_MODE 1 // [1 2]
 
 //#define PLAYER_GI_BOUNCE
 #define GI_RADIUS       16   // [4 8 16 24 32]

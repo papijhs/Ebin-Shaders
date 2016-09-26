@@ -70,9 +70,8 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
 
-void BilateralUpsample(vec3 normal, float depth, out vec3 GI, out float AO) {
+void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 	GI = vec3(0.0);
-	AO = 0.0;
 	
 #if defined GI_ENABLED || defined AO_ENABLED
 	depth = ExpToLinearDepth(depth);
@@ -95,18 +94,12 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI, out float AO) {
 			      weight  = max(1.0e-6, weight);
 			
 			GI += pow(texture2DLod(colortex6, texcoord * COMPOSITE0_SCALE + offset * 2.0, 1).rgb, vec3(2.2)) * weight;
-			AO += texture2DLod(colortex6, texcoord * COMPOSITE0_SCALE + offset * 2.0, 1).a * weight;
 			
 			totalWeight += weight;
 		}
 	}
 	
 	GI *= 5.0 / totalWeight;
-	AO /= totalWeight;
-#endif
-
-#ifndef AO_ENABLED
-	AO = 1.0;
 #endif
 
 }
@@ -157,15 +150,14 @@ void main() {
 	
 	
 	vec3  GI;
-	float AO;
-	BilateralUpsample(normal, depth1, GI, AO);
+	BilateralUpsample(normal, depth1, GI);
 	
 	
 	vec3 diffuse = GetDiffuse(texcoord);
 	vec3 viewSpacePosition0 = CalculateViewSpacePosition(vec3(texcoord, depth0));
 	vec3 viewSpacePosition1 = CalculateViewSpacePosition(vec3(texcoord, depth1));
 	
-	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, AO, normal, smoothness, viewSpacePosition1);
+	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, smoothness, viewSpacePosition1);
 	     composite *= pow(diffuse * 1.2, vec3(2.8));
 	
 	if (mask.water > 0.5 || isEyeInWater == 1) composite = WaterFog(composite, viewSpacePosition0, viewSpacePosition1);

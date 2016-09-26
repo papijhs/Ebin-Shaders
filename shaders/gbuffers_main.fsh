@@ -182,7 +182,7 @@ void main() {
 	
 	if (abs(mcID - 8.5) < 0.6) diffuse = vec4(0.215, 0.356, 0.533, 0.75);
 	
-	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), 1.0, normal.xyz, specularity.r, viewSpacePosition);
+	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz, specularity.r, viewSpacePosition);
 	     composite *= pow(diffuse.rgb, vec3(2.2));
 	
 	gl_FragData[0] = vec4(encodedNormal, encode, 1.0);
