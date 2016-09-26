@@ -27,7 +27,7 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	
 	float sunlight = ComputeShadows(position[0], 1.0);
 	
-	vec3 reflectedSky = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true).rgb;
+	vec3 reflectedSky = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true, 1.0).rgb;
 	
 	vec3 offscreen = reflectedSky * skyLightmap;
 	
@@ -68,12 +68,10 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	F0 = F0Calc(F0, mask.metallic);
 	
 	vec3 viewVector = -normalize(position[0]);
+	vec3 worldVector = transMAD(gbufferModelViewInverse, -viewVector);
 	
 	float sunlight = ComputeShadows(position[0], 1.0);
 	skyLightmap = clamp01(pow(skyLightmap, 4));
-	
-	vec3 specular = specularBRDF(lightVector, normal, F0, viewVector, clamp(alpha, 0.04, 1.0)) * sunlight * sunlightColor * 6.0;
-	reflection += specular * PBR_RAYS;
 	
 	vec3 upVector = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
 	vec3 tanX = normalize(cross(upVector, normal));
@@ -90,7 +88,8 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 		vec3 refWorldRay  = transMAD(gbufferModelViewInverse, refViewRay);
 
 		float raySpecular = specularBRDF(rayDirection, microFacetNormal, F0, viewVector, sqrt(roughness));
-		vec3 reflectedAmbient = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true).rgb * skyLightmap * raySpecular * 0.5;
+		vec3 reflectedAmbient = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true, sunlight).rgb * skyLightmap * raySpecular * 0.5;
+
 		reflectedAmbient += mask.metallic * (1.0 - skyLightmap) * 0.15;
 		
 		if (!ComputeRaytracedIntersection(position[0], rayDirection, firstStepSize, 1.25, 25, 1, reflectedCoord, reflectedViewSpacePosition)) {

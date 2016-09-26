@@ -78,7 +78,7 @@ vec3 CalculateAtmosphericSky(vec3 worldSpacePosition) {
 }
 
 
-vec3 CalculateSky(vec3 viewSpacePosition, vec3 worldSpacePosition, vec3 rayPosition, float alpha, cbool reflection) {
+vec3 CalculateSky(vec3 viewSpacePosition, vec3 worldSpacePosition, vec3 rayPosition, float alpha, cbool reflection, float sunlight) {
 	float visibility = CalculateFogFactor(viewSpacePosition, FOG_POWER);
 	if (  visibility < 0.001 && !reflection) return vec3(0.0);
 	
@@ -91,7 +91,7 @@ vec3 CalculateSky(vec3 viewSpacePosition, vec3 worldSpacePosition, vec3 rayPosit
 	
 #ifdef PHYSICAL_ATMOSPHERE
 	vec3 gradient = CalculateAtmosphericSky(worldSpacePosition);
-	vec3 sunspot  = vec3(0.0);
+	vec3 sunspot  = min(CalculatePhysicalSunspot(worldSpaceVector) * pow(gradient, vec3(0.25)), 30) * (reflection ? 30.0 * sunlight : pow(visibility, 25) * alpha);
 #else
 	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow);
 	vec3 sunspot  = CalculateSunspot(worldSpaceVector) * (reflection ? 1.0 : pow(visibility, 25) * alpha);

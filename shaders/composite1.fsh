@@ -106,6 +106,12 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 
 #include "lib/Fragment/WaterDepthFog.fsh"
 
+#include "lib/Misc/EquirectangularProjection.glsl"
+
+vec3 projectSky() {
+	return vec3(0.0);
+}
+
 void main() {
 	float depth0 = GetDepth(texcoord);
 	
