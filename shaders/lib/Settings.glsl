@@ -82,7 +82,6 @@ const int noiseTextureResolution = 64;
 #define AO_MODE 1 // [1 2]
 
 //#define PLAYER_GI_BOUNCE
-#define GI_MODE         1    // [1]
 #define GI_RADIUS       16   // [4 8 16 24 32]
 #define GI_SAMPLE_COUNT 80   // [20 40 80 128 160 256]
 #define GI_BOOST
