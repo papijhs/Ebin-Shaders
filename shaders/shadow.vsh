@@ -30,7 +30,7 @@ varying vec3 vertNormal;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
-#include "/lib/Uniform/ShadowViewMatrix.vsh"
+#include "/lib/Uniform/Shadow_View_Matrix.vsh"
 
 vec3 GetWorldSpacePositionShadow() {
 	return transMAD(shadowModelViewInverse, projMAD(shadowProjectionInverse, ftransform().xyz));

@@ -19,7 +19,7 @@ varying vec2 texcoord;
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Uniform/Global_Composite_Variables.glsl"
-#include "/lib/Uniform/ShadowViewMatrix.vsh"
+#include "/lib/Uniform/Shadow_View_Matrix.vsh"
 
 void main() {
 	texcoord    = gl_MultiTexCoord0.st;
