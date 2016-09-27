@@ -1,11 +1,11 @@
-struct Shading {      // Contains scalar light levels without any color
+struct Shading { // Scalar light levels
 	float sunlight;
 	float skylight;
 	float torchlight;
 	float ambient;
 };
 
-struct Lightmap {    // Contains vector light levels with color
+struct Lightmap { // Vector light levels with color
 	vec3 sunlight;
 	vec3 skylight;
 	vec3 torchlight;
@@ -17,18 +17,11 @@ struct Lightmap {    // Contains vector light levels with color
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight/GetSunlightShading.fsh"
 
-#if SHADOW_TYPE == 3 && defined composite1
-	#include "/lib/Fragment/Sunlight/ComputeVariablySoftShadows.fsh"
-#elif SHADOW_TYPE == 2 && defined composite1
+#if SHADOW_TYPE == 2 && defined composite1
 	#include "/lib/Fragment/Sunlight/ComputeUniformlySoftShadows.fsh"
 #else
 	#include "/lib/Fragment/Sunlight/ComputeHardShadows.fsh"
 #endif
-
-#if defined composite1
-// Underwater light caustics
-#endif
-
 
 
 vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, vec3 viewSpacePosition) {
