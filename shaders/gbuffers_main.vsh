@@ -30,7 +30,7 @@ varying float waterMask;
 
 #if defined gbuffers_water
 #include "/lib/Uniform/Global_Composite_Variables.glsl"
-#include "/lib/Uniform/ShadowViewMatrix.vsh"
+#include "/lib/Uniform/Shadow_View_Matrix.vsh"
 #endif
 
 
