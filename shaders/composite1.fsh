@@ -4,7 +4,7 @@
 #define ShaderStage 1
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:145 */
+/* DRAWBUFFERS:1456 */
 
 const bool colortex6MipmapEnabled = true;
 
@@ -20,6 +20,7 @@ uniform sampler2D noisetex;
 uniform sampler2D shadowtex1;
 uniform sampler2DShadow shadow;
 
+uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 shadowProjection;
@@ -44,6 +45,7 @@ varying vec2 texcoord;
 #include "/lib/Debug.glsl"
 #include "/lib/Uniform/Global_Composite_Variables.glsl"
 #include "/lib/Fragment/Masks.fsh"
+#include "/lib/Misc/Calculate_Fogfactor.glsl"
 
 vec3 GetDiffuse(vec2 coord) {
 	return texture2D(colortex1, coord).rgb;
@@ -105,16 +107,24 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 }
 
 #include "lib/Fragment/WaterDepthFog.fsh"
-
+#include "/lib/Fragment/Sky.fsh"
 #include "lib/Misc/EquirectangularProjection.glsl"
 
-vec3 projectSky() {
-	return vec3(0.0);
+vec3 projectSky(vec2 coord) {
+	vec3 position = CalculateEquirectangularPosition(coord).xzy;
+	vec3 sky = CalculateSky(transMAD(gbufferModelView, position), position, vec3(0.0), 1.0, true, 1.0);
+
+	return EncodeColor(sky);
 }
 
 void main() {
+
+	#ifdef USE_SKYBOX
+	vec3 projSky = projectSky(texcoord);
+	gl_FragData[3] = vec4(projSky, 1.0);
+	#endif
+
 	float depth0 = GetDepth(texcoord);
-	
 	if (depth0 >= 1.0) { discard; }
 	
 	

@@ -19,7 +19,7 @@ const int colortex4Format = RGB16;
 const int colortex5Format = R16;
 
 ** composite0 Buffer **
-const int colortex6Format = RGBA8;
+const int colortex6Format = RGBA16;
 
 
 const float eyeBrightnessHalflife = 1.5;
@@ -124,6 +124,7 @@ const int noiseTextureResolution = 64;
 //#define ENABLE_CLOUDS
 //#define CUSTOM_TIME_CYCLE
 //#define FREEZE_TIME
+//#define USE_SKYBOX
 
 
 #ifdef DEFAULT_TEXTURE_PACK

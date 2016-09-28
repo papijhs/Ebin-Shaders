@@ -51,8 +51,7 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 
 #else
 
-// void ComputeReflectedLight(inout vec3 color, vec4 viewSpacePosition, vec3 normal, float smoothness, float skyLightmap, Mask mask) {
-   void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap, Mask mask) {
+void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap, Mask mask) {
 	if (isEyeInWater == 1) return;
 	
 	float firstStepSize = mix(1.0, 30.0, pow2(length(position[1].xz) / 144.0));
@@ -68,7 +67,6 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	F0 = F0Calc(F0, mask.metallic);
 	
 	vec3 viewVector = -normalize(position[0]);
-	vec3 worldVector = transMAD(gbufferModelViewInverse, -viewVector);
 	
 	float sunlight = ComputeShadows(position[0], 1.0);
 	skyLightmap = clamp01(pow(skyLightmap, 4));
@@ -80,16 +78,25 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	for (uint i = 0u; i < PBR_RAYS; i++) {
 		vec2 epsilon = Hammersley(i + 1, PBR_RAYS + 1);
 		vec3 BRDFSkew = skew(epsilon, alpha);
-
 		vec3 microFacetNormal = BRDFSkew.x * tanX + BRDFSkew.y * tanY + BRDFSkew.z * normal;
+
 		vec3 reflectDir = normalize(microFacetNormal); //Reproject normal in spherical coords
 		vec3 rayDirection = reflect(-viewVector, reflectDir);
+		vec3 worldRayDir = mat3(gbufferModelViewInverse) * rayDirection;
 		vec3 refViewRay   = reflect(position[0], microFacetNormal);
 		vec3 refWorldRay  = transMAD(gbufferModelViewInverse, refViewRay);
 
 		float raySpecular = specularBRDF(rayDirection, microFacetNormal, F0, viewVector, sqrt(roughness));
-		vec3 reflectedAmbient = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true, sunlight).rgb * skyLightmap * raySpecular * 0.5;
 
+		#ifdef USE_SKYBOX
+			vec3 reflectedAmbient = ProjectEquirectangularPositions(colortex6, normalize(worldRayDir.xzy), 0.0);
+			reflectedAmbient = DecodeColor(reflectedAmbient);
+		#else
+			vec3 reflectedAmbient = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true, sunlight).rgb;
+		#endif
+
+		reflectedAmbient *= skyLightmap * raySpecular;
+		show(reflectedAmbient);
 		reflectedAmbient += mask.metallic * (1.0 - skyLightmap) * 0.15;
 		
 		if (!ComputeRaytracedIntersection(position[0], rayDirection, firstStepSize, 1.25, 25, 1, reflectedCoord, reflectedViewSpacePosition)) {

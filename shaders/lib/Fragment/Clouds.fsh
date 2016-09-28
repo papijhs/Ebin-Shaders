@@ -13,8 +13,8 @@ vec3 Compute2DCloudPlane(vec3 worldSpacePosition, vec3 worldSpaceVector, vec3 ra
 	
 	
 	vec3 coord = worldSpaceVector / worldSpaceVector.y * (cloudHeight - camPos.y) + camPos;
-	
-	vec3 color = vec3(pow(cosmooth(cosmooth(GetWaves(coord * 0.01))), 6.0)) * 20.0 * abs(worldSpaceVector.y);
+	//Didnt want to include :P
+	vec3 color = vec3(pow(cosmooth(cosmooth(1.0)), 6.0)) * 20.0 * abs(worldSpaceVector.y);
 	
 	return vec3(color);
 }

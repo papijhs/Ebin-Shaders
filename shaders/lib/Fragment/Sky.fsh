@@ -60,8 +60,9 @@ vec3 CalculateAtmosphereScattering(vec3 position) {
 
 #include "/lib/Fragment/Atmosphere.fsh"
 
-vec3 CalculateAtmosphericSky(vec3 worldSpacePosition) {
-	vec3 worldPosition = vec3(0.0, planetRadius + 1.061e3 + max0(cameraPosition.y - HORIZON_HEIGHT) * 400.0, 0.0);
+vec3 CalculateAtmosphericSky(vec3 worldSpacePosition, cbool reflection) {
+	float horizon = (reflection ? 0.0 : max0(cameraPosition.y - HORIZON_HEIGHT));
+	vec3 worldPosition = vec3(0.0, planetRadius + 1.061e3 + horizon * 400.0, 0.0);
 	
 	/*
 #ifdef CUSTOM_HORIZON_HEIGHT
@@ -90,7 +91,7 @@ vec3 CalculateSky(vec3 viewSpacePosition, vec3 worldSpacePosition, vec3 rayPosit
 	vec3 clouds = Compute2DCloudPlane(worldSpacePosition, worldSpaceVector, rayPosition, sunglow);
 	
 #ifdef PHYSICAL_ATMOSPHERE
-	vec3 gradient = CalculateAtmosphericSky(worldSpacePosition);
+	vec3 gradient = CalculateAtmosphericSky(worldSpacePosition, reflection);
 	vec3 sunspot  = min(CalculatePhysicalSunspot(worldSpaceVector) * pow(gradient, vec3(0.25)), 30) * (reflection ? 30.0 * sunlight : pow(visibility, 25) * alpha);
 #else
 	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow);

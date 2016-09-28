@@ -7,12 +7,14 @@
 /* DRAWBUFFERS:3 */
 
 const bool colortex1MipmapEnabled = true;
+const bool colortex6MipmapEnabled = true;
 
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
+uniform sampler2D colortex6;
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
@@ -128,6 +130,7 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 	return false;
 }
 
+#include "lib/Misc/EquirectangularProjection.glsl"
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight/ComputeUniformlySoftShadows.fsh"
 #include "/lib/Fragment/Reflectance_Models.fsh"
@@ -211,11 +214,10 @@ vec3 GetWaterParallaxCoord(vec3 position, mat3 tbnMatrix) {
 
 void main() {
 	float depth0 = GetDepth(texcoord);
-	
+
 	mat2x3 frontPos; // Position matrices: [0] = View Space, [1] = World Space
 	frontPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth0));
 	frontPos[1] = transMAD(gbufferModelViewInverse, frontPos[0]);
-	
 	
 	vec2 encode = Decode16(texture2D(colortex5, texcoord).r);
 	float torchLightmap = encode.r;
