@@ -26,7 +26,7 @@ varying float waterMask;
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
-#include "/lib/Uniform/Projection_Matrix.vsh"
+#include "/lib/Uniform/Projection_Matrices.vsh"
 
 #if defined gbuffers_water
 #include "/lib/Uniform/Shading_Variables.glsl"
@@ -82,7 +82,7 @@ float EncodePlanarTBN(vec3 worldSpaceNormal) { // Encode the TBN matrix into a 3
 
 void main() {
 #ifdef FOV_OVERRIDE
-	SetupProjectionMatrix();
+	SetupProjectionMatrices();
 #endif
 	
 	color        = gl_Color.rgb;

@@ -22,7 +22,6 @@ uniform sampler2DShadow shadow;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferProjectionInverse;
 uniform mat4 shadowProjection;
 
 uniform vec3 cameraPosition;
@@ -44,7 +43,7 @@ varying vec2 pixelSize;
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
-#include "/lib/Uniform/Projection_Matrix.fsh"
+#include "/lib/Uniform/Projection_Matrices.fsh"
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Masks.fsh"
@@ -70,7 +69,7 @@ float GetTransparentDepth(vec2 coord) {
 vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	screenPos = screenPos * 2.0 - 1.0;
 	
-	return projMAD(gbufferProjectionInverse, screenPos) / (screenPos.z * gbufferProjectionInverse[2].w + gbufferProjectionInverse[3].w);
+	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
 }
 
 vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {

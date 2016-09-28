@@ -9,9 +9,7 @@ uniform sampler2D colortex3;
 uniform sampler2D gdepthtex;
 
 uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferPreviousModelView;
-uniform mat4 gbufferPreviousProjection;
 
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
@@ -22,6 +20,7 @@ varying vec2 pixelSize;
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
+#include "/lib/Uniform/Projection_Matrices.fsh"
 #include "/lib/Fragment/Masks.fsh"
 
 vec3 GetColor(vec2 coord) {
@@ -39,10 +38,10 @@ void MotionBlur(inout vec3 color, float depth) {
 	
 	vec4 position = vec4(vec3(texcoord, depth) * 2.0 - 1.0, 1.0); // Signed [-1.0 to 1.0] screen space position
 	
-	vec4 previousPosition      = gbufferModelViewInverse * gbufferProjectionInverse * position; // Un-project and un-rotate
+	vec4 previousPosition      = gbufferModelViewInverse * projInverseMatrix * position; // Un-project and un-rotate
 	     previousPosition     /= previousPosition.w; // Linearize
 	     previousPosition.xyz += cameraPosition - previousCameraPosition; // Add the world-space difference from the previous frame
-	     previousPosition      = gbufferPreviousProjection * gbufferPreviousModelView * previousPosition; // Re-rotate and re-project using the previous frame matrices
+	     previousPosition      = projMatrix * gbufferPreviousModelView * previousPosition; // Re-rotate and re-project using the previous frame matrices
 	     previousPosition.st  /= previousPosition.w; // Un-linearize, swizzle to avoid correcting irrelivant components
 	
 	cfloat intensity = MOTION_BLUR_INTENSITY * 0.5;

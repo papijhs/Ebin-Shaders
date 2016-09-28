@@ -18,6 +18,7 @@ varying vec2 texcoord;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
+#include "/lib/Uniform/Projection_Matrices.vsh"
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
 
@@ -25,6 +26,10 @@ void main() {
 	texcoord    = gl_MultiTexCoord0.st;
 	gl_Position = ftransform();
 	
+	
+#ifdef FOV_OVERRIDE
+	SetupProjectionMatrices();
+#endif
 	
 	#include "/lib/Vertex/Shading_Setup.vsh"
 }
