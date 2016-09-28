@@ -3,7 +3,6 @@ attribute vec4 at_tangent;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferProjection;
 
 uniform vec3  cameraPosition;
 uniform float frameTimeCounter;
@@ -27,6 +26,7 @@ varying float waterMask;
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
+#include "/lib/Uniform/Projection_Matrix.vsh"
 
 #if defined gbuffers_water
 #include "/lib/Uniform/Shading_Variables.glsl"
@@ -46,9 +46,9 @@ vec3 GetWorldSpacePosition() {
 
 vec4 ProjectViewSpace(vec3 viewSpacePosition) {
 #if !defined gbuffers_hand
-	return vec4(projMAD(gbufferProjection, viewSpacePosition), viewSpacePosition.z * gbufferProjection[2].w);
+	return vec4(projMAD(projMatrix, viewSpacePosition), viewSpacePosition.z * projMatrix[2].w);
 #else
-	return vec4(projMAD(gl_ProjectionMatrix, viewSpacePosition), viewSpacePosition.z * gbufferProjection[2].w);
+	return vec4(projMAD(gl_ProjectionMatrix, viewSpacePosition), viewSpacePosition.z * gl_ProjectionMatrix[2].w);
 #endif
 }
 
@@ -81,6 +81,10 @@ float EncodePlanarTBN(vec3 worldSpaceNormal) { // Encode the TBN matrix into a 3
 }
 
 void main() {
+#ifdef FOV_OVERRIDE
+	SetupProjectionMatrix();
+#endif
+	
 	color        = gl_Color.rgb;
 	texcoord     = gl_MultiTexCoord0.st;
 	mcID         = mc_Entity.x;
