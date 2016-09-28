@@ -22,7 +22,7 @@ varying vec2 pixelSize;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
-#include "/lib/Uniform/Projection_Matrix.vsh"
+#include "/lib/Uniform/Projection_Matrices.vsh"
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
 
@@ -34,7 +34,7 @@ void main() {
 	
 	
 #ifdef FOV_OVERRIDE
-	SetupProjectionMatrix();
+	SetupProjectionMatrices();
 #endif
 	
 	#include "/lib/Vertex/Shading_Setup.vsh"
