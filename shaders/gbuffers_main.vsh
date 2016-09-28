@@ -29,7 +29,7 @@ varying float waterMask;
 #include "/lib/Debug.glsl"
 
 #if defined gbuffers_water
-#include "/lib/Uniform/Global_Composite_Variables.glsl"
+#include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
 #endif
 
@@ -105,7 +105,7 @@ void main() {
 	
 	
 #if defined gbuffers_water
-	#include "/lib/Uniform/Composite_Calculations.vsh"
+	#include "/lib/Vertex/Shading_Setup.vsh"
 #endif
 	
 	
