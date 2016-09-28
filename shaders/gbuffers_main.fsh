@@ -34,7 +34,7 @@ varying float waterMask;
 #include "/lib/Fragment/Masks.fsh"
 
 #if defined gbuffers_water
-#include "/lib/Uniform/Global_Composite_Variables.glsl"
+#include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
 #endif

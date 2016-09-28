@@ -22,7 +22,7 @@ varying vec2 pixelSize;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
-#include "/lib/Uniform/Global_Composite_Variables.glsl"
+#include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
 
 void main() {
@@ -32,5 +32,5 @@ void main() {
 	pixelSize = 1.0 / vec2(viewWidth, viewHeight);
 	
 	
-	#include "/lib/Uniform/Composite_Calculations.vsh"
+	#include "/lib/Vertex/Shading_Setup.vsh"
 }
