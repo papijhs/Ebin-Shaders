@@ -22,7 +22,6 @@ uniform sampler2DShadow shadow;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 shadowProjection;
 
@@ -45,6 +44,7 @@ varying vec2 pixelSize;
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
+#include "/lib/Uniform/Projection_Matrix.fsh"
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Masks.fsh"
@@ -74,7 +74,7 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 }
 
 vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
-	return projMAD(gbufferProjection, viewSpacePosition) / -viewSpacePosition.z * 0.5 + 0.5;
+	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z * 0.5 + 0.5;
 }
 
 
@@ -139,9 +139,9 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 #include "/lib/Fragment/Reflection_Functions.fsh"
 
 vec2 GetRefractedCoord(vec2 coord, vec3 viewSpacePosition, vec3 tangentNormal) {
-	vec4 screenSpacePosition = gbufferProjection * vec4(viewSpacePosition, 1.0);
+	vec4 screenSpacePosition = projMatrix * vec4(viewSpacePosition, 1.0);
 	
-	float fov = atan(1.0 / gbufferProjection[1].y) * 2.0 / RAD;
+	float fov = atan(1.0 / projMatrix[1].y) * 2.0 / RAD;
 	
 	cfloat refractAmount = 0.5;
 	
