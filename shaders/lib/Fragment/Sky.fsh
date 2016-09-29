@@ -92,7 +92,7 @@ vec3 CalculateSky(vec3 viewSpacePosition, vec3 worldSpacePosition, vec3 rayPosit
 	
 #ifdef PHYSICAL_ATMOSPHERE
 	vec3 gradient = CalculateAtmosphericSky(worldSpacePosition, reflection);
-	vec3 sunspot  = min(CalculatePhysicalSunspot(worldSpaceVector) * pow(gradient, vec3(0.25)), 30) * (reflection ? 30.0 * sunlight : pow(visibility, 25) * alpha);
+	vec3 sunspot  = min(CalculatePhysicalSunspot(worldSpaceVector) * pow(gradient, vec3(0.25)), 30) * (reflection ? 10.0 * sunlight : pow(visibility, 25) * alpha);
 #else
 	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow);
 	vec3 sunspot  = CalculateSunspot(worldSpaceVector) * (reflection ? 1.0 : pow(visibility, 25) * alpha);

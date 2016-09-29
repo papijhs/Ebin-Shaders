@@ -112,7 +112,7 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 #include "lib/Misc/EquirectangularProjection.glsl"
 
 vec3 projectSky(vec2 coord) {
-	vec3 position = CalculateEquirectangularPosition(coord).xzy;
+	vec3 position = rEnv(CalculateEquirectangularPosition(coord));
 	vec3 sky = CalculateSky(transMAD(gbufferModelView, position), position, vec3(0.0), 1.0, true, 1.0);
 
 	return EncodeColor(sky);

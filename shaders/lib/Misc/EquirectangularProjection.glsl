@@ -7,7 +7,7 @@ vec3 CalculateEquirectangularPosition(vec2 coord) {
 }
 
 vec3 rEnv(vec3 direction) {
-    return vec3(-direction.x, direction.z, -direction.y);
+    return vec3(direction.x, direction.z, direction.y);
 }
 
 vec3 ProjectEquirectangularPositions(sampler2D equiRectangular, vec3 direction, float lod) {
