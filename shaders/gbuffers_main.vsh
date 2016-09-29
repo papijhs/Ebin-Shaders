@@ -56,12 +56,12 @@ vec4 ProjectViewSpace(vec3 viewSpacePosition) {
 #include "/lib/Vertex/Vertex_Displacements.vsh"
 
 mat3 CalculateTBN() {
-	vec3 tangent = normalize(at_tangent.xyz);
-	vec3 normal  = gl_Normal;
+	vec3 tangent = normalize(gl_NormalMatrix * at_tangent.xyz);
+	vec3 normal  = normalize(gl_NormalMatrix * gl_Normal);
 	
 	vec3 binormal = -cross(normal, tangent);
 	
-	return gl_NormalMatrix * mat3(tangent, binormal, normal);
+	return mat3(tangent, binormal, normal);
 }
 
 float EncodePlanarTBN(vec3 worldSpaceNormal) { // Encode the TBN matrix into a 3-bit float
@@ -102,7 +102,7 @@ void main() {
 	gl_Position = ProjectViewSpace(viewSpacePosition);
 	
 	
-	worldNormal = gl_Normal;
+	worldNormal = mat3(gbufferModelViewInverse) * gl_NormalMatrix * normalize(gl_Normal);
 	tbnMatrix   = CalculateTBN();
 	
 	worldPosition = position + cameraPosition;
