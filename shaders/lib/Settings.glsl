@@ -68,7 +68,6 @@ const int noiseTextureResolution = 64;
 
 #define COMPOSITE0_SCALE 0.40 // [0.25 0.33 0.40 0.50 0.75 1.00]
 //#define COMPOSITE0_NOISE
-#define COMPOSITE0_NOISE_SIZE 3 // [3 4]
 
 #define FOG_ENABLED
 #define FOG_POWER 3.0                      // [1.0 2.0 3.0 4.0 6.0 8.0]
@@ -106,17 +105,6 @@ const int noiseTextureResolution = 64;
 #define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]
 
 
-//#define FOV_OVERRIDE
-
-#define FOV_DEFAULT_TENS  110 // [100 110 120 130 140 150]
-#define FOV_DEFAULT_FIVES 0   // [0 5]
-#define FOV_DEFAULT_ONES  0   // [0 1 2 3 4]
-
-#define FOV_TRUE_TENS  90 // [70 80 90 100 110]
-#define FOV_TRUE_FIVES 0  // [0 5]
-#define FOV_TRUE_ONES  0  // [0 1 2 3 4]
-
-
 #define DEBUG_VIEW 1 // [-1 0 1 2 3 7]
 
 
@@ -125,6 +113,7 @@ const int noiseTextureResolution = 64;
 //#define CUSTOM_TIME_CYCLE
 //#define FREEZE_TIME
 //#define USE_SKYBOX
+//define WATER_SHADOW
 
 
 #ifdef DEFAULT_TEXTURE_PACK
@@ -147,3 +136,10 @@ const int noiseTextureResolution = 64;
 		#define PBR
 	#endif
 #endif
+
+//#define FOV_OVERRIDE
+
+#define FOV_DEFAULT_TENS  110 // [90 100 110 120 130 140 150]
+
+#define FOV_TRUE_TENS  90 // [70 80 90 100 110]
+#define FOV_TRUE_FIVES 0  // [0 5]
