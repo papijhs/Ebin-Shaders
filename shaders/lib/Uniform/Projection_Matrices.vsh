@@ -14,7 +14,7 @@ uniform mat4 gbufferProjectionInverse;
 		cfloat gameSetFOV = FOV_DEFAULT_TENS + FOV_DEFAULT_FIVES + FOV_DEFAULT_ONES;
 		cfloat targetSetFOV = FOV_TRUE_TENS + FOV_TRUE_FIVES + FOV_TRUE_ONES;
 		
-		float targetTrueFOV = targetSetFOV + gameTrueFOV - gameSetFOV;
+		float targetTrueFOV = targetSetFOV + (gameTrueFOV - gameSetFOV) * targetSetFOV / gameSetFOV;
 		
 		projection      = gbufferProjection;
 		projection[1].y = 1.0 / tan(radians(targetTrueFOV) * 0.5);
