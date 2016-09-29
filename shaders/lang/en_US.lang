@@ -17,6 +17,17 @@ option.PBR_TEXTURE_PACK=PBR Texture Pack
 option.PBR_TEXTURE_PACK.comment=Enable this if you're using a PBR texture-pack.
 
 
+screen.FOV=FOV Override
+
+option.FOV_OVERRIDE=FOV Override
+option.FOV_OVERRIDE.comment=Manually override the FOV from the in-game setting. Set the in-game FOV higher than your actual FOV to reduce chunk artifacts with large-scale vertex deformations
+
+option.FOV_DEFAULT_TENS=In-game FOV
+option.FOV_TRUE_TENS=Actual FOV
+option.FOV_TRUE_FIVES=Actual FOV
+
+
+
 screen.Brightness=Brightness and Saturation
 
 option.EXPOSURE=Exposure
