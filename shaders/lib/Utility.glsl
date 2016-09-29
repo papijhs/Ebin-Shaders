@@ -13,7 +13,7 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 
 #define sum4(v) ((v.x + v.y) + (v.z + v.w))
 
-#define diagonal2(mat) vec3(mat[0].x, mat[1].y)
+#define diagonal2(mat) vec2(mat[0].x, mat[1].y)
 #define diagonal3(mat) vec3(mat[0].x, mat[1].y, mat[2].z)
 
 #define transMAD(mat, v) (mat3(mat) * v + mat[3].xyz)
