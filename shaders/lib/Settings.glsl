@@ -46,32 +46,9 @@ const int noiseTextureResolution = 64;
 #define SKY_BRIGHTNESS      0.8  // [0.2 0.4 0.6 0.8 1.0 2.0 4.0 8.0]
 
 
-#define BLOOM_ENABLED
-#define BLOOM_AMOUNT        0.10 // [0.05 0.10 0.25 0.50 1.00]
-#define BLOOM_CURVE         1.50 // [1.00 1.25 1.50 1.75 2.00]
-
-//#define MOTION_BLUR
-#define VARIABLE_MOTION_BLUR_SAMPLES
-#define MAX_MOTION_BLUR_SAMPLE_COUNT            50    // [10 25 50 100]
-#define VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT 1.000 // [0.125 0.250 0.500 1.000]
-#define CONSTANT_MOTION_BLUR_SAMPLE_COUNT       2     // [2 3 4 5 10]
-#define MOTION_BLUR_INTENSITY                   1.0   // [0.5 1.0 2.0]
-#define MAX_MOTION_BLUR_AMOUNT                  1.0   // [0.5 1.0 2.0]
-
-#define WAVING_GRASS
-#define WAVING_LEAVES
-#define WAVING_WATER
-
 #define SHADOW_MAP_BIAS 0.80     // [0.00 0.60 0.70 0.80 0.85 0.90]
 #define SHADOW_TYPE 2 // [1 2 3]
 #define PLAYER_SHADOW
-
-#define COMPOSITE0_SCALE 0.40 // [0.25 0.33 0.40 0.50 0.75 1.00]
-//#define COMPOSITE0_NOISE
-
-#define FOG_ENABLED
-#define FOG_POWER 3.0                      // [1.0 2.0 3.0 4.0 6.0 8.0]
-#define ATMOSPHERIC_SCATTERING_AMOUNT 1.00 // [0.00 0.25 0.50 0.75 1.00 2.00 4.00]
 
 #if !defined low_profile
 	#define GI_ENABLED
@@ -85,7 +62,30 @@ const int noiseTextureResolution = 64;
 #define GI_TRANSLUCENCE 0.2  // [0.0 0.2 0.4 0.6 0.8 1.0]
 #define GI_BRIGHTNESS   1.00 // [0.25 0.50 0.75 1.00 2.00 4.00]
 
-//#define WATER_PARALLAX
+#define BLOOM_ENABLED
+#define BLOOM_AMOUNT        0.10 // [0.05 0.10 0.25 0.50 1.00]
+#define BLOOM_CURVE         1.50 // [1.00 1.25 1.50 1.75 2.00]
+
+//#define MOTION_BLUR
+#define VARIABLE_MOTION_BLUR_SAMPLES
+#define MAX_MOTION_BLUR_SAMPLE_COUNT            50    // [10 25 50 100]
+#define VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT 1.000 // [0.125 0.250 0.500 1.000]
+#define CONSTANT_MOTION_BLUR_SAMPLE_COUNT       2     // [2 3 4 5 10]
+#define MOTION_BLUR_INTENSITY                   1.0   // [0.5 1.0 2.0]
+#define MAX_MOTION_BLUR_AMOUNT                  1.0   // [0.5 1.0 2.0]
+
+#define TERRAIN_PARALLAX
+
+#define WAVING_GRASS
+#define WAVING_LEAVES
+#define WAVING_WATER
+
+#define COMPOSITE0_SCALE 0.40 // [0.25 0.33 0.40 0.50 0.75 1.00]
+//#define COMPOSITE0_NOISE
+
+#define FOG_ENABLED
+#define FOG_POWER 3.0                      // [1.0 2.0 3.0 4.0 6.0 8.0]
+#define ATMOSPHERIC_SCATTERING_AMOUNT 1.00 // [0.00 0.25 0.50 0.75 1.00 2.00 4.00]
 
 #define REFLECTION_EDGE_FALLOFF
 

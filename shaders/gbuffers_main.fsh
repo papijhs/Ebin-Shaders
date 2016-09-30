@@ -5,26 +5,26 @@ uniform sampler2D normals;
 uniform sampler2D specular;
 uniform sampler2D noisetex;
 
+uniform ivec2 atlasSize;
+
 uniform float frameTimeCounter;
 uniform float far;
-uniform float wetness;
-uniform ivec2 atlasSize;
 
 varying vec3 color;
 varying vec2 texcoord;
 
 varying mat3 tbnMatrix;
+
+varying vec3 viewSpacePosition;
+varying vec3 worldPosition;
+varying vec3 worldNormal;
+
 varying vec2 vertLightmap;
 
 varying float mcID;
 varying float materialIDs;
 
-varying vec3 viewSpacePosition;
-varying vec3 worldPosition;
-
-varying vec3 worldNormal;
 varying float tbnIndex;
-varying float waterMask;
 
 #include "/lib/Misc/Menu_Initializer.glsl"
 #include "/lib/Settings.glsl"
@@ -78,17 +78,56 @@ vec2 GetSpecularity(vec2 coord) {
 vec2 EncodeNormalData(vec3 normalTexture, float tbnIndex) {
 	vec2 encode;
 	
-	encode.r = (tbnIndex + 8.0 * waterMask) / 16.0;
+	encode.r = (tbnIndex + 8.0 * float(abs(mcID - 8.5) < 0.6)) / 16.0;
 	encode.g = Encode16(normalTexture.xy);
 	
 	return encode;
+}
+
+vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
+#if !defined TERRAIN_PARALLAX || !defined gbuffers_terrain
+	return coord;
+#endif
+	
+	if (length(viewSpacePosition) >= 12.0) return coord;
+	
+	
+	vec3 tangentRay = normalize(viewSpacePosition * tbnMatrix);
+	
+	cvec3 stepSize = vec3(0.001, 0.001, 0.1);
+	
+	float tileScale = atlasSize.x / TEXTURE_PACK_RESOLUTION;
+	
+	vec4 tileCoord    = coord.stst * tileScale;
+	     tileCoord.xy = fract(tileCoord.xy);
+	     tileCoord.zw = floor(tileCoord.zw) / tileScale;
+	
+	vec4 sampleRay = vec4(0.0, 0.0, 1.0, 0.0);
+	
+	float distWeight = length(viewSpacePosition) * 0.05;
+	vec3 step = tangentRay * stepSize * distWeight * 4.0;
+	
+	float stepCoeff = -tangentRay.z / (stepSize.z * distWeight);
+	
+	float sampleHeight = texture2DLod(normals, coord, 0).a;
+	
+	for (uint i = 0; sampleRay.z > sampleHeight && i < 100; i++) {
+		sampleRay.xy += step.xy * min1((sampleRay.z - sampleHeight) * stepCoeff);
+		sampleRay.z += step.z;
+		
+		sampleHeight = texture2DLod(normals, fract(sampleRay.xy * tileScale + tileCoord.xy) / tileScale + tileCoord.zw, 0).a;
+	}
+	
+	
+	return fract(sampleRay.xy * tileScale + tileCoord.xy) / tileScale + tileCoord.zw;;
 }
 
 
 void main() {
 	if (CalculateFogFactor(viewSpacePosition, FOG_POWER) >= 1.0) discard;
 	
-	vec2 coord = texcoord;
+	vec2 coord = ComputeParallaxCoordinate(texcoord, viewSpacePosition);
+	
 	
 	vec4 diffuse = GetDiffuse(coord);
 	if (diffuse.a < 0.1000003) discard;
