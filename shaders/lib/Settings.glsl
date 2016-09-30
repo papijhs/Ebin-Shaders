@@ -88,6 +88,7 @@ const int noiseTextureResolution = 64;
 #define ATMOSPHERIC_SCATTERING_AMOUNT 1.00 // [0.00 0.25 0.50 0.75 1.00 2.00 4.00]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !defined low_profile
 	#define GI_ENABLED
 #endif
@@ -102,6 +103,8 @@ const int noiseTextureResolution = 64;
 
 //#define WATER_PARALLAX
 
+=======
+>>>>>>> 21fed5c... Added terrain parallax
 =======
 >>>>>>> 21fed5c... Added terrain parallax
 #define REFLECTION_EDGE_FALLOFF

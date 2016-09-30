@@ -184,10 +184,13 @@ void main() {
 	
 	vec2 coord = ComputeParallaxCoordinate(texcoord, viewSpacePosition);
 	
+<<<<<<< HEAD
 	
 #if defined gbuffers_terrain && defined TERRAIN_PARALLAX
 	coord = GetParallaxCoord(coord);
 #endif
+=======
+>>>>>>> 21fed5c... Added terrain parallax
 	
 	vec4 diffuse = GetDiffuse(coord);
 	if (diffuse.a < 0.1000003) discard;
