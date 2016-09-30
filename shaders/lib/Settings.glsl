@@ -87,26 +87,12 @@ const int noiseTextureResolution = 64;
 #define FOG_POWER 3.0                      // [1.0 2.0 3.0 4.0 6.0 8.0]
 #define ATMOSPHERIC_SCATTERING_AMOUNT 1.00 // [0.00 0.25 0.50 0.75 1.00 2.00 4.00]
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #if !defined low_profile
 	#define GI_ENABLED
 #endif
 
-
-//#define PLAYER_GI_BOUNCE
-#define GI_RADIUS       4   // [4 8 16 24 32]
-#define GI_SAMPLE_COUNT 80   // [20 40 80 128 160 256]
-#define GI_BOOST
-#define GI_TRANSLUCENCE 0.2  // [0.0 0.2 0.4 0.6 0.8 1.0]
-#define GI_BRIGHTNESS   4.00 // [0.25 0.50 0.75 1.00 2.00 4.00]
-
 //#define WATER_PARALLAX
 
-=======
->>>>>>> 21fed5c... Added terrain parallax
-=======
->>>>>>> 21fed5c... Added terrain parallax
 #define REFLECTION_EDGE_FALLOFF
 
 #define WAVE_MULT 1.0

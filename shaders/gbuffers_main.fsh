@@ -9,6 +9,7 @@ uniform ivec2 atlasSize;
 
 uniform float frameTimeCounter;
 uniform float far;
+uniform float wetness;
 
 varying vec3 color;
 varying vec2 texcoord;
@@ -38,45 +39,6 @@ varying float tbnIndex;
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
 #endif
-
-vec4 TileCoordinate(vec2 coord) {
-	ivec2 atlasTiles = atlasSize / TEXTURE_PACK_RESOLUTION;
-	vec2 tcoord = coord * atlasTiles;
-
-	return vec4(fract(tcoord), floor(tcoord));
-}
-
-vec2 NormalCoord(vec4 tileCoord) {
-	ivec2 atlasTiles = atlasSize / TEXTURE_PACK_RESOLUTION;
-	return (fract(tileCoord.xy) + tileCoord.zw) / atlasTiles;
-}
-
-vec2 GetParallaxCoord(vec2 coord) {
-	if (length(viewSpacePosition) > 15.0) return coord;
-	
-	cvec3 stepSize = vec3(0.2, 0.2, 1.0) / 16.0;
-	
-	vec3 direction = normalize(viewSpacePosition) * tbnMatrix;
-	vec3 interval  = direction * stepSize / -direction.z;
-	vec4 tileCoord = TileCoordinate(coord);
-	
-	// Start state
-	float currentHeight = texture2D(normals, coord).a;
-	vec3  offset = vec3(0.0, 0.0, 1.0);
-	
-	for(int i = 0; offset.z > currentHeight + 0.01 && i < 32; i++) {
-		offset += interval * pow(offset.z - currentHeight, 0.8);
-		
-		currentHeight = texture2D(normals, NormalCoord(vec4(tileCoord.xy + offset.xy, tileCoord.zw))).a;
-	}
-	
-	show(interval);
-	
-	tileCoord.xy += offset.xy;
-	
-	return NormalCoord(tileCoord);
-}
-
 
 vec4 GetDiffuse(vec2 coord) {
 	vec4 diffuse  = vec4(color.rgb, 1.0);
@@ -183,14 +145,6 @@ void main() {
 	if (CalculateFogFactor(viewSpacePosition, FOG_POWER) >= 1.0) discard;
 	
 	vec2 coord = ComputeParallaxCoordinate(texcoord, viewSpacePosition);
-	
-<<<<<<< HEAD
-	
-#if defined gbuffers_terrain && defined TERRAIN_PARALLAX
-	coord = GetParallaxCoord(coord);
-#endif
-=======
->>>>>>> 21fed5c... Added terrain parallax
 	
 	vec4 diffuse = GetDiffuse(coord);
 	if (diffuse.a < 0.1000003) discard;
