@@ -77,6 +77,9 @@ option.MOTION_BLUR_INTENSITY=Blur Intensity
 option.MAX_MOTION_BLUR_AMOUNT=Max Blur Amount
 
 
+option.TERRAIN_PARALLAX=Terrain Parallax
+
+
 screen.Waving_Blocks=Waving Blocks
 
 option.WAVING_GRASS=Waving Grass

@@ -46,6 +46,22 @@ const int noiseTextureResolution = 64;
 #define SKY_BRIGHTNESS      0.8  // [0.2 0.4 0.6 0.8 1.0 2.0 4.0 8.0]
 
 
+#define SHADOW_MAP_BIAS 0.80     // [0.00 0.60 0.70 0.80 0.85 0.90]
+#define SHADOW_TYPE 2 // [1 2 3]
+#define PLAYER_SHADOW
+
+#if !defined low_profile
+	#define GI_ENABLED
+#endif
+
+//#define PLAYER_GI_BOUNCE
+#define GI_MODE         1    // [1]
+#define GI_RADIUS       16   // [4 8 16 24 32]
+#define GI_SAMPLE_COUNT 80   // [20 40 80 128 160 256]
+#define GI_BOOST
+#define GI_TRANSLUCENCE 0.2  // [0.0 0.2 0.4 0.6 0.8 1.0]
+#define GI_BRIGHTNESS   1.00 // [0.25 0.50 0.75 1.00 2.00 4.00]
+
 #define BLOOM_ENABLED
 #define BLOOM_AMOUNT        0.10 // [0.05 0.10 0.25 0.50 1.00]
 #define BLOOM_CURVE         1.50 // [1.00 1.25 1.50 1.75 2.00]
@@ -58,13 +74,11 @@ const int noiseTextureResolution = 64;
 #define MOTION_BLUR_INTENSITY                   1.0   // [0.5 1.0 2.0]
 #define MAX_MOTION_BLUR_AMOUNT                  1.0   // [0.5 1.0 2.0]
 
+#define TERRAIN_PARALLAX
+
 #define WAVING_GRASS
 #define WAVING_LEAVES
 #define WAVING_WATER
-
-#define SHADOW_MAP_BIAS 0.80     // [0.00 0.60 0.70 0.80 0.85 0.90]
-#define SHADOW_TYPE 2 // [1 2 3]
-#define PLAYER_SHADOW
 
 #define COMPOSITE0_SCALE 0.40 // [0.25 0.33 0.40 0.50 0.75 1.00]
 //#define COMPOSITE0_NOISE
@@ -73,6 +87,7 @@ const int noiseTextureResolution = 64;
 #define FOG_POWER 3.0                      // [1.0 2.0 3.0 4.0 6.0 8.0]
 #define ATMOSPHERIC_SCATTERING_AMOUNT 1.00 // [0.00 0.25 0.50 0.75 1.00 2.00 4.00]
 
+<<<<<<< HEAD
 #if !defined low_profile
 	#define GI_ENABLED
 #endif
@@ -87,6 +102,8 @@ const int noiseTextureResolution = 64;
 
 //#define WATER_PARALLAX
 
+=======
+>>>>>>> 21fed5c... Added terrain parallax
 #define REFLECTION_EDGE_FALLOFF
 
 #define WAVE_MULT 1.0
