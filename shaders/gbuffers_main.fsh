@@ -57,7 +57,7 @@ vec4 GetDiffuse(vec2 coord) {
 
 vec4 GetNormal(vec2 coord) {
 #ifdef NORMAL_MAPS
-	vec3 normal = GetTexture(normals, coord).xyz;
+	vec4 normal = GetTexture(normals, coord);
 
 #else
 	vec4 normal = vec4(0.5, 0.5, 1.0, 1.0);
