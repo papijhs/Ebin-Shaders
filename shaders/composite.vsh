@@ -30,9 +30,7 @@ void main() {
 	gl_Position.xy = ((gl_Position.xy * 0.5 + 0.5) * COMPOSITE0_SCALE) * 2.0 - 1.0;
 	
 	
-#ifdef FOV_OVERRIDE
-	SetupProjectionMatrices();
-#endif
+	SetupProjection();
 	
 	#include "/lib/Vertex/Shading_Setup.vsh"
 #else

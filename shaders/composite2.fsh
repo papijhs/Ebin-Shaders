@@ -140,11 +140,9 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 vec2 GetRefractedCoord(vec2 coord, vec3 viewSpacePosition, vec3 tangentNormal) {
 	vec4 screenSpacePosition = projMatrix * vec4(viewSpacePosition, 1.0);
 	
-	float fov = atan(1.0 / projMatrix[1].y) * 2.0 / RAD;
-	
 	cfloat refractAmount = 0.5;
 	
-	vec2 refraction = tangentNormal.st / fov * 90.0 * refractAmount;
+	vec2 refraction = tangentNormal.st / FOV * 90.0 * refractAmount;
 	
 	vec2 refractedCoord = screenSpacePosition.st + refraction;
 	
