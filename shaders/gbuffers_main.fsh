@@ -39,13 +39,22 @@ varying float tbnIndex;
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
 #endif
 
+
+float LOD;
+
+#ifdef TERRAIN_PARALLAX
+	#define GetTexture(x, y) texture2DLod(x, y, LOD)
+#else
+	GetTexture(x, y) texture2D(x, y)
+#endif
+
 vec4 GetDiffuse(vec2 coord) {
-	return vec4(color.rgb, 1.0) * texture2D(texture, coord);
+	return vec4(color.rgb, 1.0) * GetTexture(texture, coord);
 }
 
 vec3 GetNormal(vec2 coord) {
 #ifdef NORMAL_MAPS
-	vec3 normal = texture2D(normals, coord).xyz;
+	vec3 normal = GetTexture(normals, coord).xyz;
 #else
 	vec3 normal = vec3(0.5, 0.5, 1.0);
 #endif
@@ -67,7 +76,7 @@ vec3 GetTangentNormal() {
 
 vec2 GetSpecularity(vec2 coord) {
 #ifdef SPECULARITY_MAPS
-	vec2 specular = texture2D(specular, coord).rg;
+	vec2 specular = GetTexture(specular, coord).rg;
 #else
 	vec2 specular = vec2(0.0);
 #endif
@@ -89,6 +98,8 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	return coord;
 #endif
 	
+	LOD = textureQueryLod(texture, coord).y;
+	
 	if (length(viewSpacePosition) >= 12.0) return coord;
 	
 	
@@ -109,13 +120,13 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	
 	float stepCoeff = -tangentRay.z / (stepSize.z * distWeight);
 	
-	float sampleHeight = texture2DLod(normals, coord, 0).a;
+	float sampleHeight = GetTexture(normals, coord).a;
 	
 	for (uint i = 0; sampleRay.z > sampleHeight && i < 100; i++) {
 		sampleRay.xy += step.xy * min1((sampleRay.z - sampleHeight) * stepCoeff);
 		sampleRay.z += step.z;
 		
-		sampleHeight = texture2DLod(normals, fract(sampleRay.xy * tileScale + tileCoord.xy) / tileScale + tileCoord.zw, 0).a;
+		sampleHeight = GetTexture(normals, fract(sampleRay.xy * tileScale + tileCoord.xy) / tileScale + tileCoord.zw).a;
 	}
 	
 	
