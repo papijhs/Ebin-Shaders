@@ -45,7 +45,7 @@ float LOD;
 #ifdef TERRAIN_PARALLAX
 	#define GetTexture(x, y) texture2DLod(x, y, LOD)
 #else
-	GetTexture(x, y) texture2D(x, y)
+	#define GetTexture(x, y) texture2D(x, y)
 #endif
 
 vec4 GetDiffuse(vec2 coord) {
@@ -121,6 +121,8 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	float stepCoeff = -tangentRay.z / (stepSize.z * distWeight);
 	
 	float sampleHeight = GetTexture(normals, coord).a;
+	
+	if (sampleRay.z <= sampleHeight) return coord;
 	
 	for (uint i = 0; sampleRay.z > sampleHeight && i < 100; i++) {
 		sampleRay.xy += step.xy * min1((sampleRay.z - sampleHeight) * stepCoeff);
