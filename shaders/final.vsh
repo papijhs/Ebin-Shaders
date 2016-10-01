@@ -20,7 +20,5 @@ void main() {
 	
 	pixelSize = 1.0 / vec2(viewWidth, viewHeight);
 	
-#ifdef FOV_OVERRIDE
-	SetupProjectionMatrices();
-#endif
+	SetupProjection();
 }

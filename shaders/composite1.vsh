@@ -27,9 +27,7 @@ void main() {
 	gl_Position = ftransform();
 	
 	
-#ifdef FOV_OVERRIDE
-	SetupProjectionMatrices();
-#endif
+	SetupProjection();
 	
 	#include "/lib/Vertex/Shading_Setup.vsh"
 }

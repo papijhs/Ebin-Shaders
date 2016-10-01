@@ -1,11 +1,13 @@
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 
+varying float FOV;
+
 #ifdef FOV_OVERRIDE
 	varying mat4 projection;
 	varying mat4 projectionInverse;
 	
-	void SetupProjectionMatrices() {
+	void SetupProjection() {
 		projection = gbufferProjection;
 		projectionInverse = gbufferProjectionInverse;
 		
@@ -14,10 +16,10 @@ uniform mat4 gbufferProjectionInverse;
 		cfloat gameSetFOV = FOV_DEFAULT_TENS;
 		cfloat targetSetFOV = FOV_TRUE_TENS + FOV_TRUE_FIVES;
 		
-		float targetTrueFOV = targetSetFOV + (gameTrueFOV - gameSetFOV) * targetSetFOV / gameSetFOV;
+		FOV = targetSetFOV + (gameTrueFOV - gameSetFOV) * targetSetFOV / gameSetFOV;
 		
 		projection      = gbufferProjection;
-		projection[1].y = 1.0 / tan(radians(targetTrueFOV) * 0.5);
+		projection[1].y = 1.0 / tan(radians(FOV) * 0.5);
 		projection[0].x = projection[1].y * gbufferProjection[0].x / gbufferProjection[1].y;
 		
 		
@@ -33,6 +35,10 @@ uniform mat4 gbufferProjectionInverse;
 	#define projMatrix projection
 	#define projInverseMatrix projectionInverse
 #else
+	void SetupProjection() {
+		FOV = degrees(atan(1.0 / gbufferProjection[1].y) * 2.0);
+	}
+	
 	#define projMatrix gbufferProjection
 	#define projInverseMatrix gbufferProjectionInverse
 #endif

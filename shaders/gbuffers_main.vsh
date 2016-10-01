@@ -80,9 +80,7 @@ float EncodePlanarTBN(vec3 worldSpaceNormal) { // Encode the TBN matrix into a 3
 }
 
 void main() {
-#ifdef FOV_OVERRIDE
-	SetupProjectionMatrices();
-#endif
+	SetupProjection();
 	
 	color        = gl_Color.rgb;
 	texcoord     = gl_MultiTexCoord0.st;
