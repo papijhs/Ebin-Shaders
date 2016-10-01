@@ -139,6 +139,8 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	float stepCoeff = -tangentRay.z / (stepSize.z * distWeight);
 	
 	float sampleHeight = GetTexture(normals, coord).a;
+
+	if (sampleRay.z <= sampleHeight) return coord;
 	
 	for (uint i = 0; sampleRay.z > sampleHeight && i < 100; i++) {
 		sampleRay.xy += step.xy * min1((sampleRay.z - sampleHeight) * stepCoeff);
