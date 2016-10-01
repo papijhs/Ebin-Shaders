@@ -46,7 +46,7 @@ float LOD;
 #ifdef TERRAIN_PARALLAX
 	#define GetTexture(x, y) texture2DLod(x, y, LOD)
 #else
-	GetTexture(x, y) texture2D(x, y)
+	#define GetTexture(x, y) texture2D(x, y)
 #endif
 
 vec4 GetDiffuse(vec2 coord) {

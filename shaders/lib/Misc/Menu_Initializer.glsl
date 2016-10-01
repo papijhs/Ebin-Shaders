@@ -7,6 +7,5 @@
 #ifdef GI_MODE
 #ifdef TERRAIN_PARALLAX
 #ifdef PLAYER_GI_BOUNCE
-#ifdef TERRAIN_PARALLAX
 
 */
