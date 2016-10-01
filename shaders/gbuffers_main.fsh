@@ -30,6 +30,7 @@ varying float tbnIndex;
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
+#include "/lib/Uniform/Projection_Matrices.fsh"
 #include "/lib/Misc/Calculate_Fogfactor.glsl"
 #include "/lib/Fragment/Masks.fsh"
 
@@ -98,41 +99,37 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	return coord;
 #endif
 	
-	LOD = textureQueryLod(texture, coord).y;
+	LOD = sqrt(textureQueryLod(texture, coord).y);
 	
 	if (length(viewSpacePosition) >= 12.0) return coord;
 	
 	
 	vec3 tangentRay = normalize(viewSpacePosition * tbnMatrix);
 	
-	cvec3 stepSize = vec3(0.001, 0.001, 0.1);
+	cvec3 stepSize = vec3(0.01, 0.01, 1.0);
 	
-	float tileScale = atlasSize.x / TEXTURE_PACK_RESOLUTION;
+	float tileScale  = atlasSize.x / TEXTURE_PACK_RESOLUTION;
+	vec2  tileCoord  = fract(coord * tileScale);
+	vec2 atlasCorner = floor(coord * tileScale) / tileScale;
 	
-	vec4 tileCoord    = coord.stst * tileScale;
-	     tileCoord.xy = fract(tileCoord.xy);
-	     tileCoord.zw = floor(tileCoord.zw) / tileScale;
+	vec3 sampleRay = vec3(0.0, 0.0, 1.0);
 	
-	vec4 sampleRay = vec4(0.0, 0.0, 1.0, 0.0);
-	
-	float distWeight = length(viewSpacePosition) * 0.05;
-	vec3 step = tangentRay * stepSize * distWeight * 4.0;
-	
-	float stepCoeff = -tangentRay.z / (stepSize.z * distWeight);
+//	float distWeight = length(viewSpacePosition) * 0.05;
+//	vec3 step = tangentRay * stepSize * distWeight * min(-tangentRay.z / (stepSize.z * distWeight), 1.0);
+	vec3 step = tangentRay * stepSize / sqrt(radians(180.0 - FOV)) * sqrt(-tangentRay.z);
 	
 	float sampleHeight = GetTexture(normals, coord).a;
 	
 	if (sampleRay.z <= sampleHeight) return coord;
 	
-	for (uint i = 0; sampleRay.z > sampleHeight && i < 100; i++) {
-		sampleRay.xy += step.xy * min1((sampleRay.z - sampleHeight) * stepCoeff);
-		sampleRay.z += step.z;
+	for (uint i = 0; sampleRay.z > sampleHeight && i < 200; i++) {
+		sampleRay += step * (sampleRay.z - sampleHeight);
 		
-		sampleHeight = GetTexture(normals, fract(sampleRay.xy * tileScale + tileCoord.xy) / tileScale + tileCoord.zw).a;
+		sampleHeight = GetTexture(normals, fract(sampleRay.xy * tileScale + tileCoord) / tileScale + atlasCorner).a;
 	}
 	
 	
-	return fract(sampleRay.xy * tileScale + tileCoord.xy) / tileScale + tileCoord.zw;;
+	return fract(sampleRay.xy * tileScale + tileCoord) / tileScale + atlasCorner;
 }
 
 
