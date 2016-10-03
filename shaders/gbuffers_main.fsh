@@ -99,14 +99,9 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	return coord;
 #endif
 	
-	LOD = sqrt(textureQueryLod(texture, coord).y);
-	
-	if (length(viewSpacePosition) >= 12.0) return coord;
-	
+	LOD = textureQueryLod(texture, coord).y;
 	
 	vec3 tangentRay = normalize(viewSpacePosition * tbnMatrix);
-	
-	cvec3 stepSize = vec3(0.01, 0.01, 1.0);
 	
 	float tileScale  = atlasSize.x / TEXTURE_PACK_RESOLUTION;
 	vec2  tileCoord  = fract(coord * tileScale);
@@ -114,9 +109,20 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	
 	vec3 sampleRay = vec3(0.0, 0.0, 1.0);
 	
-//	float distWeight = length(viewSpacePosition) * 0.05;
-//	vec3 step = tangentRay * stepSize * distWeight * min(-tangentRay.z / (stepSize.z * distWeight), 1.0);
-	vec3 step = tangentRay * stepSize / sqrt(radians(180.0 - FOV)) * sqrt(-tangentRay.z);
+	cfloat parallaxDist = 12.0;
+	cfloat distFade     =  2.0;
+	cfloat MinQuality   =  1.0;
+	cfloat maxQuality   =  3.0;
+	
+	float intensity = clamp01((parallaxDist - length(viewSpacePosition) * FOV / 90.0) / distFade);
+	
+	if (intensity < 0.01) return coord;
+	
+	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(viewSpacePosition), 0.25)), MinQuality, maxQuality);
+	
+	vec3 step     = tangentRay / quality;
+	     step.z  /= intensity;
+	     step.xy *= clamp01(intensity) / TEXTURE_PACK_RESOLUTION;
 	
 	float sampleHeight = GetTexture(normals, coord).a;
 	
