@@ -117,7 +117,18 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	return coord;
 #endif
 	
-	LOD = textureQueryLod(texture, coord).y;
+	LOD = textureQueryLod(texture, coord).x;
+	
+	cfloat parallaxDist = 12.0;
+	cfloat distFade     =  4.0;
+	cfloat MinQuality   =  0.5;
+	cfloat maxQuality   =  2.0;
+	
+	float intensity = clamp01((parallaxDist - length(viewSpacePosition) * FOV / 90.0) / distFade);
+	
+	if (intensity < 0.01) return coord;
+	
+	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(viewSpacePosition), 0.25)), MinQuality, maxQuality);
 	
 	vec3 tangentRay = normalize(viewSpacePosition * tbnMatrix);
 	
@@ -127,27 +138,17 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	
 	vec3 sampleRay = vec3(0.0, 0.0, 1.0);
 	
-	cfloat parallaxDist = 12.0;
-	cfloat distFade     =  2.0;
-	cfloat MinQuality   =  1.0;
-	cfloat maxQuality   =  3.0;
-	
-	float intensity = clamp01((parallaxDist - length(viewSpacePosition) * FOV / 90.0) / distFade);
-	
-	if (intensity < 0.01) return coord;
-	
-	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(viewSpacePosition), 0.25)), MinQuality, maxQuality);
-	
-	vec3 step     = tangentRay / quality;
-	     step.z  /= intensity;
-	     step.xy *= clamp01(intensity) / TEXTURE_PACK_RESOLUTION;
+	vec3 step = tangentRay * vec3(0.01, 0.01, 1.0 / intensity) / quality * 0.03 * sqrt(length(viewSpacePosition));
 	
 	float sampleHeight = GetTexture(normals, coord).a;
 
 	if (sampleRay.z <= sampleHeight) return coord;
 	
-	for (uint i = 0; sampleRay.z > sampleHeight && i < 200; i++) {
-		sampleRay += step * (sampleRay.z - sampleHeight);
+	float stepCoeff = -tangentRay.z / stepSize.z;
+	
+	for (uint i = 0; sampleRay.z > sampleHeight && i < 150; i++) {
+		sampleRay.xy += step.xy * min1((sampleRay.z - sampleHeight) * stepCoeff);
+		sampleRay.z += step.z;
 		
 		sampleHeight = GetTexture(normals, fract(sampleRay.xy * tileScale + tileCoord) / tileScale + atlasCorner).a;
 	}
@@ -155,7 +156,6 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	
 	return fract(sampleRay.xy * tileScale + tileCoord) / tileScale + atlasCorner;
 }
-
 
 void main() {
 	if (CalculateFogFactor(viewSpacePosition, FOG_POWER) >= 1.0) discard;
