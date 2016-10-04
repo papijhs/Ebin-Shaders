@@ -126,7 +126,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	
 	if (sampleRay.z <= sampleHeight) return coord;
 	
-	float stepCoeff = -tangentRay.z * 64.0;
+	float stepCoeff = -tangentRay.z * 64.0 * clamp01(intensity);
 	
 	for (uint i = 0; sampleRay.z > sampleHeight && i < 150; i++) {
 		sampleRay.xy += step.xy * min1((sampleRay.z - sampleHeight) * stepCoeff);
