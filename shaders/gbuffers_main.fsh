@@ -122,7 +122,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	cfloat parallaxDist = 12.0;
 	cfloat distFade     =  4.0;
 	cfloat MinQuality   =  0.5;
-	cfloat maxQuality   =  2.0;
+	cfloat maxQuality   =  1.5;
 	
 	float intensity = clamp01((parallaxDist - length(viewSpacePosition) * FOV / 90.0) / distFade);
 	
@@ -144,7 +144,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 
 	if (sampleRay.z <= sampleHeight) return coord;
 	
-	float stepCoeff = -tangentRay.z / 1.0; //HALP
+	float stepCoeff = -tangentRay.z * 64.0;
 	
 	for (uint i = 0; sampleRay.z > sampleHeight && i < 150; i++) {
 		sampleRay.xy += step.xy * min1((sampleRay.z - sampleHeight) * stepCoeff);
