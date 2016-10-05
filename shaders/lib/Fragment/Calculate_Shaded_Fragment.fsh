@@ -31,6 +31,26 @@ struct Lightmap {    // Contains vector light levels with color
 
 
 
+float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
+	mat2x3 lightPos = mat2x3(
+	     0.16, -0.05, -0.1,
+	    -0.16, -0.05, -0.1);
+	
+	mat2x3 lightRay = mat2x3(
+	    viewSpacePosition - lightPos[0],
+	    viewSpacePosition - lightPos[1]);
+	
+	vec2 falloff = vec2(inversesqrt(lengthSquared(lightRay[0])), inversesqrt(lengthSquared(lightRay[1])));
+	
+	falloff *= max0(vec2(dot(normal, lightPos[0] * falloff[0]), dot(normal, lightPos[1] * falloff[1]))) * 0.35 + 0.65;
+	
+	vec2 hand  = max0(falloff - 0.0625);
+	     hand  = mix(hand, vec2(2.0), handMask * vec2(greaterThan(viewSpacePosition.x * vec2(1.0, -1.0), vec2(0.0))));
+	     hand *= heldBlockLightValue / 16.0;
+	
+	return hand.x + hand.y;
+}
+
 vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, vec3 viewSpacePosition) {
 	Shading shading;
 	
@@ -39,8 +59,9 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	shading.sunlight  = ComputeShadows(viewSpacePosition, shading.sunlight);
 	
 	
-	shading.torchlight = 1.0 - pow(clamp01(torchLightmap - 0.075), 4.0);
-	shading.torchlight = 1.0 / pow(shading.torchlight, 2.0) - 1.0;
+	shading.torchlight  = 1.0 - pow(clamp01(torchLightmap - 0.075), 4.0);
+	shading.torchlight  = 1.0 / pow(shading.torchlight, 2.0) - 1.0;
+	shading.torchlight += GetHeldLight(viewSpacePosition, normal, mask.hand);
 	
 	shading.skylight = pow(skyLightmap, 2.0);
 	

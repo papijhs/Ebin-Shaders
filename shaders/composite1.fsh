@@ -36,6 +36,8 @@ uniform float viewHeight;
 uniform ivec2 eyeBrightnessSmooth;
 
 uniform int isEyeInWater;
+uniform int heldBlockLightValue;
+uniform int heldBlockLightValue2;
 
 varying vec2 texcoord;
 
