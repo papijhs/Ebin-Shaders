@@ -19,7 +19,8 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 #define transMAD(mat, v) (mat3(mat) * v + mat[3].xyz)
 #define  projMAD(mat, v) (v * diagonal3(mat) + mat[3].xyz)
 
-// #define texture2DRaw(samplr) texelFetch(samplr, ivec2(gl_FragCoord.st), 0)
+#define textureRaw(samplr, coord) texelFetch(samplr, ivec2(coord * vec2(viewWidth, viewHeight)), 0)
+#define ScreenTex(samplr) texelFetch(samplr, ivec2(gl_FragCoord.st), 0)
 
 
 #include "/lib/Utility/smoothing.glsl"
