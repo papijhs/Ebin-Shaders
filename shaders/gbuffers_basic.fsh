@@ -5,7 +5,7 @@
 #include "/lib/Syntax.glsl"
 
 
-/* DRAWBUFFERS:2 */
+/* DRAWBUFFERS:1 */
 
 varying vec3 color;
 
