@@ -64,7 +64,7 @@ void main() {
 	if (abs(mc_Entity.x - 8.5) < 0.6) { gl_Position = vec4(-1.0); return; }
 #endif
 	
-#ifdef CUSTOM_TIME_CYCLE
+#ifdef TIME_OVERRIDE
 	CalculateShadowView();
 #endif
 	

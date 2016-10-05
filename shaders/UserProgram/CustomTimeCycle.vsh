@@ -19,18 +19,29 @@
 */
 
 
-void OldNorth() { // Makes the sun and moon rise in the north, instead of the east
-	float temp = timeAngle;
-	
-	timeAngle = pathRotationAngle + 90.0;
-	pathRotationAngle = temp;
-	twistAngle += 180.0;
-}
-
 void UserRotation() {
-	timeAngle = position.x * 25;
-	
-//	OldNorth();
+	#if TIME_OVERRIDE_MODE == 1
+		
+		timeAngle = CONSTANT_TIME_HOUR * 15.0;
+		
+	#elif TIME_OVERRIDE_MODE == 2
+		
+		timeAngle = mod(timeAngle, 180.0) + 180.0 * float(CUSTOM_DAY_NIGHT == 2);
+		
+	#elif TIME_OVERRIDE_MODE == 3
+		
+		
+		#if CUSTOM_TIME_MISC == 1
+			twistAngle = 90.0;
+		#elif CUSTOM_TIME_MISC == 2
+			
+			// Debug Stuff goes here
+			timeAngle = position.x * 25;
+			
+		#endif
+		
+		
+	#endif
 }
 
 // End of #include "/UserProgram/CustomTimeCycle.vsh"

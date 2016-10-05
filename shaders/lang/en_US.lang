@@ -162,6 +162,21 @@ option.CUSTOM_HORIZON_HEIGHT=Custom Horizon Height
 
 option.HORIZON_HEIGHT=Horizon Height
 
+option.TIME_OVERRIDE=Time Override
+option.TIME_OVERRIDE.comment=Modify or override the in-game time, based on the settings on this page
+
+option.TIME_OVERRIDE_MODE=Time Override Mode
+option.TIME_OVERRIDE_MODE.comment=1: Force Constant Time. 2: Day/Night Only. 3: Misc Time Effect
+
+option.CONSTANT_TIME_HOUR=[1] Constant Time Hour
+option.CONSTANT_TIME_HOUR.comment=The hour to set the time. Example: 3 = 3000 ticks
+
+option.CUSTOM_DAY_NIGHT=[2] Day/Night Only
+option.CUSTOM_DAY_NIGHT.comment=1: Day only. 2: Night only
+
+option.CUSTOM_TIME_MISC=[3] Misc Time Effect
+option.CUSTOM_TIME_MISC.comment=1: Old North (Retro Sun Direction). 2: Debug
+
 
 screen.Misc=Misc
 

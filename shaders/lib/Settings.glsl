@@ -96,13 +96,18 @@ const int noiseTextureResolution = 64;
 #define CUSTOM_HORIZON_HEIGHT
 #define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]
 
+//#define TIME_OVERRIDE
+#define TIME_OVERRIDE_MODE 1 // [1 2 3]
+#define CONSTANT_TIME_HOUR 3 // [0 3 6 9 12 15 18 21]
+#define CUSTOM_DAY_NIGHT   1 // [1 2]
+#define CUSTOM_TIME_MISC   1 // [1 2]
+
 
 #define DEBUG_VIEW 1 // [-1 0 1 2 3 7]
 
 
 //#define PHYSICAL_ATMOSPHERE
 //#define ENABLE_CLOUDS
-//#define CUSTOM_TIME_CYCLE
 //#define FREEZE_TIME
 
 //#define WATER_SHADOW
