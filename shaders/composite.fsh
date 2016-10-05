@@ -48,14 +48,12 @@ varying vec2 texcoord;
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Masks.fsh"
 
-#define texture2DRaw(x, y) texelFetch(x, ivec2(y * vec2(viewWidth, viewHeight)), 0) // texture2DRaw bypasses downscaled interpolation, which causes issues with encoded buffers
-
 float GetDepth(vec2 coord) {
-	return texture2DRaw(gdepthtex, coord).x;
+	return textureRaw(gdepthtex, coord).x;
 }
 
 float GetDepthLinear(vec2 coord) {	
-	return (near * far) / (texture2DRaw(gdepthtex, coord).x * (near - far) + far);
+	return (near * far) / (textureRaw(gdepthtex, coord).x * (near - far) + far);
 }
 
 vec3 CalculateViewSpacePosition(vec3 screenPos) {
@@ -65,7 +63,7 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 }
 
 vec3 GetNormal(vec2 coord) {
-	return DecodeNormal(texture2DRaw(colortex4, coord).xy);
+	return DecodeNormal(textureRaw(colortex4, coord).xy);
 }
 
 
@@ -173,7 +171,7 @@ void main() {
 	
 	Mask mask = CalculateMasks(Decode16(texture2D(colortex5, texcoord).r).g);
 	
-	float depth1 = (mask.hand > 0.5 ? depth0 : texture2DRaw(depthtex1, texcoord).x);
+	float depth1 = (mask.hand > 0.5 ? depth0 : textureRaw(depthtex1, texcoord).x);
 	
 	vec3 viewSpacePosition1 = CalculateViewSpacePosition(vec3(texcoord, depth1));
 	
