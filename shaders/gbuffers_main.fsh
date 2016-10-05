@@ -8,6 +8,7 @@ uniform sampler2D noisetex;
 uniform ivec2 atlasSize;
 
 uniform float frameTimeCounter;
+uniform float wetness;
 uniform float far;
 
 varying vec3 color;
@@ -75,14 +76,12 @@ vec3 GetTangentNormal() {
 
 #include "/lib/Misc/Get3DNoise.glsl"
 
-vec2 GetSpecularity(vec2 coord) {
+float GetSpecularity(vec2 coord) {
 #ifdef SPECULARITY_MAPS
-	vec2 specular = GetTexture(specular, coord).rg;
+	return GetTexture(specular, coord).r;
 #else
-	vec2 specular = vec2(0.0);
+	return 0.0;
 #endif
-	
-	return specular;
 }
 
 vec2 EncodeNormalData(vec3 normalTexture, float tbnIndex) {
@@ -148,15 +147,17 @@ void main() {
 	vec4 diffuse = GetDiffuse(coord);
 	if (diffuse.a < 0.1000003) discard;
 	
+	float wet = wetness;
+	
 	vec3 normal = GetNormal(coord);
 	
-	vec2 specularity = GetSpecularity(coord);	
+	float specularity = GetSpecularity(coord) + wet;	
 	
 	
 #if !defined gbuffers_water
-	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(specularity.g, 0.0, 0.0, 0.0));
+	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0));
 	
-	vec2 encode = vec2(Encode16(vec2(specularity.r, vertLightmap.g)), Encode16(vec2(vertLightmap.r, encodedMaterialIDs)));
+	vec2 encode = vec2(Encode16(vec2(specularity, vertLightmap.g)), Encode16(vec2(vertLightmap.r, encodedMaterialIDs)));
 	
 	gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
@@ -165,7 +166,7 @@ void main() {
 	gl_FragData[4] = vec4(EncodeNormal(normal.xyz), encode.r, 1.0);
 	gl_FragData[5] = vec4(encode.g, 0.0, 0.0, 1.0);
 #else
-	float encode = Encode16(vec2(specularity.r, vertLightmap.g));
+	float encode = Encode16(vec2(specularity, vertLightmap.g));
 	
 	vec2 encodedNormal = EncodeNormalData(GetTangentNormal(), tbnIndex);
 	
@@ -173,7 +174,7 @@ void main() {
 	
 	if (abs(mcID - 8.5) < 0.6) diffuse = vec4(0.215, 0.356, 0.533, 0.75);
 	
-	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz, specularity.r, viewSpacePosition);
+	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz, specularity, viewSpacePosition);
 	     composite *= pow(diffuse.rgb, vec3(2.2));
 	
 	gl_FragData[0] = vec4(encodedNormal, encode, 1.0);
