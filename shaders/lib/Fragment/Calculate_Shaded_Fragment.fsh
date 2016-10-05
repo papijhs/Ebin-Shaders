@@ -40,7 +40,7 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 	    viewSpacePosition - lightPos[0],
 	    viewSpacePosition - lightPos[1]);
 	
-	vec2 falloff = vec2(inversesqrt(lengthSquared(lightRay[0])), inversesqrt(lengthSquared(lightRay[1])));
+	vec2 falloff = vec2(inversesqrt(length2(lightRay[0])), inversesqrt(length2(lightRay[1])));
 	
 	falloff *= max0(vec2(dot(normal, lightPos[0] * falloff[0]), dot(normal, lightPos[1] * falloff[1]))) * 0.35 + 0.65;
 	
