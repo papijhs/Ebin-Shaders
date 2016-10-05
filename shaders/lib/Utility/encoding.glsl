@@ -59,7 +59,7 @@ vec2 EncodeNormal(vec3 normal) {
 
 vec3 DecodeNormal(vec2 encodedNormal) {
 	encodedNormal = encodedNormal * 4.0 - 2.0;
-	float f = lengthSquared(encodedNormal);
+	float f = length2(encodedNormal);
 	float g = sqrt(1.0 - f * 0.25);
 	return vec3(encodedNormal * g, 1.0 - f * 0.5);
 }
@@ -75,7 +75,7 @@ vec3 DecodeTBN16(float enc) {
 	
 	vec3 normal;
 	     normal.xy = cos(v * PI);
-	     normal.z  = sqrt(1.0 - lengthSquared(normal.xy)) ;// * (1.0 - 2.0 * z_sign);
+	     normal.z  = sqrt(1.0 - length2(normal.xy)) ;// * (1.0 - 2.0 * z_sign);
 	
 	return normal;
 }

@@ -249,7 +249,7 @@ void main() {
 				GetWaveNormals(frontPos[0], tbnMatrix[2]) :
 				Decode16(encodedNormal.y) * 2.0 - 1.0;
 			
-			tangentNormal.z = sqrt(1.0 - lengthSquared(tangentNormal.xy));
+			tangentNormal.z = sqrt(1.0 - length2(tangentNormal.xy));
 			
 			normal = mat3(gbufferModelView) * tbnMatrix * tangentNormal;
 			

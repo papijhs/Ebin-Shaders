@@ -132,11 +132,11 @@ vec3 ComputeGlobalIllumination(vec3 viewSpacePosition, vec3 normal, float skyLig
 		
 		vec3 sampleDiff = samplePos * projMult + projDisp.xyz;
 		
-		float sampleLengthSqrd = lengthSquared(sampleDiff);
+		float sampleLengthSqrd = length2(sampleDiff);
 		
 		vec3 shadowNormal;
 		     shadowNormal.xy = texture2DLod(shadowcolor1, mapPos, sampleLOD).xy * 2.0 - 1.0;
-		     shadowNormal.z  = sqrt(1.0 - lengthSquared(shadowNormal.xy));
+		     shadowNormal.z  = sqrt(1.0 - length2(shadowNormal.xy));
 		
 		vec3 lightCoeffs   = vec3(finversesqrt(sampleLengthSqrd) * sampleDiff * mat2x3(normal, shadowNormal), sampleLengthSqrd);
 		     lightCoeffs   = max(lightCoeffs, sampleMax);

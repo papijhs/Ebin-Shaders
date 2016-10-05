@@ -1,8 +1,8 @@
-float lengthSquared(vec2 x) {
+float length2(vec2 x) {
 	return dot(x, x);
 }
 
-float lengthSquared(vec3 x) {
+float length2(vec3 x) {
 	return dot(x, x);
 }
 
