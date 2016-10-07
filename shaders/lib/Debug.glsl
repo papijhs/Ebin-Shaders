@@ -17,6 +17,10 @@ void show(float x) {
 	Debug = vec3(x);
 }
 
+void show(float x, float y) {
+	Debug = vec3(x, y, 0.0);
+}
+
 void show(vec2 x) {
 	Debug = vec3(x, 0.0);
 }

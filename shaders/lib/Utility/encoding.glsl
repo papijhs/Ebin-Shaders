@@ -65,17 +65,35 @@ vec3 DecodeNormal(vec2 encodedNormal) {
 }
 
 float EncodeTBN16(vec3 normal) {
-	uvec2 enc = uvec2(round(acos(clamp(normal.xy, -1.0, 1.0)) / PI * 8.0)) << uvec2(0, 3);
+	uvec3 norm = uvec3(round(acos(clamp(normal.xy, -1.0, 1.0)) / PI * 8.0), normal.z >= 0.0);
 	
-	return 0.0;
+//	if (norm.x == 8) norm.xy = uvec2(0, 1);
+//	if (norm.y == 8) norm.xy = uvec2(1, 0);
+	
+	// 3-way ternary operator
+	// flows through 2 condtions left-to-right
+	// do-nothing at the end if both conditions are false
+	norm.xy = norm.x == 8 ? uvec2(0, 1) : norm.y == 8 ? (uvec2(1, 0)) : norm.xy;
+	// if an angle is 8, its component is -1.0
+	// in that case, we set the component to 1.0
+	// we then set the other angle to 1 (large component), whereas the other component should really be 0.0
+	// so later we know for sure that one component is -1.0, and all the others are 0.0
+	
+	
+	return float(norm.x + norm.y * 8 + norm.z * 64) / 128.0;
 }
 
 vec3 DecodeTBN16(float enc) {
-	vec2 v = vec2(uvec2(enc * 64.0) >> uvec2(0, 3) & 8) / 8.0;
+	uvec3 norm = uvec3(mod(vec3(enc * 128.0), vec3(8.0, 64.0, 128.0))) >> uvec3(0, 3, 6);
+	
+//	if (norm.y == 0 && norm.x == 1) norm.xy = uvec2(4, 8); else
+//	if (norm.x == 0 && norm.y == 1) norm.xy = uvec2(8, 4);
+	
+	norm.xy = norm.x == 0 && norm.y == 1 ? uvec2(8, 4) : norm.y == 0 && norm.x == 1 ? uvec2(4, 8) : norm.xy;
 	
 	vec3 normal;
-	     normal.xy = cos(v * PI);
-	     normal.z  = sqrt(1.0 - length2(normal.xy)) ;// * (1.0 - 2.0 * z_sign);
+	     normal.xy = cos(vec2(norm.xy) * PI / 8.0);
+	     normal.z = sqrt(1.0 - length2(normal.xy)) * (float(norm.z) * 2.0 - 1.0);
 	
 	return normal;
 }
