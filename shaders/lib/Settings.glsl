@@ -74,8 +74,6 @@ const int noiseTextureResolution = 64;
 #define MOTION_BLUR_INTENSITY                   1.0   // [0.5 1.0 2.0]
 #define MAX_MOTION_BLUR_AMOUNT                  1.0   // [0.5 1.0 2.0]
 
-#define TERRAIN_PARALLAX
-
 #define WAVING_GRASS
 #define WAVING_LEAVES
 #define WAVING_WATER
@@ -121,6 +119,10 @@ const int noiseTextureResolution = 64;
 	#define TEXTURE_PACK_RESOLUTION TEXTURE_PACK_RESOLUTION_SETTING
 	
 	#define NORMAL_MAPS
+	
+	#ifdef NORMAL_MAPS
+		//#define TERRAIN_PARALLAX
+	#endif
 	
 	#define SPECULARITY_MAPS
 #endif
