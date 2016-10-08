@@ -1,11 +1,11 @@
 float Encode4x8F(in vec4 a) {
-	uvec4 v = uvec4(round(clamp01(a) * 255.0)) << uvec4(0, 8, 16, 24);
+	uvec4 v = uvec4(round(clamp01(a) * 255.0)) << uvec4(0u, 8u, 16u, 24u);
 	
 	return uintBitsToFloat(sum4(v));
 }
 
 vec4 Decode4x8F(in float encodedbuffer) {
-	return vec4(floatBitsToUint(encodedbuffer) >> uvec4(0, 8, 16, 24) & 255u) / 255.0;
+	return vec4(floatBitsToUint(encodedbuffer) >> uvec4(0u, 8u, 16u, 24u) & 255u) / 255.0;
 }
 
 float Encode16(vec2 encodedBuffer) {
@@ -73,7 +73,7 @@ float EncodeTBN16(vec3 normal) {
 	// 3-way ternary operator
 	// flows through 2 condtions left-to-right
 	// do-nothing at the end if both conditions are false
-	norm.xy = norm.x == 8 ? uvec2(0, 1) : norm.y == 8 ? (uvec2(1, 0)) : norm.xy;
+	norm.xy = norm.x == 8 ? uvec2(0u, 1u) : norm.y == 8 ? (uvec2(1u, 0u)) : norm.xy;
 	// if an angle is 8, its component is -1.0
 	// in that case, we set the component to 1.0
 	// we then set the other angle to 1 (large component), whereas the other component should really be 0.0
@@ -84,12 +84,12 @@ float EncodeTBN16(vec3 normal) {
 }
 
 vec3 DecodeTBN16(float enc) {
-	uvec3 norm = uvec3(mod(vec3(enc * 128.0), vec3(8.0, 64.0, 128.0))) >> uvec3(0, 3, 6);
+	uvec3 norm = uvec3(mod(vec3(enc * 128.0), vec3(8.0, 64.0, 128.0))) >> uvec3(0u, 3u, 6u);
 	
 //	if (norm.y == 0 && norm.x == 1) norm.xy = uvec2(4, 8); else
 //	if (norm.x == 0 && norm.y == 1) norm.xy = uvec2(8, 4);
 	
-	norm.xy = norm.x == 0 && norm.y == 1 ? uvec2(8, 4) : norm.y == 0 && norm.x == 1 ? uvec2(4, 8) : norm.xy;
+	norm.xy = norm.x == 0 && norm.y == 1 ? uvec2(8u, 4u) : norm.y == 0 && norm.x == 1 ? uvec2(4u, 8u) : norm.xy;
 	
 	vec3 normal;
 	     normal.xy = cos(vec2(norm.xy) * PI / 8.0);
