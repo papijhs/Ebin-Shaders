@@ -46,8 +46,8 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 	
 	vec2 hand  = max0(falloff - 0.0625);
 	     hand  = mix(hand, vec2(2.0), handMask * vec2(greaterThan(viewSpacePosition.x * vec2(1.0, -1.0), vec2(0.0))));
-	     hand *= heldBlockLightValue / 16.0;
 	
+	     hand *= vec2(heldBlockLightValue, heldBlockLightValue2) / 16.0;
 	return hand.x + hand.y;
 }
 
