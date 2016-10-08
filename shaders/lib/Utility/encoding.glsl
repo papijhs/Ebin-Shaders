@@ -5,7 +5,7 @@ float Encode4x8F(in vec4 a) {
 }
 
 vec4 Decode4x8F(in float encodedbuffer) {
-	return vec4(floatBitsToUint(encodedbuffer) >> uvec4(0, 8, 16, 24) & 255) / 255.0;
+	return vec4(floatBitsToUint(encodedbuffer) >> uvec4(0, 8, 16, 24) & 255u) / 255.0;
 }
 
 float Encode16(vec2 encodedBuffer) {
