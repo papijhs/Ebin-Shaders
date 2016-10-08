@@ -70,6 +70,7 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	vec3 worldVector = normalize(position[1]);
 	
 	float sunlight = ComputeShadows(position[0], 1.0);
+	sunlight *= dot(normal, lightVector);
 	skyLightmap = clamp01(pow(skyLightmap, 4));
 	
 	vec3 upVector = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
