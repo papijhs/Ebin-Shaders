@@ -64,11 +64,11 @@ vec3 DecodeNormal(vec2 encodedNormal) {
 	return vec3(encodedNormal * g, 1.0 - f * 0.5);
 }
 
-float EncodeNormalU(vec3 normal, const uint bits) {
-	const float angles = exp2(bits) / PI;
-	const uint  pole   = uint(exp2(bits));
-	const uvec2 bitPos = uvec2(exp2(vec2(bits, bits * 2)));
-	const float range  = exp2(-float(bits * 2 + 1));
+float EncodeNormalU(vec3 normal, cuint bits) {
+	cfloat angles = exp2(bits) / PI;
+	cuint  pole   = uint(exp2(bits));
+	cuvec2 bitPos = uvec2(exp2(vec2(bits, bits * 2)));
+	cfloat range  = exp2(-float(bits * 2 + 1));
 	
 	
 	uvec3 norm = uvec3(round(acos(clamp(normal.xy, -1.0, 1.0)) * angles), normal.z >= 0.0);
@@ -78,11 +78,11 @@ float EncodeNormalU(vec3 normal, const uint bits) {
 	return float(norm.x + norm.y * bitPos.x + norm.z * bitPos.y) * range;
 }
 
-vec3 DecodeNormalU(float enc, const uint bits) {
-	const vec3  ranges = exp2(vec3(bits, bits * 2, bits * 2 + 1));
-	const uvec3 shift  = uvec3(0, bits, bits * 2);
-	const float angles = PI / exp2(bits);
-	const uvec2 pole   = uvec2(exp2(vec2(bits, bits - 1)));
+vec3 DecodeNormalU(float enc, cuint bits) {
+	cvec3  ranges = exp2(vec3(bits, bits * 2, bits * 2 + 1));
+	cuvec3 shift  = uvec3(0, bits, bits * 2);
+	cfloat angles = PI / exp2(bits);
+	cuvec2 pole   = uvec2(exp2(vec2(bits, bits - 1)));
 	
 	uvec3 norm = uvec3(mod(enc * ranges.zzz, ranges)) >> shift;
 	
@@ -95,11 +95,11 @@ vec3 DecodeNormalU(float enc, const uint bits) {
 	return normal;
 }
 
-float EncodeNormal(vec3 normal, const uint bits) {
-	const float angles = exp2(bits) / PI;
-	const float max    = exp2(bits);
-	const vec3  stack  = exp2(bits * vec3(0.0, 1.0, 2.0)) * exp2(-float(bits * 2 + 1));
-	const vec2  pole   = vec2(exp2(bits) - 1.0, 0.0);
+float EncodeNormal(vec3 normal, cuint bits) {
+	cfloat angles = exp2(bits) / PI;
+	cfloat max    = exp2(bits);
+	cvec3  stack  = exp2(bits * vec3(0.0, 1.0, 2.0)) * exp2(-float(bits * 2 + 1));
+	cvec2  pole   = vec2(exp2(bits) - 1.0, 0.0);
 	
 	
 	vec3 norm    = vec3(round(acos(clamp(normal.xy, -1.0, 1.0)) * angles), normal.z >= 0.0);
@@ -108,12 +108,12 @@ float EncodeNormal(vec3 normal, const uint bits) {
 	return dot(norm, stack);
 }
 
-vec3 DecodeNormal(float enc, const uint bits) {
-	const vec3  unstack = exp2(bits * -vec3(0.0, 1.0, 2.0));
-	const vec3  ranges  = exp2(vec3(bits, bits * 2, bits * 2 + 1));
-	const vec2  pole    = exp2(vec2(0.0, bits - 1));
-	const float max     = exp2(bits) - 2.0;
-	const float angles  = PI / exp2(bits);
+vec3 DecodeNormal(float enc, cuint bits) {
+	cvec3  unstack = exp2(bits * -vec3(0.0, 1.0, 2.0));
+	cvec3  ranges  = exp2(vec3(bits, bits * 2, bits * 2 + 1));
+	cvec2  pole    = exp2(vec2(0.0, bits - 1));
+	cfloat max     = exp2(bits) - 2.0;
+	cfloat angles  = PI / exp2(bits);
 	
 	
 	vec3 normal     = enc * ranges.zzz;
