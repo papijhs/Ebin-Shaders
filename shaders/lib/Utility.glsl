@@ -23,6 +23,8 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 #define ScreenTex(samplr) texelFetch(samplr, ivec2(gl_FragCoord.st), 0)
 
 
+#include "/lib/Utility/fastMath.glsl"
+
 #include "/lib/Utility/smoothing.glsl"
 
 #include "/lib/Utility/length.glsl"
@@ -34,8 +36,6 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 #include "/lib/Utility/rotation.glsl"
 
 #include "/lib/Utility/blending.glsl"
-
-#include "/lib/Utility/fastMath.glsl"
 
 
 float pow2(float f) {
