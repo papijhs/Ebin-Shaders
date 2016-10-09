@@ -99,7 +99,7 @@ vec3 ComputeGlobalIllumination(vec3 viewSpacePosition, vec3 normal, float skyLig
 	float depthLOD	= 2.0 * LodCoeff;
 	float sampleLOD	= 5.0 * LodCoeff;
 	
-	vec3 shadowViewPosition = transMAD(shadowViewMatrix, transMAD(gbufferModelViewInverse, viewSpacePosition));
+	vec3 shadowViewPosition = transMAD(shadowViewMatrix, mat3(gbufferModelViewInverse) * viewSpacePosition);
 	
 	vec2 basePos = shadowViewPosition.xy * diagonal3(shadowProjection).xy + shadowProjection[3].xy;
 	

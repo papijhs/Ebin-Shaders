@@ -224,7 +224,7 @@ void main() {
 	
 	mat2x3 frontPos; // Position matrices: [0] = View Space, [1] = World Space
 	frontPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth0));
-	frontPos[1] = transMAD(gbufferModelViewInverse, frontPos[0]);
+	frontPos[1] = mat3(gbufferModelViewInverse) * frontPos[0];
 	
 	
 	vec2 encode = Decode16(texture2D(colortex5, texcoord).r);
@@ -246,7 +246,7 @@ void main() {
 			vec3 tangentNormal;
 			
 			tangentNormal.xy = mask.water > 0.5 ?
-				GetWaveNormals(frontPos[0], tbnMatrix[2]) :
+				GetWaveNormals(frontPos[1], tbnMatrix[2]) :
 				Decode16(encodedNormal.y) * 2.0 - 1.0;
 			
 			tangentNormal.z = sqrt(1.0 - length2(tangentNormal.xy));
@@ -259,7 +259,7 @@ void main() {
 			depth1 = (mask.hand > 0.5 ? depth0 : GetTransparentDepth(refractedCoord));
 			
 			backPos[0] = CalculateViewSpacePosition(vec3(refractedCoord, depth1));
-			backPos[1] = transMAD(gbufferModelViewInverse, backPos[0]);
+			backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 			
 			alpha = texture2D(colortex2, refractedCoord).r;
 		}

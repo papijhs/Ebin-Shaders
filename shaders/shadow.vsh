@@ -12,8 +12,6 @@ uniform mat4 shadowProjection;
 uniform mat4 shadowProjectionInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
-uniform mat4 gbufferModelView;
-uniform mat4 gbufferModelViewInverse;
 
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
@@ -33,7 +31,7 @@ varying vec3 vertNormal;
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
 
 vec3 GetWorldSpacePositionShadow() {
-	return transMAD(shadowModelViewInverse, projMAD(shadowProjectionInverse, ftransform().xyz));
+	return transMAD(shadowModelViewInverse, transMAD(gl_ModelViewMatrix, gl_Vertex.xyz));
 }
 
 
@@ -76,8 +74,9 @@ void main() {
 	
 	
 	vec3 position = GetWorldSpacePositionShadow();
+	     position.y -= 1.62;
 	
-	position += CalculateVertexDisplacements(position, lightmapCoord.g);
+	position   += CalculateVertexDisplacements(position, lightmapCoord.g);
 	
 	gl_Position = ProjectShadowMap(position.xyzz);
 	

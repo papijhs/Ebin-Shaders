@@ -2,7 +2,7 @@
 float ComputeHardShadows(vec3 viewSpacePosition, float sunlightCoeff) {
 	if (sunlightCoeff <= 0.01) return 0.0;
 	
-	vec3 shadowPosition = BiasShadowProjection(projMAD(shadowProjection, transMAD(shadowViewMatrix, transMAD(gbufferModelViewInverse, viewSpacePosition)))) * 0.5 + 0.5;
+	vec3 shadowPosition = BiasShadowProjection(projMAD(shadowProjection, transMAD(shadowViewMatrix, mat3(gbufferModelViewInverse) * viewSpacePosition))) * 0.5 + 0.5;
 	
 	if (any(greaterThan(abs(shadowPosition.xyz - 0.5), vec3(0.5)))) return 1.0;
 	
