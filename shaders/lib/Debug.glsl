@@ -12,13 +12,11 @@ vec3 Debug;
 
 void show(bool x) { Debug = vec3(float(x)); }
 void show(float x) { Debug = vec3(x); }
-void show(float x, float y) { Debug = vec3(x, y, 0.0); }
-void show(float x, float y, float z) { Debug = vec3(x, y, z); }
-void show(float x, vec2 y) { Debug = vec3(x, y); }
-void show(vec2 x, float y) { Debug = vec3(x, y); }
 void show(vec2 x) { Debug = vec3(x, 0.0); }
 void show(vec3 x) { Debug = x; }
 void show(vec4 x) { Debug = x.rgb; }
+
+#define show(x) show(x);
 
 #if ShaderStage == -2
 	#undef Debug
