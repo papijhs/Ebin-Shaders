@@ -40,7 +40,7 @@ vec2 GetDefaultLightmap(vec2 lightmapCoord) { // Gets the lightmap from the defa
 #include "/lib/Vertex/Materials.vsh"
 
 vec3 GetWorldSpacePosition() {
-	return transMAD(gbufferModelViewInverse, transMAD(gl_ModelViewMatrix, gl_Vertex.xyz));
+	return mat3(gbufferModelViewInverse) * transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
 }
 
 vec4 ProjectViewSpace(vec3 viewSpacePosition) {
@@ -93,7 +93,7 @@ void main() {
 	
 	position += CalculateVertexDisplacements(position, vertLightmap.g);
 	
-	viewSpacePosition = transMAD(gbufferModelView, position);
+	viewSpacePosition = mat3(gbufferModelView) * position;
 	
 	gl_Position = ProjectViewSpace(viewSpacePosition);
 	
