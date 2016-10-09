@@ -27,7 +27,6 @@ varying float materialIDs;
 
 varying float tbnIndex;
 
-#include "/lib/Misc/Menu_Initializer.glsl"
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
