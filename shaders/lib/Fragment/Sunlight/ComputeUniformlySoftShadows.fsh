@@ -4,7 +4,7 @@ float ComputeUniformlySoftShadows(vec3 viewSpacePosition, float sunlightCoeff) {
 	
 	float biasCoeff;
 	
-	vec3 shadowPosition = BiasShadowProjection(projMAD(shadowProjection, transMAD(shadowViewMatrix, mat3(gbufferModelViewInverse) * viewSpacePosition)), biasCoeff) * 0.5 + 0.5;
+	vec3 shadowPosition = BiasShadowProjection(projMAD(shadowProjection, transMAD(shadowViewMatrix, transMAD(gbufferModelViewInverse, viewSpacePosition))), biasCoeff) * 0.5 + 0.5;
 	
 	if (any(greaterThan(abs(shadowPosition.xyz - 0.5), vec3(0.5)))) return 1.0;
 	
