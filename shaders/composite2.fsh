@@ -212,10 +212,8 @@ void main() {
 			vec3 tangentNormal;
 			
 			tangentNormal.xy = mask.water > 0.5 ?
-
-			GetWaveNormals(frontPos[1], tbnMatrix[2]) :
+			GetWaveNormals(frontPos[0], tbnMatrix[2]) :
 			Decode16(encodedNormal.y) * 2.0 - 1.0;
-
 			
 			tangentNormal.z = sqrt(1.0 - length2(tangentNormal.xy));
 			
