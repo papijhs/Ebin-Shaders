@@ -89,8 +89,6 @@ const int noiseTextureResolution = 64;
 	#define GI_ENABLED
 #endif
 
-//#define WATER_PARALLAX
-
 #define REFLECTION_EDGE_FALLOFF
 
 #define WAVE_MULT 1.0
