@@ -13,6 +13,8 @@ struct Mask {
 	float transparent;
 };
 
+#define EmptyMask Mask(0.0, 0.0, vec4(0.0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
 float EncodeMaterialIDs(float materialIDs, vec4 bits) {
 	materialIDs += dot(vec4(greaterThan(bits, vec4(0.5))), vec4(128.0, 64.0, 32.0, 16.0));
 	
