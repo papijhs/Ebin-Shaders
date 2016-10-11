@@ -138,21 +138,22 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	
 	if (length(alpha) < 0.005) return;
 	
+	mat2x3 refRay;
+	refRay[0] = reflect(position[0], normal);
+	refRay[1] = mat3(gbufferModelViewInverse) * refRay[0];
 	
-	vec3  refViewRay  = reflect(position[0], normal);
-	vec3  refWorldRay = transMAD(gbufferModelViewInverse, refViewRay);
 	float firstStepSize = mix(1.0, 30.0, pow2(length(position[1].xz) / 144.0));
 	vec3  reflectedCoord;
 	vec3  reflectedViewSpacePosition;
 	vec3  reflection;
 	
-	float sunlight = ComputeShadows(position[0], 1.0);
+	float sunlight = ComputeShadows(position[1], 1.0);
 	
-	vec3 reflectedSky = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true, sunlight);
+	vec3 reflectedSky = CalculateSky(refRay, position[1], 1.0, true, sunlight);
 	
 	vec3 offscreen = reflectedSky * skyLightmap;
 	
-	if (!ComputeRaytracedIntersection(position[0], normalize(refViewRay), firstStepSize, 1.5, 30, 1, reflectedCoord, reflectedViewSpacePosition))
+	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.5, 30, 1, reflectedCoord, reflectedViewSpacePosition))
 		reflection = offscreen;
 	else {
 		reflection = GetColor(reflectedCoord.st);
@@ -265,7 +266,7 @@ void main() {
 		}
 	}
 	
-	vec3 sky = CalculateSky(backPos[0], backPos[1], vec3(0.0), 1.0 - alpha, false, 1.0);
+	vec3 sky = CalculateSky(backPos, vec3(0.0), 1.0 - alpha, false, 1.0);
 	
 	if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
 	

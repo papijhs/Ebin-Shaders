@@ -157,12 +157,16 @@ void main() {
 	
 	vec3 diffuse = GetDiffuse(texcoord);
 	vec3 viewSpacePosition0 = CalculateViewSpacePosition(vec3(texcoord, depth0));
-	vec3 viewSpacePosition1 = CalculateViewSpacePosition(vec3(texcoord, depth1));
 	
-	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, smoothness, viewSpacePosition1);
+	mat2x3 backPos;
+	backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
+	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
+	
+	
+	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, smoothness, backPos);
 	     composite *= pow(diffuse * 1.2, vec3(2.8));
 	
-	if (mask.water > 0.5 || isEyeInWater == 1) composite = WaterFog(composite, viewSpacePosition0, viewSpacePosition1);
+	if (mask.water > 0.5 || isEyeInWater == 1) composite = WaterFog(composite, viewSpacePosition0, backPos[0]);
 	
 	gl_FragData[0] = vec4(max0(composite), 1.0);
 	

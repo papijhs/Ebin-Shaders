@@ -11,15 +11,15 @@ varying vec3 color;
 varying vec2 texcoord;
 
 varying mat3 tbnMatrix;
+
+varying mat2x3 position;
+
+varying vec3 worldNormal;
+
 varying vec2 vertLightmap;
 
 varying float mcID;
 varying float materialIDs;
-
-varying vec3 viewSpacePosition;
-varying vec3 worldPosition;
-
-varying vec3 worldNormal;
 varying float tbnIndex;
 
 #include "/lib/Settings.glsl"
@@ -89,19 +89,15 @@ void main() {
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
 	tbnIndex     = EncodePlanarTBN(gl_Normal);
 	
-	vec3 position = GetWorldSpacePosition();
+	position[1]  = GetWorldSpacePosition();
+	position[1] += CalculateVertexDisplacements(position[1], vertLightmap.g);
+	position[0]  = mat3(gbufferModelView) * position[1];
 	
-	position += CalculateVertexDisplacements(position, vertLightmap.g);
-	
-	viewSpacePosition = mat3(gbufferModelView) * position;
-	
-	gl_Position = ProjectViewSpace(viewSpacePosition);
+	gl_Position = ProjectViewSpace(position[0]);
 	
 	
 	worldNormal = mat3(gbufferModelViewInverse) * gl_NormalMatrix * normalize(gl_Normal);
 	tbnMatrix   = CalculateTBN();
-	
-	worldPosition = position + cameraPosition;
 	
 	
 #if defined gbuffers_water

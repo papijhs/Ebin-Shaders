@@ -6,6 +6,7 @@ vec3 CalculateVertexDisplacements(vec3 worldSpacePosition, float skyLightmap) {
 	float skylightWeight = skyLightmap;
 	float grassWeight    = float(fract(texcoord.t * 64.0) < 0.01);
 	
+#if defined gbuffers_terrain || defined gbuffers_shadow
 	switch(int(mc_Entity.x)) {
 		case 31:
 		case 37:
@@ -17,6 +18,7 @@ vec3 CalculateVertexDisplacements(vec3 worldSpacePosition, float skyLightmap) {
 		case 9:
 		case 111: wave += GetWavingWater(worldSpacePosition, 1.0); break;
 	}
+#endif
 	
 	return wave;
 }
