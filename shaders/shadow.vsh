@@ -8,6 +8,7 @@
 attribute vec4 mc_Entity;
 attribute vec4 at_tangent;
 
+uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowProjection;
 uniform mat4 shadowProjectionInverse;
 uniform mat4 shadowModelView;
@@ -74,10 +75,8 @@ void main() {
 	vertNormal    = normalize(mat3(shadowViewMatrix) * gl_Normal);
 	
 	
-	vec3 position = GetWorldSpacePositionShadow();
-	     position.y -= 1.62;
-	
-	position   += CalculateVertexDisplacements(position, lightmapCoord.g);
+	vec3 position  = GetWorldSpacePositionShadow();
+	     position += CalculateVertexDisplacements(position, lightmapCoord.g);
 	
 	gl_Position = ProjectShadowMap(position.xyzz);
 	

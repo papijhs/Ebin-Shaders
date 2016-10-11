@@ -1,37 +1,27 @@
 #ifndef PBR
-void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap, Mask mask) {
+void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
 	if (isEyeInWater == 1) return;
 	
-	vec3  refViewRay  = reflect(position[0], normal);
-	vec3  refWorldRay = transMAD(gbufferModelViewInverse, refViewRay);
+	float alpha = (pow2(min1(1.0 + dot(normalize(position[0]), normal))) * 0.99 + 0.01) * smoothness;
+	
+	if (length(alpha) < 0.005) return;
+	
+	mat2x3 refRay;
+	refRay[0] = reflect(position[0], normal);
+	refRay[1] = mat3(gbufferModelViewInverse) * refRay[0];
+	
 	float firstStepSize = mix(1.0, 30.0, pow2(length(position[1].xz) / 144.0));
 	vec3  reflectedCoord;
 	vec3  reflectedViewSpacePosition;
 	vec3  reflection;
 	
-	float roughness = 1.0 - smoothness;
+	float sunlight = ComputeShadows(position[1], 1.0);
 	
-	vec3 viewVector = -normalize(position[0]);
-	vec3 halfVector = normalize(lightVector - viewVector);
-	
-	float vdoth = clamp01(dot(viewVector, halfVector));
-	
-	cfloat F0 = 0.15; // To be replaced with metallic
-	
-	float lightFresnel = Fresnel(F0, vdoth);
-	
-	vec3 alpha = vec3(lightFresnel * smoothness) * 0.25;
-	
-	if (length(alpha) < 0.005) return;
-	
-	
-	float sunlight = ComputeShadows(position[0], 1.0);
-	
-	vec3 reflectedSky = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true, 1.0).rgb;
+	vec3 reflectedSky = CalculateSky(refRay, position[1], 1.0, true, sunlight);
 	
 	vec3 offscreen = reflectedSky * skyLightmap;
 	
-	if (!ComputeRaytracedIntersection(position[0], normalize(refViewRay), firstStepSize, 1.55, 30, 1, reflectedCoord, reflectedViewSpacePosition))
+	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.5, 30, 1, reflectedCoord, reflectedViewSpacePosition))
 		reflection = offscreen;
 	else {
 		reflection = GetColor(reflectedCoord.st);
@@ -82,24 +72,18 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 		vec3 BRDFSkew = skew(epsilon, alpha);
 		vec3 microFacetNormal = normalize(BRDFSkew.x * tanX + BRDFSkew.y * tanY + BRDFSkew.z * normal);
 
-		vec3 rayDirection = normalize(-reflect(viewVector, microFacetNormal));
-		vec3 worldRayDir = normalize(reflect(worldVector, mat3(gbufferModelViewInverse) * microFacetNormal));
-		vec3 refViewRay   = reflect(position[0], microFacetNormal);
-		vec3 refWorldRay  = transMAD(gbufferModelViewInverse, refViewRay);
+		mat2x3 refRay;
+		refRay[0] = reflect(position[0], microFacetNormal);
+		refRay[1] = transMAD(gbufferModelViewInverse, refRay[0]);
 
-		float raySpecular = specularBRDF(rayDirection, microFacetNormal, F0, viewVector, sqrt(roughness));
+		float raySpecular = specularBRDF(normalize(refRay[0]), microFacetNormal, F0, viewVector, sqrt(roughness));
 
-		#ifdef USE_SKYBOX
-			vec3 reflectedAmbient = ProjectEquirectangularPositions(colortex6, rEnv(normalize(worldRayDir)), 0.0);
-			reflectedAmbient = DecodeColor(reflectedAmbient);
-		#else
-			vec3 reflectedAmbient = CalculateSky(refViewRay, refWorldRay, position[1], 1.0, true, sunlight).rgb;
-		#endif
+		vec3 reflectedAmbient = CalculateSky(refRay, position[1], 1.0, true, sunlight);
 
 		reflectedAmbient *= skyLightmap * raySpecular;
 		reflectedAmbient += mask.metallic * (1.0 - skyLightmap) * 0.15;
 		
-		if (!ComputeRaytracedIntersection(position[0], rayDirection, firstStepSize, 1.25, 25, 1, reflectedCoord, reflectedViewSpacePosition)) {
+		if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.25, 25, 1, reflectedCoord, reflectedViewSpacePosition)) {
 			reflection += reflectedAmbient;
 		} else {
 			vec3 colorSample = GetColorLod(reflectedCoord.st, roughness * 4.0);

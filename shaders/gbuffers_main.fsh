@@ -16,15 +16,14 @@ varying vec2 texcoord;
 
 varying mat3 tbnMatrix;
 
-varying vec3 viewSpacePosition;
-varying vec3 worldPosition;
+varying mat2x3 position;
+
 varying vec3 worldNormal;
 
 varying vec2 vertLightmap;
 
 varying float mcID;
 varying float materialIDs;
-
 varying float tbnIndex;
 
 #include "/lib/Settings.glsl"
@@ -79,8 +78,8 @@ vec3 GetTangentNormal() {
 #include "/lib/Misc/Get3DNoise.glsl"
 
 float GetRainAlpha(float height, float skyLightmap) {
-	float randWaterSpot  = Get3DNoise(worldPosition);
-	      randWaterSpot += Get3DNoise(worldPosition / 4.0) * 2.0;
+	float randWaterSpot  = Get3DNoise(position[1]);
+	      randWaterSpot += Get3DNoise(position[1] / 4.0) * 2.0;
 	
 	float heightOffset = max(0.25, (1.0 - height) * 0.2 + randWaterSpot * 0.8);
 	
@@ -157,9 +156,9 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 }
 
 void main() {
-	if (CalculateFogFactor(viewSpacePosition, FOG_POWER) >= 1.0) discard;
+	if (CalculateFogFactor(position[0], FOG_POWER) >= 1.0) discard;
 	
-	vec2 coord = ComputeParallaxCoordinate(texcoord, viewSpacePosition);
+	vec2 coord = ComputeParallaxCoordinate(texcoord, position[0]);
 	
 	vec4 diffuse = GetDiffuse(coord);
 	if (diffuse.a < 0.1000003) discard;
@@ -194,7 +193,8 @@ void main() {
 	
 	if (abs(mcID - 8.5) < 0.6) diffuse = vec4(0.215, 0.356, 0.533, 0.75);
 	
-	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz, specularity.r, viewSpacePosition);
+
+	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz, specularity.r, position);
 	     composite *= pow(diffuse.rgb, vec3(2.2));
 	
 	gl_FragData[0] = vec4(encodedNormal, encode, 1.0);

@@ -16,11 +16,15 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 #define diagonal2(mat) vec2(mat[0].x, mat[1].y)
 #define diagonal3(mat) vec3(mat[0].x, mat[1].y, mat[2].z)
 
-#define transMAD(mat, v) (mat3(mat) * v + mat[3].xyz)
-#define  projMAD(mat, v) (v * diagonal3(mat) + mat[3].xyz)
+#define transMAD(mat, v) (     mat3(mat) * (v) + mat[3].xyz)
+#define  projMAD(mat, v) (diagonal3(mat) * (v) + mat[3].xyz)
 
 #define textureRaw(samplr, coord) texelFetch(samplr, ivec2(coord * vec2(viewWidth, viewHeight)), 0)
 #define ScreenTex(samplr) texelFetch(samplr, ivec2(gl_FragCoord.st), 0)
+
+#if !defined gbuffers_shadow
+	#define cameraPosition (cameraPosition + gbufferModelViewInverse[3].xyz)
+#endif
 
 
 #include "/lib/Utility/smoothing.glsl"

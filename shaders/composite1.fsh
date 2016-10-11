@@ -4,7 +4,7 @@
 #define ShaderStage 1
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:1456 */
+/* DRAWBUFFERS:145 */
 
 const bool colortex6MipmapEnabled = true;
 
@@ -110,23 +110,8 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 }
 
 #include "lib/Fragment/WaterDepthFog.fsh"
-#include "/lib/Fragment/Sky.fsh"
-#include "lib/Misc/EquirectangularProjection.glsl"
-
-vec3 projectSky(vec2 coord) {
-	vec3 position = rEnv(CalculateEquirectangularPosition(coord));
-	vec3 sky = CalculateSky(transMAD(gbufferModelView, position), position, vec3(0.0), 1.0, true, 1.0);
-
-	return EncodeColor(sky);
-}
 
 void main() {
-
-	#ifdef USE_SKYBOX
-	vec3 projSky = projectSky(texcoord);
-	gl_FragData[3] = vec4(projSky, 1.0);
-	#endif
-
 	float depth0 = GetDepth(texcoord);
 	if (depth0 >= 1.0) { discard; }
 	
@@ -174,12 +159,16 @@ void main() {
 	
 	vec3 diffuse = GetDiffuse(texcoord);
 	vec3 viewSpacePosition0 = CalculateViewSpacePosition(vec3(texcoord, depth0));
-	vec3 viewSpacePosition1 = CalculateViewSpacePosition(vec3(texcoord, depth1));
 	
-	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, smoothness, viewSpacePosition1);
+	mat2x3 backPos;
+	backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
+	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
+	
+	
+	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, smoothness, backPos);
 	     composite *= pow(diffuse * 1.2, vec3(2.8));
 	
-	if (mask.water > 0.5 || isEyeInWater == 1) composite = WaterFog(composite, viewSpacePosition0, viewSpacePosition1);
+	if (mask.water > 0.5 || isEyeInWater == 1) composite = WaterFog(composite, viewSpacePosition0, backPos[0]);
 	
 	gl_FragData[0] = vec4(max0(composite), 1.0);
 	

@@ -135,6 +135,7 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 #include "/lib/Fragment/Sunlight/ComputeUniformlySoftShadows.fsh"
 #include "/lib/Fragment/Reflectance_Models.fsh"
 
+
 #include "/lib/Fragment/Reflection_Functions.fsh"
 
 vec2 GetRefractedCoord(vec2 coord, vec3 viewSpacePosition, vec3 tangentNormal) {
@@ -232,8 +233,9 @@ void main() {
 		}
 	}
 	
-	vec3 sky = CalculateSky(backPos[0], backPos[1], vec3(0.0), 1.0 - alpha, false, 0.0);
 
+	vec3 sky = CalculateSky(backPos, vec3(0.0), 1.0 - alpha, false, 1.0);
+	
 	if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
 	
 	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }

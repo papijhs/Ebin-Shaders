@@ -80,26 +80,26 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 
 #ifndef GI_ENABLED
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
-#else
-vec3 ComputeGlobalIllumination(vec3 viewSpacePosition, vec3 normal, float skyLightmap, cfloat radius, vec2 noise, Mask mask) {
+#elif GI_MODE == 1
+vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLightmap, cfloat radius, vec2 noise, Mask mask) {
 	float lightMult = skyLightmap;
 	
 #ifdef GI_BOOST
 	float sunlight  = GetLambertianShading(normal, mask);
 	      sunlight *= skyLightmap;
-	      sunlight  = ComputeHardShadows(viewSpacePosition, sunlight);
+	      sunlight  = ComputeHardShadows(worldSpacePosition, sunlight);
 	
 	lightMult = 1.0 - sunlight * 4.0;
 #endif
 	
 	if (lightMult < 0.05) return vec3(0.0);
 	
-	float LodCoeff = clamp01(1.0 - length(viewSpacePosition) / shadowDistance);
+	float LodCoeff = clamp01(1.0 - length(worldSpacePosition) / shadowDistance);
 	
 	float depthLOD	= 2.0 * LodCoeff;
 	float sampleLOD	= 5.0 * LodCoeff;
 	
-	vec3 shadowViewPosition = transMAD(shadowViewMatrix, mat3(gbufferModelViewInverse) * viewSpacePosition);
+	vec3 shadowViewPosition = transMAD(shadowViewMatrix, worldSpacePosition + gbufferModelViewInverse[3].xyz);
 	
 	vec2 basePos = shadowViewPosition.xy * diagonal3(shadowProjection).xy + shadowProjection[3].xy;
 	
@@ -173,7 +173,9 @@ void main() {
 	
 	float depth1 = (mask.hand > 0.5 ? depth0 : textureRaw(depthtex1, texcoord).x);
 	
-	vec3 viewSpacePosition1 = CalculateViewSpacePosition(vec3(texcoord, depth1));
+	mat2x3 backPos;
+	backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
+	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
 	if (depth0 != depth1) {
 		mask.transparent = 1.0;
@@ -187,7 +189,7 @@ void main() {
 		{ gl_FragData[0] = vec4(vec3(0.0), 1.0); exit(); return; }
 	
 	
-	vec3 GI = ComputeGlobalIllumination(viewSpacePosition1, normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
+	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
 	
 	
 	gl_FragData[0] = vec4(pow(GI * 0.2, vec3(1.0 / 2.2)), 1.0);
