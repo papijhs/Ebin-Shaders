@@ -35,7 +35,7 @@ void DecodeMaterialIDs(inout float matID, out vec4 bits) {
 }
 
 float GetMaterialMask(float mask, float materialID) {
-	return float(abs(materialID - mask) < 0.5);
+	return 1.0 - clamp01(abs(materialID - mask));
 }
 
 Mask CalculateMasks(float materialIDs) {

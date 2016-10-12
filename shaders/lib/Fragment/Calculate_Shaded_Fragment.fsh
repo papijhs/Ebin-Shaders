@@ -25,7 +25,7 @@ struct Lightmap { // Vector light levels with color
 
 
 float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
-	mat2x3 lightPos = mat2x3(
+	const mat2x3 lightPos = mat2x3(
 	     0.16, -0.05, -0.1,
 	    -0.16, -0.05, -0.1);
 	
@@ -35,7 +35,7 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 	
 	vec2 falloff = vec2(inversesqrt(length2(lightRay[0])), inversesqrt(length2(lightRay[1])));
 	
-	falloff *= max0(vec2(dot(normal, lightPos[0] * falloff[0]), dot(normal, lightPos[1] * falloff[1]))) * 0.35 + 0.65;
+	falloff *= clamp01(vec2(dot(normal, lightPos[0] * falloff[0]), dot(normal, lightPos[1] * falloff[1]))) * 0.35 + 0.65;
 	
 	vec2 hand  = max0(falloff - 0.0625);
 	     hand  = mix(hand, vec2(2.0), handMask * vec2(greaterThan(viewSpacePosition.x * vec2(1.0, -1.0), vec2(0.0))));
