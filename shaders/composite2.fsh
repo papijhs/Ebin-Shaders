@@ -133,10 +133,10 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 #include "lib/Misc/EquirectangularProjection.glsl"
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight/ComputeUniformlySoftShadows.fsh"
-#include "/lib/Fragment/Reflectance_Models.fsh"
-
+#include "/lib/Fragment/Sunlight/GetSunlightShading.fsh"
 
 #include "/lib/Fragment/Reflection_Functions.fsh"
+
 
 vec2 GetRefractedCoord(vec2 coord, vec3 viewSpacePosition, vec3 tangentNormal) {
 	vec4 screenSpacePosition = projMatrix * vec4(viewSpacePosition, 1.0);

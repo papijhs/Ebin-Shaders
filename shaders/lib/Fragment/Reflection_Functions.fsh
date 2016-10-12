@@ -1,5 +1,5 @@
 #ifndef PBR
-void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
+void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap, Mask mask) {
 	if (isEyeInWater == 1) return;
 	
 	float alpha = (pow2(min1(1.0 + dot(normalize(position[0]), normal))) * 0.99 + 0.01) * smoothness;
@@ -15,7 +15,7 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	vec3  reflectedViewSpacePosition;
 	vec3  reflection;
 	
-	float sunlight = ComputeShadows(position[1], 1.0);
+	float sunlight = ComputeShadows(position[1], 1.0) * GetLambertianShading(normal);
 	
 	vec3 reflectedSky = CalculateSky(refRay, position[1], 1.0, true, sunlight);
 	
