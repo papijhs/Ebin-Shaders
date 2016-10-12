@@ -59,8 +59,7 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	vec3 viewVector = -normalize(position[0]);
 	vec3 worldVector = normalize(position[1]);
 	
-	float sunlight = ComputeShadows(position[0], 1.0);
-	sunlight *= dot(normal, lightVector);
+	float sunlight = ComputeShadows(position[1], 1.0) * GetLambertianShading(normal);
 	skyLightmap = clamp01(pow(skyLightmap, 4));
 	
 	vec3 upVector = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
@@ -86,10 +85,7 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 		if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.25, 25, 1, reflectedCoord, reflectedViewSpacePosition)) {
 			reflection += reflectedAmbient;
 		} else {
-			vec3 colorSample = GetColorLod(reflectedCoord.st, roughness * 4.0);
-			colorSample = mix(colorSample, reflectedAmbient, CalculateFogFactor(reflectedViewSpacePosition, FOG_POWER));
-
-			reflection += colorSample * raySpecular;
+			reflection += mix(GetColor(reflectedCoord.st) * raySpecular, reflectedAmbient, CalculateFogFactor(reflectedViewSpacePosition, FOG_POWER));
 		}
 	}
 
