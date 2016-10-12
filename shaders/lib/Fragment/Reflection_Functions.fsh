@@ -45,22 +45,15 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	if (isEyeInWater == 1) return;
 	
 	float firstStepSize = mix(1.0, 30.0, pow2(length(position[1].xz) / 144.0));
-	vec3  reflectedCoord;
-	vec3  reflectedViewSpacePosition;
-	vec3  reflection;
+	mat2x3 refRay;
+	vec3  reflectedCoord, reflectedViewSpacePosition, reflection;
 	
 	float roughness = 1.0 - smoothness;
-	float alpha = pow2(roughness);
-	float alpha2 = pow2(alpha);
 	
-	float F0 = undefF0;
-	F0 = F0Calc(F0, mask.metallic);
-	
+	float F0 = F0Calc(undefF0, mask.metallic);
 	vec3 viewVector = -normalize(position[0]);
-	vec3 worldVector = normalize(position[1]);
 	
 	float sunlight = ComputeShadows(position[1], 1.0) * GetLambertianShading(normal);
-	skyLightmap = clamp01(pow(skyLightmap, 4));
 	
 	vec3 upVector = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
 	vec3 tanX = normalize(cross(upVector, normal));
@@ -68,18 +61,18 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 
 	for (uint i = 0u; i < PBR_RAYS; i++) {
 		vec2 epsilon = Hammersley(i + 1, PBR_RAYS + 1);
-		vec3 BRDFSkew = skew(epsilon, alpha);
+		vec3 BRDFSkew = skew(epsilon, pow2(roughness));
 		vec3 microFacetNormal = normalize(BRDFSkew.x * tanX + BRDFSkew.y * tanY + BRDFSkew.z * normal);
 
-		mat2x3 refRay;
 		refRay[0] = reflect(position[0], microFacetNormal);
 		refRay[1] = transMAD(gbufferModelViewInverse, refRay[0]);
 
 		float raySpecular = specularBRDF(normalize(refRay[0]), microFacetNormal, F0, viewVector, sqrt(roughness));
+		if(raySpecular < 0.005) return;
 
-		vec3 reflectedAmbient = CalculateSky(refRay, position[1], 1.0, true, sunlight);
+		vec3 reflectedAmbient = CalculateSky(refRay, position[1], 1.0, true, sunlight) * raySpecular;
+		reflectedAmbient *= skyLightmap;
 
-		reflectedAmbient *= skyLightmap * raySpecular;
 		reflectedAmbient += mask.metallic * (1.0 - skyLightmap) * 0.15;
 		
 		if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.25, 25, 1, reflectedCoord, reflectedViewSpacePosition)) {
@@ -90,7 +83,6 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	}
 
 	reflection /= float(PBR_RAYS);
-
 	reflection = BlendMaterial(color, reflection, F0);
 
 	color = max0(reflection);
