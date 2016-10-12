@@ -67,6 +67,7 @@ vec3 ComputeBloom() {
 	return max(bloom, vec3(0.0));
 }
 
+#include "/lib/Fragment/CameraLens.fsh"
 
 void main() {
 	gl_FragData[0] = vec4(pow(ComputeBloom(), vec3(1.0 / 2.2)), 1.0);
