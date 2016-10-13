@@ -1,4 +1,6 @@
 vec3 UserDeformation(vec3 position) {
+	position.xy = rotate(position.xy, position.z * 0.04);
+	
 	return position;
 }
 

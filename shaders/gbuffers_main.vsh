@@ -54,11 +54,17 @@ vec4 ProjectViewSpace(vec3 viewSpacePosition) {
 #include "/lib/Vertex/Waving.vsh"
 #include "/lib/Vertex/Vertex_Displacements.vsh"
 
-mat3 CalculateTBN() {
-	vec3 tangent = normalize(gl_NormalMatrix * at_tangent.xyz);
-	vec3 normal  = normalize(gl_NormalMatrix * gl_Normal);
+mat3 CalculateTBN(vec3 worldPosition, vec3 displacement) {
+	vec3 tangent  = normalize(at_tangent.xyz);
+	vec3 binormal = normalize(-cross(gl_Normal, at_tangent.xyz));
 	
-	vec3 binormal = -cross(normal, tangent);
+	tangent  += CalculateVertexDisplacements(worldPosition +  tangent, vertLightmap.g) - displacement;
+	binormal += CalculateVertexDisplacements(worldPosition + binormal, vertLightmap.g) - displacement;
+	
+	tangent  = normalize(gl_NormalMatrix *  tangent);
+	binormal = normalize(gl_NormalMatrix * binormal);
+	
+	vec3 normal = cross(-tangent, binormal);
 	
 	return mat3(tangent, binormal, normal);
 }
@@ -89,15 +95,17 @@ void main() {
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
 	tbnIndex     = EncodePlanarTBN(gl_Normal);
 	
-	position[1]  = GetWorldSpacePosition();
-	position[1] += CalculateVertexDisplacements(position[1], vertLightmap.g);
-	position[0]  = mat3(gbufferModelView) * position[1];
+	vec3 worldSpacePosition = GetWorldSpacePosition();
+	vec3 worldDisplacement  = CalculateVertexDisplacements(worldSpacePosition, vertLightmap.g);
+	
+	position[1] = worldSpacePosition + worldDisplacement;
+	position[0] = mat3(gbufferModelView) * position[1];
 	
 	gl_Position = ProjectViewSpace(position[0]);
 	
 	
 	worldNormal = mat3(gbufferModelViewInverse) * gl_NormalMatrix * normalize(gl_Normal);
-	tbnMatrix   = CalculateTBN();
+	tbnMatrix   = CalculateTBN(worldSpacePosition, worldDisplacement);
 	
 	
 #if defined gbuffers_water
