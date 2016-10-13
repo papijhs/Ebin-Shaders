@@ -102,6 +102,10 @@ const int noiseTextureResolution = 64;
 #define PBR_DISTROBUTION_MODEL 3 // [1 2 3]
 #define PBR_Diffuse 3 // [1 2 3 4 5]
 
+//#define DEFORM
+#define DEFORMATION 1 // [1 2 3]
+
+
 
 #define CUSTOM_HORIZON_HEIGHT
 #define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]

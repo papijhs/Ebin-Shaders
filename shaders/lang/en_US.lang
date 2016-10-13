@@ -175,6 +175,7 @@ option.FRESNEL.comment=How much more reflectance at grazing angles. we give an o
 option.PBR_RAYS=PBR Rays
 option.PBR_RAYS.comment=The number of rays that are sent per pixel, the more rays the higher quality.
 
+
 option.PBR_GEOMETRY_MODEL=PBR Geometry Model
 option.PBR_GEOMETRY_MODEL.comment=This is an advanced option! Different geometry models interact with direct light differently. 1: Implict. 2: Newmann. 3: Cook Torrance. 4: Smith. 5: GGX - PBR. 6: Schlick Beckmann - PBR.
 
@@ -190,6 +191,18 @@ option.WATER_PARALLAX=Water Parallax
 option.CUSTOM_HORIZON_HEIGHT=Custom Horizon Height
 
 option.HORIZON_HEIGHT=Horizon Height
+
+option.CUSTOM_TIME_MISC=[3] Misc Time Effect
+option.CUSTOM_TIME_MISC.comment=1: Old North (Retro Sun Direction). 2: User rotation
+
+
+screen.Deform=Terrain Deformation
+
+option.DEFORM=Terrain Deformation
+
+option.DEFORMATION=Deformation Type
+option.DEFORMATION.comment=1: Planetoid. 2: Acid. 3: User deformation
+
 
 
 screen.Misc=Misc
