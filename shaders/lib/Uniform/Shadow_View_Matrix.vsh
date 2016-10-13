@@ -20,7 +20,7 @@
 		twistAngle = 0.0;
 		
 		
-		UserRotation();
+		TimeOverride();
 		
 		
 		isNight = float(mod(timeAngle, 360.0) > 180.0 != mod(abs(pathRotationAngle) + 90.0, 360.0) > 180.0); // When they're not both above or below the horizon

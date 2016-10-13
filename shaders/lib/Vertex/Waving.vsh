@@ -58,3 +58,5 @@ vec3 GetWavingWater(vec3 position, float magnitude) {
 	
 	return wave * magnitude;
 }
+
+#include "/UserProgram/Terrain_Deformation.vsh"

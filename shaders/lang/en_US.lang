@@ -175,7 +175,15 @@ option.CUSTOM_DAY_NIGHT=[2] Day/Night Only
 option.CUSTOM_DAY_NIGHT.comment=1: Day only. 2: Night only
 
 option.CUSTOM_TIME_MISC=[3] Misc Time Effect
-option.CUSTOM_TIME_MISC.comment=1: Old North (Retro Sun Direction). 2: Debug
+option.CUSTOM_TIME_MISC.comment=1: Old North (Retro Sun Direction). 2: User rotation
+
+
+screen.Deform=Terrain Deformation
+
+option.DEFORM=Terrain Deformation
+
+option.DEFORMATION=Deformation Type
+option.DEFORMATION.comment=1: Planetoid. 2: Acid. 3: User deformation
 
 
 screen.Misc=Misc

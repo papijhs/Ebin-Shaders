@@ -90,6 +90,9 @@ const int noiseTextureResolution = 64;
 #define WAVE_MULT 1.0
 #define WAVE_SPEED 0.35
 
+#define DEFORM
+#define DEFORMATION 1 // [1 2 3]
+
 
 #define CUSTOM_HORIZON_HEIGHT
 #define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]

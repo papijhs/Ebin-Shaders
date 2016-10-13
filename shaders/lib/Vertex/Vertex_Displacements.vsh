@@ -1,5 +1,5 @@
 vec3 CalculateVertexDisplacements(vec3 worldSpacePosition, float skyLightmap) {
-	worldSpacePosition += cameraPosition.xyz;
+	vec3 worldPosition = worldSpacePosition + cameraPosition;
 	
 	vec3 wave = vec3(0.0);
 	
@@ -10,14 +10,16 @@ vec3 CalculateVertexDisplacements(vec3 worldSpacePosition, float skyLightmap) {
 		case 31:
 		case 37:
 		case 38:
-		case 59:  wave += GetWavingGrass(worldSpacePosition, skyLightmap * grassWeight); break;
+		case 59:  wave += GetWavingGrass(worldPosition, skyLightmap * grassWeight); break;
 		case 18:
-		case 161: wave += GetWavingLeaves(worldSpacePosition, skyLightmap); break;
+		case 161: wave += GetWavingLeaves(worldPosition, skyLightmap); break;
 		case 8:
 		case 9:
-		case 111: wave += GetWavingWater(worldSpacePosition, 1.0); break;
+		case 111: wave += GetWavingWater(worldPosition, 1.0); break;
 	}
 #endif
+	
+	wave += TerrainDeformation(worldSpacePosition) - worldSpacePosition;
 	
 	return wave;
 }
