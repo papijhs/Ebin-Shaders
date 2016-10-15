@@ -23,7 +23,9 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 #define ScreenTex(samplr) texelFetch(samplr, ivec2(gl_FragCoord.st), 0)
 
 #if !defined gbuffers_shadow
-	#define cameraPosition (cameraPosition + gbufferModelViewInverse[3].xyz)
+	#define cameraPosition (mod(cameraPosition, vec3(100000.0)) + gbufferModelViewInverse[3].xyz)
+#else
+	#define cameraPosition mod(cameraPosition, vec3(100000.0))
 #endif
 
 
