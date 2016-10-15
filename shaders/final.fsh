@@ -40,7 +40,7 @@ void MotionBlur(inout vec3 color, float depth) {
 	
 	vec4 previousPosition      = gbufferModelViewInverse * projInverseMatrix * position; // Un-project and un-rotate
 	     previousPosition     /= previousPosition.w; // Linearize
-	     previousPosition.xyz += cameraPosition - previousCameraPosition; // Add the world-space difference from the previous frame
+	     previousPosition.xyz += cameraPosition - previousCameraPosition - gbufferModelViewInverse[3].xyz; // Add the world-space difference from the previous frame
 	     previousPosition      = projMatrix * gbufferPreviousModelView * previousPosition; // Re-rotate and re-project using the previous frame matrices
 	     previousPosition.st  /= previousPosition.w; // Un-linearize, swizzle to avoid correcting irrelivant components
 	

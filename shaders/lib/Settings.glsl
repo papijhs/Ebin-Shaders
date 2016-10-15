@@ -23,9 +23,12 @@ const int colortex6Format = RGB8;
 
 
 const float eyeBrightnessHalflife = 1.5;
+const float ambientOcclusionLevel = 0.65;
 */
 
 const int noiseTextureResolution = 64;
+const float noiseRes = noiseTextureResolution;
+const float noiseResInverse = 1.0 / noiseRes;
 
 
 
