@@ -150,7 +150,7 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	
 	float sunlight = ComputeShadows(position[1], 1.0) * GetLambertianShading(normal);
 	
-	vec3 reflectedSky = CalculateSky(refRay, position[1], 0.0, 1.0, true, sunlight);
+	vec3 reflectedSky = CalculateSky(refRay[1], position[1], 0.0, 1.0, true, sunlight);
 	
 	vec3 offscreen = reflectedSky * skyLightmap;
 	
@@ -267,7 +267,7 @@ void main() {
 		}
 	}
 	
-	vec3 sky = CalculateSky(backPos, vec3(0.0), depth0, 1.0 - alpha, false, 1.0);
+	vec3 sky = CalculateSky(backPos[1], vec3(0.0), depth0, 1.0 - alpha, false, 1.0);
 	
 	if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
 	
