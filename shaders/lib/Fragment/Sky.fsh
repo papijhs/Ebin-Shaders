@@ -23,11 +23,11 @@ vec3 CalculateSkyGradient(vec3 worldSpacePosition, float sunglow) {
 	
 	vec3 sunglowColor = mix(skylightColor, sunlightColor * 0.5, gradientCoeff * sunglow) * sunglow;
 	
-	vec3 color  = primaryHorizonColor * gradientCoeff * 8.0;
+	vec3 color  = primaryHorizonColor * gradientCoeff * 5.0;
 	     color *= 1.0 + sunglowColor * 2.0;
 	     color += sunglowColor * 5.0;
 	
-	return color * 0.9;
+	return color;
 }
 
 vec3 CalculateSunspot(vec3 worldSpaceVector) {
@@ -57,9 +57,9 @@ vec3 CalculateAtmosphericSky(vec3 worldSpacePosition) {
 }
 
 
-vec3 CalculateSky(mat2x3 position, vec3 rayPosition, float alpha, cbool reflection, float sunlight) {
-	float visibility = CalculateFogFactor(position[0], FOG_POWER);
-	if (  visibility < 0.001 && !reflection) return vec3(0.0);
+vec3 CalculateSky(mat2x3 position, vec3 rayPosition, float skyMask, float alpha, cbool reflection, float sunlight) {
+	float visibility = CalculateFogFactor(position[0], FOG_POWER, skyMask);
+	if (!reflection && visibility < 0.001) return vec3(0.0);
 	
 	
 	vec3 worldSpaceVector = normalize(position[1]);
@@ -76,7 +76,7 @@ vec3 CalculateSky(mat2x3 position, vec3 rayPosition, float alpha, cbool reflecti
 	
 	vec3 sky = gradient + sunspot;
 	
-	Compute2DCloudPlane(sky, position[1], worldSpaceVector, rayPosition, sunglow);
+	Compute2DCloudPlane(sky, worldSpaceVector, rayPosition, sunglow);
 	
 	return sky * SKY_BRIGHTNESS;
 }

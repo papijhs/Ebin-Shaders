@@ -27,8 +27,8 @@ const float ambientOcclusionLevel = 0.65;
 */
 
 const int noiseTextureResolution = 64;
-const float noiseRes = noiseTextureResolution;
-const float noiseResInverse = 1.0 / noiseRes;
+cfloat noiseRes = noiseTextureResolution;
+cfloat noiseResInverse = 1.0 / noiseRes;
 
 
 
@@ -91,9 +91,9 @@ const float noiseResInverse = 1.0 / noiseRes;
 #define REFLECTION_EDGE_FALLOFF
 
 #define WAVE_MULT 1.0
-#define WAVE_SPEED 0.35
+#define WAVE_SPEED 0.5
 
-#define DEFORM
+//#define DEFORM
 #define DEFORMATION 1 // [1 2 3]
 
 

@@ -1,13 +1,8 @@
-vec2 SmoothNoiseCoord(vec2 coord) { // Reduce bilinear artifacts by biasing the lookup coordinate towards the pixel center
-	coord *= noiseTextureResolution;
-	coord  = floor(coord) + cubesmooth(fract(coord)) + 0.5;
-	coord /= noiseTextureResolution;
-	
-	return coord;
-}
-
 float GetWave(vec2 coord) {
-	return texture2D(noisetex, SmoothNoiseCoord(coord)).x;
+	coord *= noiseRes;
+	coord  = floor(coord) + cubesmooth(fract(coord)) + 0.5;
+	
+	return texture2D(noisetex, coord * noiseResInverse).x;
 }
 
 float SharpenWave(float wave) {

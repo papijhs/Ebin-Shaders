@@ -46,7 +46,7 @@ float CloudFBM(vec2 coord, out mat4x2 c, vec3 weights, float weight) {
 	return cloud * 0.63;
 }
 
-void Compute2DCloudPlane(inout vec3 color, vec3 worldSpacePosition, vec3 worldSpaceVector, vec3 rayPosition, float sunglow) {
+void Compute2DCloudPlane(inout vec3 color, vec3 worldSpaceVector, vec3 rayPosition, float sunglow) {
 #ifndef ENABLE_CLOUDS
 	return;
 #endif
