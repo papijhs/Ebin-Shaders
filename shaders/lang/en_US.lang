@@ -18,6 +18,7 @@ option.PBR_TEXTURE_PACK.comment=Enable this if you're using a PBR texture-pack.
 
 
 screen.FOV=FOV Override
+screen.FOV.comment=FOV Override can mitigate chunk-rendering issues with large scale terrain deformation
 
 option.FOV_OVERRIDE=FOV Override
 option.FOV_OVERRIDE.comment=Manually override the FOV from the in-game setting. Set the in-game FOV higher than your actual FOV to reduce chunk artifacts with large-scale vertex deformations
@@ -72,16 +73,16 @@ screen.Motion_Blur=Motion Blur
 option.MOTION_BLUR=Motion Blur
 
 option.VARIABLE_MOTION_BLUR_SAMPLES=Variable Sample Count
-option.VARIABLE_MOTION_BLUR_SAMPLES.comment=Whether to vary the amount of blur samples based on the amount of samples needed. This allows for higher sample counts and better quality blur. High performance impact!
+option.VARIABLE_MOTION_BLUR_SAMPLES.comment=Whether to vary the amount of blur samples based on the amount of samples needed. This allows for higher sample counts and better quality blur. High performance cost!
 
 option.CONSTANT_MOTION_BLUR_SAMPLE_COUNT=Constant Sample Count
-option.CONSTANT_MOTION_BLUR_SAMPLE_COUNT.comment=The sample count to be used when "variable sample count" is disabled. Medium performance impact!
+option.CONSTANT_MOTION_BLUR_SAMPLE_COUNT.comment=The sample count to be used when "variable sample count" is disabled. Medium performance cost!
 
 option.MAX_MOTION_BLUR_SAMPLE_COUNT=Max Variable Sample Count
-option.MAX_MOTION_BLUR_SAMPLE_COUNT.comment=The maximum sample count to be used when "variable sample count" is enabled. Medium performance impact!
+option.MAX_MOTION_BLUR_SAMPLE_COUNT.comment=The maximum sample count to be used when "variable sample count" is enabled. Medium performance cost!
 
 option.VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT=Variable Sample Coefficient
-option.VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT.comment=The sample-count-coefficient for when "variable sample count" is enabled. Medium Performance impact!
+option.VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT.comment=The sample-count-coefficient for when "variable sample count" is enabled. Medium Performance cost!
 
 option.MOTION_BLUR_INTENSITY=Blur Intensity
 
@@ -122,7 +123,7 @@ option.COMPOSITE0_SCALE=Resolution Coefficient
 option.COMPOSITE0_SCALE.comment=The resolution coefficient at which global illumination and volumetric fog are computed.
 
 option.COMPOSITE0_NOISE=Ditherred Noise
-option.COMPOSITE0_NOISE.comment=Helps hide artifacts due to low sample counts. Medium performance impact!. Causes flickering at lower resolutions!
+option.COMPOSITE0_NOISE.comment=Helps hide artifacts due to low sample counts. Medium performance cost!. Causes flickering at lower resolutions!
 
 
 screen.Fog=Fog
@@ -161,6 +162,22 @@ option.GI_BRIGHTNESS=GI Brightness
 option.CUSTOM_HORIZON_HEIGHT=Custom Horizon Height
 
 option.HORIZON_HEIGHT=Horizon Height
+
+
+option.CLOUDS_2D=2D Cloud Plane
+option.CLOUDS_2D.comment=Medium performance cost!
+
+option.CLOUD_COVERAGE_2D=Cloud Coverage
+
+option.CLOUD_SPEED_2D=Cloud Speed
+
+
+
+option.WAVE_MULT=Wave Height
+option.WAVE_SPEED=Wave Speed
+
+
+screen.Time=Time Override
 
 option.TIME_OVERRIDE=Time Override
 option.TIME_OVERRIDE.comment=Modify or override the in-game time, based on the settings on this page

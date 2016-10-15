@@ -14,36 +14,38 @@ float SharpenWave(float wave) {
 }
 
 float GetWaves(vec3 position) {
+	float time = TIME * WAVE_SPEED * 0.6;
+	
 	vec2 pos  = position.xz + position.y;
-	     pos += TIME * WAVE_SPEED * vec2(1.0, -1.0);
+	     pos += time * vec2(1.0, -1.0);
 	     pos *= 0.05;
 	
 	
 	float weight, waves, weights;
 	
 	
-	pos = pos / 2.1 - vec2(TIME * WAVE_SPEED / 30.0, TIME * 0.03);
+	pos = pos / 2.1 - vec2(time / 30.0, time * 0.03);
 	
 	weight   = 4.0;
 	waves   += GetWave(vec2(pos.x * 2.0, pos.y * 1.4 + pos.x * -2.1)) * weight;
 	weights += weight;
 	
 	
-	pos = pos / 1.5 + vec2(TIME / 20.0 * WAVE_SPEED, 0.0);
+	pos = pos / 1.5 + vec2(time / 20.0, 0.0);
 	
 	weight   = 17.0;
 	waves   += GetWave(vec2(pos.x, pos.y * 0.75 + pos.x * 1.1)) * weight;
 	weights += weight;
 	
 	
-	pos = pos / 1.5 - vec2(TIME / 55.0 * WAVE_SPEED, 0.0);
+	pos = pos / 1.5 - vec2(time / 55.0, 0.0);
 	
 	weight   = 15.0;
 	waves   += GetWave(vec2(pos.x, pos.y * 0.75 + pos.x * -1.7)) * weight;
 	weights += weight;
 	
 	
-	pos = pos / 1.9 + vec2(TIME / 155.0 * 0.8, 0.0);
+	pos = pos / 1.9 + vec2(time * 0.8 / 155.0, 0.0);
 	
 	weight   = 29.0;
 	waves   += SharpenWave(GetWave(vec2(pos.x, pos.y * 0.8 + pos.x * -1.7))) * weight;

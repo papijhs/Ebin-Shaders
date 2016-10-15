@@ -17,7 +17,7 @@ float GetCoverage(float clouds, float coverage) {
 }
 
 float CloudFBM(vec2 coord, out mat4x2 c, vec3 weights, float weight) {
-	float time = TIME * 0.01;
+	float time = CLOUD_SPEED_2D * TIME * 0.01;
 	
 	c[0]    = coord * 0.007;
 	c[0]   += GetNoise2D(c[0]) * 0.3 - 0.15;
@@ -47,7 +47,7 @@ float CloudFBM(vec2 coord, out mat4x2 c, vec3 weights, float weight) {
 }
 
 void Compute2DCloudPlane(inout vec3 color, vec3 worldSpaceVector, vec3 rayPosition, float sunglow) {
-#ifndef ENABLE_CLOUDS
+#ifndef CLOUDS_2D
 	return;
 #endif
 	
@@ -58,7 +58,7 @@ void Compute2DCloudPlane(inout vec3 color, vec3 worldSpaceVector, vec3 rayPositi
 	if (worldSpaceVector.y <= 0.0 != camPos.y >= cloudHeight) return;
 	
 	
-	cfloat coverage = 0.58;
+	cfloat coverage = CLOUD_COVERAGE_2D * 1.16;
 	cvec3  weights  = vec3(0.5, 0.135, 0.075);
 	cfloat weight   = weights.x + weights.y + weights.z;
 	

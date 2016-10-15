@@ -90,14 +90,18 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 
 #define REFLECTION_EDGE_FALLOFF
 
-#define WAVE_MULT 1.0
-#define WAVE_SPEED 0.5
+#define CLOUDS_2D
+#define CLOUD_COVERAGE_2D 0.5  // [0.3 0.4 0.5 0.6 0.7]
+#define CLOUD_SPEED_2D    1.00 // [0.25 0.50 1.00 2.00 4.00]
+
+#define WAVE_MULT  1.00 // [0.25 0.50 1.00 2.00 4.00]
+#define WAVE_SPEED 1.00 // [0.25 0.50 1.00 2.00 4.00]
 
 //#define DEFORM
 #define DEFORMATION 1 // [1 2 3]
 
 
-#define CUSTOM_HORIZON_HEIGHT
+//#define CUSTOM_HORIZON_HEIGHT
 #define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]
 
 //#define TIME_OVERRIDE
@@ -111,7 +115,6 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 
 
 //#define PHYSICAL_ATMOSPHERE
-//#define ENABLE_CLOUDS
 //#define FREEZE_TIME
 
 //#define WATER_SHADOW
