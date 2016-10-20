@@ -12,9 +12,9 @@ float CalculateFogFactor(vec3 position, float power) {
 	return fogFactor;
 }
 
-float CalculateFogFactor(vec3 position, float power, float depth0) {
+float CalculateFogFactor(vec3 position, float power, float skyMask) {
 #ifndef FOG_ENABLED
-	return float(depth0 >= 1.0);
+	return skyMask;
 #endif
 	
 	float fogFactor  = length(position);

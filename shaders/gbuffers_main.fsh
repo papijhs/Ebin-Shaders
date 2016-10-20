@@ -72,8 +72,6 @@ vec3 GetTangentNormal() {
 #endif
 }
 
-#include "/lib/Misc/Get3DNoise.glsl"
-
 float GetSpecularity(vec2 coord) {
 #ifdef SPECULARITY_MAPS
 	return GetTexture(specular, coord).r;
