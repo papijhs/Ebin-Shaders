@@ -4,16 +4,15 @@
 #define ShaderStage 1
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:145 */
+/* DRAWBUFFERS:14 */
 
-const bool colortex6MipmapEnabled = true;
+const bool colortex5MipmapEnabled = true;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
-uniform sampler2D colortex6;
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
@@ -96,7 +95,7 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 			      weight  = pow(weight, 32);
 			      weight  = max(1.0e-6, weight);
 			
-			GI += pow(texture2DLod(colortex6, texcoord * COMPOSITE0_SCALE + offset * 2.0, 1).rgb, vec3(2.2)) * weight;
+			GI += pow(texture2DLod(colortex5, texcoord * COMPOSITE0_SCALE + offset * 2.0, 1).rgb, vec3(2.2)) * weight;
 			
 			totalGIWeight += weight;
 		}
@@ -114,26 +113,24 @@ void main() {
 	if (depth0 >= 1.0) { discard; }
 	
 	
-	vec4 encode1 = vec4(texture2D(colortex4, texcoord).rgb, texture2D(colortex5, texcoord).r);
+	vec2 texure4 = ScreenTex(colortex4).rg;
 	
-	vec3 normal = DecodeNormal(encode1.xy);
+	vec3 normal = DecodeNormal(Decode2x16(texure4.r));
 	
-	float smoothness;
-	float skyLightmap;
-	Decode16(encode1.b, skyLightmap, smoothness);
+	vec4 decode = Decode4x8F(texure4.g);
 	
-	float torchLightmap;
-	Mask  mask;
-	Decode16(encode1.a, torchLightmap, mask.materialIDs);
-	mask = CalculateMasks(mask.materialIDs);
+	float smoothness    = decode.g;
+	float skyLightmap   = decode.r;
+	float torchLightmap = decode.b;
+	Mask  mask          = CalculateMasks(decode.a);
 	
-	float depth1 = (mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord));
+	float depth1 = mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord);
 	
 	if (depth0 != depth1) {
-		vec3 encode0 = texture2D(colortex0, texcoord).rgb;
+		vec3 texure0 = texture2D(colortex0, texcoord).rgb;
 		
 		vec2 ebin;
-		Decode16(encode0.b, ebin.r, ebin.g);
+		Decode16(texure0.b, ebin.r, ebin.g);
 		
 		mask.transparent = 1.0;
 		mask.water   = float(ebin.g >= 1.0);
@@ -143,18 +140,17 @@ void main() {
 		mask.bits.z  = mask.water;
 		mask.materialIDs = EncodeMaterialIDs(mask.matIDs, mask.bits);
 		
-		encode1 = vec4(encode0.rgb, Encode16(vec2(torchLightmap, mask.materialIDs)));
+		texure4 = vec2(Encode2x16F(texure0.rg), Encode4x8F(vec4(ebin.r, ebin.g, torchLightmap, mask.materialIDs)));
 	}
 	
-	gl_FragData[1] = vec4(encode1.rgb, 1.0);
-	gl_FragData[2] = vec4(encode1.a  , 0.0, 0.0, 1.0);
+	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
 	
 	if (depth1 >= 1.0) return;
 	
 	
 	vec3 GI;
 	BilateralUpsample(normal, depth1, GI);
-	
+	show(GI)
 	
 	vec3 diffuse = GetDiffuse(texcoord);
 	vec3 viewSpacePosition0 = CalculateViewSpacePosition(vec3(texcoord, depth0));

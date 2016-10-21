@@ -4,7 +4,7 @@
 #define ShaderStage 0
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:6 */
+/* DRAWBUFFERS:5 */
 
 const bool shadowtex1Mipmap    = true;
 const bool shadowcolor0Mipmap  = true;
@@ -16,7 +16,6 @@ const bool shadowcolor1Nearest = false;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex4;
-uniform sampler2D colortex5;
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
@@ -165,11 +164,16 @@ void main() {
 #endif
 	
 	
-	vec2  buffer0     = Decode16(texture2D(colortex4, texcoord).b);
-	float skyLightmap = buffer0.r;
-	float smoothness  = buffer0.g;
+	vec2 texure4 = textureRaw(colortex4, texcoord).rg;
 	
-	Mask mask = CalculateMasks(Decode16(texture2D(colortex5, texcoord).r).g);
+	vec3 normal = DecodeNormal(Decode2x16(texure4.r));
+	
+	vec4 decode = Decode4x8F(texure4.g);
+	
+	float smoothness    = decode.g;
+	float skyLightmap   = decode.r;
+	float torchLightmap = decode.b;
+	Mask  mask          = CalculateMasks(decode.a);
 	
 	float depth1 = (mask.hand > 0.5 ? depth0 : textureRaw(depthtex1, texcoord).x);
 	
@@ -183,8 +187,6 @@ void main() {
 		
 		mask.water = float(ebin.g >= 1.0);
 	}
-	
-	vec3 normal = DecodeNormal(texture2D(colortex4, texcoord).xy);
 	
 	
 	if (depth1 >= 1.0 || isEyeInWater != mask.water)

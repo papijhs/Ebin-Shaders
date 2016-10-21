@@ -182,12 +182,18 @@ void main() {
 	frontPos[1] = mat3(gbufferModelViewInverse) * frontPos[0];
 	
 	
-	Mask mask = CalculateMasks(Decode16(texture2D(colortex5, texcoord).r).g);
+	vec2 texure4 = ScreenTex(colortex4).rg;
 	
-	float  depth1         = depth0;
-	mat2x3 backPos        = frontPos;
-	vec3   normal         = vec3(0.0);
-	float  alpha          = 0.0;
+	vec4 decode = Decode4x8F(texure4.g);
+	
+	float smoothness    = decode.g;
+	float skyLightmap   = decode.r;
+	float torchLightmap = decode.b;
+	Mask  mask          = CalculateMasks(decode.a);
+	
+	float  depth1  = depth0;
+	mat2x3 backPos = frontPos;
+	float  alpha   = 0.0;
 	
 	if (mask.transparent > 0.5) {
 		depth1 = (mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord));
@@ -205,14 +211,7 @@ void main() {
 	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }
 	
 	
-	vec3 encode = texture2D(colortex4, texcoord).rgb;
-	
-	float smoothness;
-	float skyLightmap;
-	Decode16(encode.b, skyLightmap, smoothness);
-	smoothness = mix(smoothness, 0.90, mask.water);
-	
-	normal = DecodeNormal(encode.rg);
+	vec3 normal = DecodeNormal(Decode2x16(texure4.r));
 	
 	vec3 color0 = vec3(0.0);
 	vec3 color1 = vec3(0.0);

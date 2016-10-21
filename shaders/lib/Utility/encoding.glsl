@@ -8,6 +8,16 @@ vec4 Decode4x8F(in float encodedbuffer) {
 	return vec4(floatBitsToUint(encodedbuffer) >> uvec4(0, 8, 16, 24) & 255) / 255.0;
 }
 
+float Encode2x16F(in vec2 a) {
+	uvec2 v = uvec2(round(clamp01(a) * 65535.0)) << uvec2(0, 16);
+	
+	return uintBitsToFloat(v.x + v.y);
+}
+
+vec2 Decode2x16(in float encodedbuffer) {
+	return vec2(floatBitsToUint(encodedbuffer) >> uvec2(0, 16) & 65535) / 65535.0;
+}
+
 float Encode16(vec2 encodedBuffer) {
 	cvec2 encode = vec2(1.0, exp2(8.0));
 	

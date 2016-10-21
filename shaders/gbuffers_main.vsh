@@ -39,7 +39,11 @@ vec2 GetDefaultLightmap(vec2 lightmapCoord) { // Gets the lightmap from the defa
 #include "/lib/Vertex/Materials.vsh"
 
 vec3 GetWorldSpacePosition() {
+#if !defined gbuffers_water
 	return mat3(gbufferModelViewInverse) * transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
+#else
+	return mat3(gbufferModelViewInverse) * transMAD(gl_ModelViewMatrix, gl_Vertex.xyz) - gl_Normal * 0.00005 * float(abs(mc_Entity.x - 8.5) > 0.6);
+#endif
 }
 
 vec4 ProjectViewSpace(vec3 viewSpacePosition) {

@@ -35,9 +35,6 @@ varying float materialIDs;
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
-
-uniform sampler2D noisetex;
-
 #include "/lib/Fragment/Water_Waves.fsh"
 #endif
 
@@ -140,26 +137,25 @@ void main() {
 	
 	vec3 normal = GetNormal(coord);
 	
-	float specularity = GetSpecularity(coord) + wet;;	
+	float specularity = GetSpecularity(coord) + wet;
 	
 	
 #if !defined gbuffers_water
 	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0));
 	
-	vec2 encode = vec2(Encode16(vec2(vertLightmap.g, specularity)), Encode16(vec2(vertLightmap.r, encodedMaterialIDs)));
-	
 	gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
 	gl_FragData[2] = vec4(0.0);
 	gl_FragData[3] = vec4(0.0);
-	gl_FragData[4] = vec4(EncodeNormal(normal.xyz), encode.r, 1.0);
-	gl_FragData[5] = vec4(encode.g, 0.0, 0.0, 1.0);
+	gl_FragData[4] = vec4(Encode2x16F(EncodeNormal(normal.xyz)), Encode4x8F(vec4(vertLightmap.g, specularity, vertLightmap.r, encodedMaterialIDs)), 0.0, 1.0);
 #else
-	diffuse.a = clamp01(diffuse.a * 2.0);
+	diffuse.a = clamp01(diffuse.a * 2.2);
 	
 	Mask mask = EmptyMask;
 	
 	if (abs(mcID - 8.5) < 0.6) {
+		if (!gl_FrontFacing) discard;
+		
 		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
 		
 		normal.xy = GetWaveNormals(position[1], worldNormal);
