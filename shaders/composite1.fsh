@@ -88,7 +88,7 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 			vec2 offset = vec2(i, j) / vec2(viewWidth, viewHeight);
 			
 			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x );
-			vec3  sampleNormal =     DecodeNormal(texture2D(colortex4, texcoord + offset * 8.0).xy);
+			vec3  sampleNormal =     DecodeNormal(Decode2x16(texture2D(colortex4, texcoord + offset * 8.0).r));
 		
 			float weight  = 1.0 - abs(depth - sampleDepth);
 			      weight *= dot(normal, sampleNormal);
@@ -150,7 +150,7 @@ void main() {
 	
 	vec3 GI;
 	BilateralUpsample(normal, depth1, GI);
-	show(GI)
+	
 	
 	vec3 diffuse = GetDiffuse(texcoord);
 	vec3 viewSpacePosition0 = CalculateViewSpacePosition(vec3(texcoord, depth0));

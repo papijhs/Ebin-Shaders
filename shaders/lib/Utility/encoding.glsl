@@ -74,69 +74,27 @@ vec3 DecodeNormal(vec2 encodedNormal) {
 	return vec3(encodedNormal * g, 1.0 - f * 0.5);
 }
 
-float EncodeNormalU(vec3 normal, cuint bits) {
-	cfloat angles = exp2(bits) / PI;
-	cuint  pole   = uint(exp2(bits));
-	cuvec2 bitPos = uvec2(exp2(vec2(bits, bits * 2)));
-	cfloat range  = exp2(-float(bits * 2 + 1));
+float EncNorm(vec3 normal, cfloat bits) {
+	normal = clamp(normal, -1.0, 1.0);
+	normal.xy = vec2(atan(normal.x, normal.z) + PI, acos(normal.y)) / PI;
 	
+	normal.xy = round(normal.xy * exp2(bits));
 	
-	uvec3 norm = uvec3(round(acos(clamp(normal.xy, -1.0, 1.0)) * angles), normal.z >= 0.0);
+	normal.x = isnan(normal.x) ? 0.0 : normal.x;
 	
-	norm.xy = norm.x == pole ? uvec2(0, 1) : norm.y == pole ? (uvec2(1, 0)) : norm.xy;
-	
-	return float(norm.x + norm.y * bitPos.x + norm.z * bitPos.y) * range;
+	return normal.x + normal.y * exp2(bits + 2);
 }
 
-vec3 DecodeNormalU(float enc, cuint bits) {
-	cvec3  ranges = exp2(vec3(bits, bits * 2, bits * 2 + 1));
-	cuvec3 shift  = uvec3(0, bits, bits * 2);
-	cfloat angles = PI / exp2(bits);
-	cuvec2 pole   = uvec2(exp2(vec2(bits, bits - 1)));
-	
-	uvec3 norm = uvec3(mod(enc * ranges.zzz, ranges)) >> shift;
-	
-	norm.xy = norm.x == 0 && norm.y == 1 ? pole.xy : norm.y == 0 && norm.x == 1 ? pole.yx : norm.xy;
-	
+vec3 DecNorm(float enc, cfloat bits) {
 	vec3 normal;
-	     normal.xy = cos(vec2(norm.xy) * angles);
-	     normal.z = sqrt(1.0 - length2(normal.xy)) * (float(norm.z) * 2.0 - 1.0);
 	
-	return normal;
-}
-
-float EncodeNormal(vec3 normal, cuint bits) {
-	cfloat angles = exp2(bits) / PI;
-	cfloat max    = exp2(bits);
-	cvec3  stack  = exp2(bits * vec3(0.0, 1.0, 2.0)) * exp2(-float(bits * 2 + 1));
-	cvec2  pole   = vec2(exp2(bits) - 1.0, 0.0);
+	normal.x = enc - exp2(bits + 2.0) * floor(enc / exp2(bits + 2.0));
+	normal.y = enc - normal.x;
+	normal.xy /= exp2(vec2(bits, bits * 2.0 + 2.0));
 	
-	
-	vec3 norm    = vec3(round(acos(clamp(normal.xy, -1.0, 1.0)) * angles), normal.z >= 0.0);
-	     norm.xy = norm.x == max ? pole.xy : norm.y == max ? pole.yx : norm.xy;
-	
-	return dot(norm, stack);
-}
-
-vec3 DecodeNormal(float enc, cuint bits) {
-	cvec3  unstack = exp2(bits * -vec3(0.0, 1.0, 2.0));
-	cvec3  ranges  = exp2(vec3(bits, bits * 2, bits * 2 + 1));
-	cvec2  pole    = exp2(vec2(0.0, bits - 1));
-	cfloat max     = exp2(bits) - 2.0;
-	cfloat angles  = PI / exp2(bits);
-	
-	
-	vec3 normal     = enc * ranges.zzz;
-	     normal.xy -= ranges.xy * floor(normal.xy / ranges.xy); 
-	     normal.yz  = floor(normal.yz * unstack.yz);
-	
-	vec4 e = clamp01(vec4(normal.xy - max, 1.0 - normal.yx));
-	
-	normal.xy += (e.x * e.z) * pole.xy;
-	normal.xy += (e.y * e.w) * pole.yx;
-	
-	normal.xy = cos(normal.xy * angles);
-	normal.z  = sqrt(1.0 - length2(normal.xy)) * (normal.z * 2.0 - 1.0);
+	normal.xy = vec2(normal.x - 1.0, normal.y) * PI;
+	normal = vec3(sin(normal.x), cos(normal.yx));
+	normal.xz *= sqrt(1.0 - normal.y * normal.y);
 	
 	return normal;
 }
