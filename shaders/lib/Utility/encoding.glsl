@@ -39,22 +39,6 @@ vec2 Decode16(float encodedBuffer) {
 	return decoded * decode;
 }
 
-void Decode16(float encodedBuffer, out float buffer0, out float buffer1) {
-	cvec2 decode = 1.0 / (exp2(8.0) - 1.0) / vec2(1.0, exp2(8.0));
-	
-	vec2 decoded;
-	
-	encodedBuffer *= exp2(16.0) - 1.0;
-	
-	decoded.r = mod(encodedBuffer, exp2(8.0));
-	decoded.g = encodedBuffer - decoded.r;
-	
-	decoded *= decode;
-	
-	buffer0 = decoded.r;
-	buffer1 = decoded.g;
-}
-
 vec3 EncodeColor(vec3 color) { // Prepares the color to be sent through a limited dynamic range pipeline
 	return pow(color * 0.001, vec3(1.0 / 2.2));
 }
@@ -74,7 +58,7 @@ vec3 DecodeNormal(vec2 encodedNormal) {
 	return vec3(encodedNormal * g, 1.0 - f * 0.5);
 }
 
-float EncNorm(vec3 normal, cfloat bits) {
+float EncodeNormal(vec3 normal, cfloat bits) {
 	normal = clamp(normal, -1.0, 1.0);
 	normal.xy = vec2(atan(normal.x, normal.z) + PI, acos(normal.y)) / PI;
 	
@@ -85,16 +69,16 @@ float EncNorm(vec3 normal, cfloat bits) {
 	return normal.x + normal.y * exp2(bits + 2);
 }
 
-vec3 DecNorm(float enc, cfloat bits) {
-	vec3 normal;
+vec3 DecodeNormal(float enc, cfloat bits) {
+	vec4 normal;
 	
-	normal.x = enc - exp2(bits + 2.0) * floor(enc / exp2(bits + 2.0));
-	normal.y = enc - normal.x;
-	normal.xy /= exp2(vec2(bits, bits * 2.0 + 2.0));
+	normal.x    = enc - exp2(bits + 2.0) * floor(enc / exp2(bits + 2.0));
+	normal.y    = enc - normal.x;
+	normal.xy  /= exp2(vec2(bits, bits * 2.0 + 2.0));
+	normal.x   -= 1.0;
+	normal.xy  *= PI;
+	normal.xwzy = vec4(sin(normal.xy), cos(normal.xy));
+	normal.xz  *= normal.w;
 	
-	normal.xy = vec2(normal.x - 1.0, normal.y) * PI;
-	normal = vec3(sin(normal.x), cos(normal.yx));
-	normal.xz *= sqrt(1.0 - normal.y * normal.y);
-	
-	return normal;
+	return normal.xyz;
 }

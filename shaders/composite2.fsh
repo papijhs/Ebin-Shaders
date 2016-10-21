@@ -184,12 +184,11 @@ void main() {
 	
 	vec2 texure4 = ScreenTex(colortex4).rg;
 	
-	vec4 decode = Decode4x8F(texure4.g);
-	
-	float smoothness    = decode.g;
-	float skyLightmap   = decode.r;
-	float torchLightmap = decode.b;
-	Mask  mask          = CalculateMasks(decode.a);
+	vec4  decode4       = Decode4x8F(texure4.g);
+	float smoothness    = decode4.g;
+	float skyLightmap   = decode4.r;
+	float torchLightmap = decode4.b;
+	Mask  mask          = CalculateMasks(decode4.a);
 	
 	float  depth1  = depth0;
 	mat2x3 backPos = frontPos;

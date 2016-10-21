@@ -166,14 +166,11 @@ void main() {
 	
 	vec2 texure4 = textureRaw(colortex4, texcoord).rg;
 	
-	vec3 normal = DecodeNormal(Decode2x16(texure4.r));
-	
-	vec4 decode = Decode4x8F(texure4.g);
-	
-	float smoothness    = decode.g;
-	float skyLightmap   = decode.r;
-	float torchLightmap = decode.b;
-	Mask  mask          = CalculateMasks(decode.a);
+	vec4  decode4       = Decode4x8F(texure4.g);
+	float smoothness    = decode4.g;
+	float skyLightmap   = decode4.r;
+	float torchLightmap = decode4.b;
+	Mask  mask          = CalculateMasks(decode4.a);
 	
 	float depth1 = (mask.hand > 0.5 ? depth0 : textureRaw(depthtex1, texcoord).x);
 	
@@ -182,16 +179,17 @@ void main() {
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
 	if (depth0 != depth1) {
-		vec2 ebin;
-		Decode16(texture2D(colortex0, texcoord).b, ebin.r, ebin.g);
+		vec2 decode0 = Decode16(texture2D(colortex0, texcoord).b);
 		
-		mask.water = float(ebin.g >= 1.0);
+		mask.water = float(decode0.g >= 1.0);
 	}
 	
 	
 	if (depth1 >= 1.0 || isEyeInWater != mask.water)
 		{ gl_FragData[0] = vec4(vec3(0.0), 1.0); exit(); return; }
 	
+	
+	vec3 normal = DecodeNormal(Decode2x16(texure4.r));
 	
 	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
 	

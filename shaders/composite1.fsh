@@ -87,9 +87,9 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 		for(float j = -range; j <= range; j++) {
 			vec2 offset = vec2(i, j) / vec2(viewWidth, viewHeight);
 			
-			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x );
-			vec3  sampleNormal =     DecodeNormal(Decode2x16(texture2D(colortex4, texcoord + offset * 8.0).r));
-		
+			float sampleDepth  =        ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x );
+			vec3  sampleNormal = DecodeNormal(Decode2x16(texture2D(colortex4, texcoord + offset * 8.0).r));
+			
 			float weight  = 1.0 - abs(depth - sampleDepth);
 			      weight *= dot(normal, sampleNormal);
 			      weight  = pow(weight, 32);
@@ -117,30 +117,28 @@ void main() {
 	
 	vec3 normal = DecodeNormal(Decode2x16(texure4.r));
 	
-	vec4 decode = Decode4x8F(texure4.g);
-	
-	float smoothness    = decode.g;
-	float skyLightmap   = decode.r;
-	float torchLightmap = decode.b;
-	Mask  mask          = CalculateMasks(decode.a);
+	vec4  decode4       = Decode4x8F(texure4.g);
+	float smoothness    = decode4.g;
+	float skyLightmap   = decode4.r;
+	float torchLightmap = decode4.b;
+	Mask  mask          = CalculateMasks(decode4.a);
 	
 	float depth1 = mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord);
 	
 	if (depth0 != depth1) {
 		vec3 texure0 = texture2D(colortex0, texcoord).rgb;
 		
-		vec2 ebin;
-		Decode16(texure0.b, ebin.r, ebin.g);
+		vec2 decode0 = Decode16(texure0.b);
 		
 		mask.transparent = 1.0;
-		mask.water   = float(ebin.g >= 1.0);
+		mask.water   = float(decode0.g >= 1.0);
 		mask.matIDs  = 1.0;
 		mask.bits.x *= 1.0 - mask.transparent;
 		mask.bits.y  = mask.transparent;
 		mask.bits.z  = mask.water;
 		mask.materialIDs = EncodeMaterialIDs(mask.matIDs, mask.bits);
 		
-		texure4 = vec2(Encode2x16F(texure0.rg), Encode4x8F(vec4(ebin.r, ebin.g, torchLightmap, mask.materialIDs)));
+		texure4 = vec2(Encode2x16F(texure0.rg), Encode4x8F(vec4(decode0.r, decode0.g, torchLightmap, mask.materialIDs)));
 	}
 	
 	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
