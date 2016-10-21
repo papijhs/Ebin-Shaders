@@ -3,7 +3,6 @@
 uniform sampler2D texture;
 uniform sampler2D normals;
 uniform sampler2D specular;
-uniform sampler2D noisetex;
 
 uniform ivec2 atlasSize;
 
@@ -24,7 +23,6 @@ varying vec2 vertLightmap;
 
 varying float mcID;
 varying float materialIDs;
-varying float tbnIndex;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
@@ -37,6 +35,10 @@ varying float tbnIndex;
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
+
+uniform sampler2D noisetex;
+
+#include "/lib/Fragment/Water_Waves.fsh"
 #endif
 
 
@@ -78,15 +80,6 @@ float GetSpecularity(vec2 coord) {
 #else
 	return 0.0;
 #endif
-}
-
-vec2 EncodeNormalData(vec3 normalTexture, float tbnIndex) {
-	vec2 encode;
-	
-	encode.r = (tbnIndex + 8.0 * float(abs(mcID - 8.5) < 0.6)) / 16.0;
-	encode.g = Encode16(normalTexture.xy);
-	
-	return encode;
 }
 
 vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
@@ -147,13 +140,13 @@ void main() {
 	
 	vec3 normal = GetNormal(coord);
 	
-	float specularity = GetSpecularity(coord) + wet;	
+	float specularity = GetSpecularity(coord) + wet;;	
 	
 	
 #if !defined gbuffers_water
 	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0));
 	
-	vec2 encode = vec2(Encode16(vec2(specularity, vertLightmap.g)), Encode16(vec2(vertLightmap.r, encodedMaterialIDs)));
+	vec2 encode = vec2(Encode16(vec2(vertLightmap.g, specularity)), Encode16(vec2(vertLightmap.r, encodedMaterialIDs)));
 	
 	gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
@@ -162,18 +155,24 @@ void main() {
 	gl_FragData[4] = vec4(EncodeNormal(normal.xyz), encode.r, 1.0);
 	gl_FragData[5] = vec4(encode.g, 0.0, 0.0, 1.0);
 #else
-	float encode = Encode16(vec2(specularity, vertLightmap.g));
-	
-	vec2 encodedNormal = EncodeNormalData(GetTangentNormal(), tbnIndex);
+	diffuse.a = clamp01(diffuse.a * 2.0);
 	
 	Mask mask = EmptyMask;
 	
-	if (abs(mcID - 8.5) < 0.6) diffuse = vec4(0.215, 0.356, 0.533, 0.75);
+	if (abs(mcID - 8.5) < 0.6) {
+		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
+		
+		normal.xy = GetWaveNormals(position[1], worldNormal);
+		normal.z = sqrt(1.0 - length2(normal.xy));
+		normal = tbnMatrix * normal;
+		
+		specularity = 1.0;
+	}
 	
 	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz, specularity, position);
 	     composite *= pow(diffuse.rgb, vec3(2.2));
 	
-	gl_FragData[0] = vec4(encodedNormal, encode, 1.0);
+	gl_FragData[0] = vec4(EncodeNormal(normal.xyz), Encode16(vec2(vertLightmap.g, specularity)), 1.0);
 	gl_FragData[1] = vec4(0.0);
 	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
 	gl_FragData[3] = vec4(composite, diffuse.a);

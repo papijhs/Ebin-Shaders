@@ -20,7 +20,6 @@ varying vec2 vertLightmap;
 
 varying float mcID;
 varying float materialIDs;
-varying float tbnIndex;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
@@ -69,22 +68,6 @@ mat3 CalculateTBN(vec3 worldPosition, vec3 displacement) {
 	return mat3(tangent, binormal, normal);
 }
 
-float EncodePlanarTBN(vec3 worldSpaceNormal) { // Encode the TBN matrix into a 3-bit float
-	// Only valid for axis-oriented TBN matrices
-	
-	float tbnIndex = 6.0; // Default is 6.0, which corresponds to an upward facing block, such as ocean
-	
-	cfloat sqrt2 = sqrt(2.0) * 0.5;
-	
-	if      (worldSpaceNormal.x >  sqrt2) tbnIndex = 1.0;
-	else if (worldSpaceNormal.x < -sqrt2) tbnIndex = 2.0;
-	else if (worldSpaceNormal.z >  sqrt2) tbnIndex = 3.0;
-	else if (worldSpaceNormal.z < -sqrt2) tbnIndex = 4.0;
-	else if (worldSpaceNormal.y < -sqrt2) tbnIndex = 5.0;
-	
-	return tbnIndex;
-}
-
 void main() {
 	SetupProjection();
 	
@@ -93,7 +76,6 @@ void main() {
 	mcID         = mc_Entity.x;
 	vertLightmap = GetDefaultLightmap(mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st);
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
-	tbnIndex     = EncodePlanarTBN(gl_Normal);
 	
 	vec3 worldSpacePosition = GetWorldSpacePosition();
 	vec3 worldDisplacement  = CalculateVertexDisplacements(worldSpacePosition, vertLightmap.g);

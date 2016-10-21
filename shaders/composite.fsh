@@ -166,8 +166,8 @@ void main() {
 	
 	
 	vec2  buffer0     = Decode16(texture2D(colortex4, texcoord).b);
-	float smoothness  = buffer0.r;
-	float skyLightmap = buffer0.g;
+	float skyLightmap = buffer0.r;
+	float smoothness  = buffer0.g;
 	
 	Mask mask = CalculateMasks(Decode16(texture2D(colortex5, texcoord).r).g);
 	
@@ -178,8 +178,10 @@ void main() {
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
 	if (depth0 != depth1) {
-		mask.transparent = 1.0;
-		mask.water       = float(texture2D(colortex0, texcoord).r >= 0.5);
+		vec2 ebin;
+		Decode16(texture2D(colortex0, texcoord).b, ebin.r, ebin.g);
+		
+		mask.water = float(ebin.g >= 1.0);
 	}
 	
 	vec3 normal = DecodeNormal(texture2D(colortex4, texcoord).xy);

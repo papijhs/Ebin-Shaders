@@ -120,7 +120,7 @@ void main() {
 	
 	float smoothness;
 	float skyLightmap;
-	Decode16(encode1.b, smoothness, skyLightmap);
+	Decode16(encode1.b, skyLightmap, smoothness);
 	
 	float torchLightmap;
 	Mask  mask;
@@ -132,15 +132,16 @@ void main() {
 	if (depth0 != depth1) {
 		vec3 encode0 = texture2D(colortex0, texcoord).rgb;
 		
+		vec2 ebin;
+		Decode16(encode0.b, ebin.r, ebin.g);
+		
 		mask.transparent = 1.0;
-		mask.water   = float(encode0.r >= 0.5);
+		mask.water   = float(ebin.g >= 1.0);
 		mask.matIDs  = 1.0;
 		mask.bits.x *= 1.0 - mask.transparent;
 		mask.bits.y  = mask.transparent;
 		mask.bits.z  = mask.water;
 		mask.materialIDs = EncodeMaterialIDs(mask.matIDs, mask.bits);
-		
-		encode0.r = mod(encode0.r, 0.5);
 		
 		encode1 = vec4(encode0.rgb, Encode16(vec2(torchLightmap, mask.materialIDs)));
 	}

@@ -172,53 +172,6 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	color = mix(color, reflection, alpha);
 }
 
-vec2 GetRefractedCoord(vec2 coord, vec3 viewSpacePosition, vec3 tangentNormal) {
-	vec4 screenSpacePosition = projMatrix * vec4(viewSpacePosition, 1.0);
-	
-	cfloat refractAmount = 0.5;
-	
-	vec2 refraction = tangentNormal.st / FOV * 90.0 * refractAmount;
-	
-	vec2 refractedCoord = screenSpacePosition.st + refraction;
-	
-	refractedCoord = refractedCoord / screenSpacePosition.w * 0.5 + 0.5;
-	
-	refractedCoord = clampScreen(refractedCoord, pixelSize);
-	
-	return refractedCoord;
-}
-
-mat3 DecodeTBN(float tbnIndex) {
-	tbnIndex = round(tbnIndex * 16.0);
-	
-	vec3 tangent;
-	vec3 binormal;
-	
-	if (tbnIndex == 1.0) {
-		tangent  = vec3( 0.0,  0.0,  1.0);
-		binormal = vec3( 0.0, -1.0,  0.0);
-	} else if (tbnIndex == 2.0) {
-		tangent  = vec3( 0.0,  0.0,  1.0);
-		binormal = vec3( 0.0,  1.0,  0.0);
-	} else if (tbnIndex == 3.0) {
-		tangent  = vec3( 1.0,  0.0,  0.0);
-		binormal = vec3( 0.0,  1.0,  0.0);
-	} else if (tbnIndex == 4.0) {
-		tangent  = vec3( 1.0,  0.0,  0.0);
-		binormal = vec3( 0.0, -1.0,  0.0);
-	} else if (tbnIndex == 5.0) {
-		tangent  = vec3(-1.0,  0.0,  0.0);
-		binormal = vec3( 0.0,  0.0, -1.0);
-	} else {
-		tangent  = vec3( 1.0,  0.0,  0.0);
-		binormal = vec3( 0.0,  0.0, -1.0);
-	}
-	
-	vec3 normal = cross(tangent, binormal);
-
-	return mat3(tangent, binormal, normal);
-}
-
 #include "lib/Fragment/Water_Depth_Fog.fsh"
 
 void main() {
@@ -229,42 +182,20 @@ void main() {
 	frontPos[1] = mat3(gbufferModelViewInverse) * frontPos[0];
 	
 	
-	vec2 encode = Decode16(texture2D(colortex5, texcoord).r);
-	float torchLightmap = encode.r;
-	Mask mask = CalculateMasks(encode.g);
+	Mask mask = CalculateMasks(Decode16(texture2D(colortex5, texcoord).r).g);
 	
-	vec2   refractedCoord = texcoord;
 	float  depth1         = depth0;
 	mat2x3 backPos        = frontPos;
-	vec2   encodedNormal  = vec2(0.0);
 	vec3   normal         = vec3(0.0);
 	float  alpha          = 0.0;
 	
-	if (depth0 < 1.0) { // NOT sky
-		encodedNormal = texture2D(colortex4, texcoord).xy;
+	if (mask.transparent > 0.5) {
+		depth1 = (mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord));
 		
-		if (mask.transparent > 0.5) { // Layered fragment, back layer is unique and needs to be computed
-			mat3 tbnMatrix = DecodeTBN(encodedNormal.x);
-			vec3 tangentNormal;
-			
-			tangentNormal.xy = mask.water > 0.5 ?
-				GetWaveNormals(frontPos[1], tbnMatrix[2]) :
-				Decode16(encodedNormal.y) * 2.0 - 1.0;
-			
-			tangentNormal.z = sqrt(1.0 - length2(tangentNormal.xy));
-			
-			normal = mat3(gbufferModelView) * tbnMatrix * tangentNormal;
-			
-			
-			refractedCoord = GetRefractedCoord(texcoord, frontPos[0], tangentNormal);
-			
-			depth1 = (mask.hand > 0.5 ? depth0 : GetTransparentDepth(refractedCoord));
-			
-			backPos[0] = CalculateViewSpacePosition(vec3(refractedCoord, depth1));
-			backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
-			
-			alpha = texture2D(colortex2, refractedCoord).r;
-		}
+		backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
+		backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
+		
+		alpha = texture2D(colortex2, texcoord).r;
 	}
 	
 	vec3 sky = CalculateSky(backPos[1], vec3(0.0), float(depth1 >= 1.0), 1.0 - alpha, false, 1.0);
@@ -274,24 +205,22 @@ void main() {
 	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }
 	
 	
+	vec3 encode = texture2D(colortex4, texcoord).rgb;
+	
 	float smoothness;
 	float skyLightmap;
-	Decode16(texture2D(colortex4, texcoord).b, smoothness, skyLightmap);
+	Decode16(encode.b, skyLightmap, smoothness);
 	smoothness = mix(smoothness, 0.90, mask.water);
+	
+	normal = DecodeNormal(encode.rg);
 	
 	vec3 color0 = vec3(0.0);
 	vec3 color1 = vec3(0.0);
 	
-	if (mask.transparent > 0.5) {
-		color0 = texture2D(colortex3, refractedCoord).rgb / alpha;
-		
-		if (any(isnan(color0))) color0 = vec3(0.0);
-	} else {
-		normal = DecodeNormal(encodedNormal.xy);
-	}
+	if (mask.transparent > 0.5)
+		color0 = texture2D(colortex3, texcoord).rgb / alpha;
 	
-	color1 = texture2D(colortex1, refractedCoord).rgb;
-	
+	color1 = texture2D(colortex1, texcoord).rgb;
 	color0 = mix(color1, color0, mask.transparent - mask.water);
 	
 	
