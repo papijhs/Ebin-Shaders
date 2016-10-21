@@ -131,14 +131,11 @@ void main() {
 		vec2 decode0 = Decode16(texure0.b);
 		
 		mask.transparent = 1.0;
-		mask.water   = float(decode0.g >= 1.0);
-		mask.matIDs  = 1.0;
-		mask.bits.x *= 1.0 - mask.transparent;
-		mask.bits.y  = mask.transparent;
-		mask.bits.z  = mask.water;
-		mask.materialIDs = EncodeMaterialIDs(mask.matIDs, mask.bits);
+		mask.water       = float(decode0.g >= 1.0);
+		mask.bits.xy     = vec2(1.0, mask.water);
+		mask.materialIDs = EncodeMaterialIDs(1.0, mask.bits);
 		
-		texure4 = vec2(Encode2x16F(texure0.rg), Encode4x8F(vec4(decode0.r, decode0.g, torchLightmap, mask.materialIDs)));
+		texure4 = vec2(Encode2x16F(texure0.rg), Encode4x8F(vec4(decode0.r, decode0.g, 0.0, mask.materialIDs)));
 	}
 	
 	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
@@ -161,7 +158,8 @@ void main() {
 	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, smoothness, backPos);
 	     composite *= pow(diffuse * 1.2, vec3(2.8));
 	
-	if (mask.water > 0.5 || isEyeInWater == 1) composite = WaterFog(composite, viewSpacePosition0, backPos[0]);
+	if (mask.water > 0.5 || isEyeInWater == 1)
+		composite = WaterFog(composite, viewSpacePosition0, backPos[0]);
 	
 	gl_FragData[0] = vec4(max0(composite), 1.0);
 	

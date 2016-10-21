@@ -49,7 +49,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 
 
 #define SHADOW_MAP_BIAS 0.80     // [0.00 0.60 0.70 0.80 0.85 0.90]
-#define SHADOW_TYPE 2 // [1 2 3]
+#define SHADOW_TYPE 2 // [1 2]
 #define PLAYER_SHADOW
 
 #if !defined low_profile

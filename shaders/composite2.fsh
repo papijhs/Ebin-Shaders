@@ -33,6 +33,8 @@ uniform float viewHeight;
 uniform float near;
 uniform float far;
 
+uniform ivec2 eyeBrightnessSmooth;
+
 uniform int isEyeInWater;
 
 varying vec2 texcoord;
@@ -185,11 +187,10 @@ void main() {
 	vec2 texure4 = ScreenTex(colortex4).rg;
 	
 	vec4  decode4       = Decode4x8F(texure4.g);
-	float smoothness    = decode4.g;
 	float skyLightmap   = decode4.r;
-	float torchLightmap = decode4.b;
+	float smoothness    = decode4.g;
 	Mask  mask          = CalculateMasks(decode4.a);
-	
+	show(mask.transparent);
 	float  depth1  = depth0;
 	mat2x3 backPos = frontPos;
 	float  alpha   = 0.0;
@@ -220,7 +221,6 @@ void main() {
 	
 	color1 = texture2D(colortex1, texcoord).rgb;
 	color0 = mix(color1, color0, mask.transparent - mask.water);
-	
 	
 	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
 	

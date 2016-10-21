@@ -18,6 +18,7 @@ varying mat3 tbnMatrix;
 varying mat2x3 position;
 
 varying vec3 worldNormal;
+varying vec3 worldDisplacement;
 
 varying vec2 vertLightmap;
 
@@ -158,7 +159,7 @@ void main() {
 		
 		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
 		
-		normal.xy = GetWaveNormals(position[1], worldNormal);
+		normal.xy = GetWaveNormals(position[1] - worldDisplacement, worldNormal);
 		normal.z = sqrt(1.0 - length2(normal.xy));
 		normal = tbnMatrix * normal;
 		
