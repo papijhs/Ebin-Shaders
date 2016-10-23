@@ -166,11 +166,11 @@ void main() {
 	
 	vec2 texure4 = textureRaw(colortex4, texcoord).rg;
 	
-	vec4  decode4       = Decode4x8F(texure4.g);
+	vec4  decode4       = Decode4x8F(texure4.r);
+	Mask  mask          = CalculateMasks(decode4.r);
 	float smoothness    = decode4.g;
-	float skyLightmap   = decode4.r;
 	float torchLightmap = decode4.b;
-	Mask  mask          = CalculateMasks(decode4.a);
+	float skyLightmap   = decode4.a;
 	
 	float depth1 = (mask.hand > 0.5 ? depth0 : textureRaw(depthtex1, texcoord).x);
 	
@@ -189,7 +189,7 @@ void main() {
 		{ gl_FragData[0] = vec4(vec3(0.0), 1.0); exit(); return; }
 	
 	
-	vec3 normal = DecodeNormal(Decode2x16(texure4.r));
+	vec3 normal = DecodeNormal(Decode2x16(texure4.g));
 	
 	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
 	

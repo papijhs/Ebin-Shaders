@@ -1,4 +1,4 @@
-/* DRAWBUFFERS:012345 */
+/* DRAWBUFFERS:01234 */
 
 uniform sampler2D texture;
 uniform sampler2D normals;
@@ -148,9 +148,10 @@ void main() {
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
 	gl_FragData[2] = vec4(0.0);
 	gl_FragData[3] = vec4(0.0);
-	gl_FragData[4] = vec4(Encode2x16F(EncodeNormal(normal.xyz)), Encode4x8F(vec4(vertLightmap.g, specularity, vertLightmap.r, encodedMaterialIDs)), 0.0, 1.0);
+	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), Encode2x16F(EncodeNormal(normal.xyz)), 0.0, 1.0);
 #else
-	diffuse.a = clamp01(diffuse.a * 2.2);
+	diffuse.a   = clamp01(diffuse.a * 2.2);
+	specularity = clamp(specularity, 0.0, 1.0 - 1.0 / 255.0);
 	
 	Mask mask = EmptyMask;
 	
@@ -159,7 +160,7 @@ void main() {
 		
 		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
 		
-		normal.xy = GetWaveNormals(position[1] - worldDisplacement, mat3(gbufferModelViewInverse) * tbnMatrix[2]);
+		normal.xy = GetWaveNormals(position[1] - worldDisplacement, worldNormal);
 		normal.z = sqrt(1.0 - length2(normal.xy));
 		normal = tbnMatrix * normal;
 		
@@ -169,10 +170,11 @@ void main() {
 	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz, specularity, position);
 	     composite *= pow(diffuse.rgb, vec3(2.2));
 	
-	gl_FragData[0] = vec4(EncodeNormal(normal.xyz), Encode16(vec2(vertLightmap.g, specularity)), 1.0);
+	gl_FragData[0] = vec4(Encode16(vec2(specularity, vertLightmap.g)), EncodeNormal(normal.xyz), 1.0);
 	gl_FragData[1] = vec4(0.0);
 	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
 	gl_FragData[3] = vec4(composite, diffuse.a);
+	gl_FragData[4] = vec4(0.0);
 #endif
 	
 	exit();

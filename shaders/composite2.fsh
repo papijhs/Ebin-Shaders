@@ -179,18 +179,18 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 void main() {
 	float depth0 = GetDepth(texcoord);
 	
-	mat2x3 frontPos; // Position matrices: [0] = View Space, [1] = World Space
+	mat2x3 frontPos;
 	frontPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth0));
 	frontPos[1] = mat3(gbufferModelViewInverse) * frontPos[0];
 	
 	
 	vec2 texure4 = ScreenTex(colortex4).rg;
 	
-	vec4  decode4       = Decode4x8F(texure4.g);
-	float skyLightmap   = decode4.r;
+	vec4  decode4       = Decode4x8F(texure4.r);
+	Mask  mask          = CalculateMasks(decode4.r);
 	float smoothness    = decode4.g;
-	Mask  mask          = CalculateMasks(decode4.a);
-	show(mask.transparent);
+	float skyLightmap   = decode4.a;
+	
 	float  depth1  = depth0;
 	mat2x3 backPos = frontPos;
 	float  alpha   = 0.0;
@@ -211,7 +211,7 @@ void main() {
 	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }
 	
 	
-	vec3 normal = DecodeNormal(Decode2x16(texure4.r));
+	vec3 normal = DecodeNormal(Decode2x16(texure4.g));
 	
 	vec3 color0 = vec3(0.0);
 	vec3 color1 = vec3(0.0);

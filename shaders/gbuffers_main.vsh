@@ -94,8 +94,8 @@ void main() {
 	gl_Position = ProjectViewSpace(position[0]);
 	
 	
-	worldNormal = mat3(gbufferModelViewInverse) * gl_NormalMatrix * normalize(gl_Normal);
 	tbnMatrix   = CalculateTBN(worldSpacePosition);
+	worldNormal = mat3(gbufferModelViewInverse) * tbnMatrix[2];
 	
 	
 #if defined gbuffers_water
