@@ -90,6 +90,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define REFLECTION_EDGE_FALLOFF
 
 #define CLOUDS_2D
+#define CLOUD_HEIGHT_2D   512  // [384 512 640 768]
 #define CLOUD_COVERAGE_2D 0.5  // [0.3 0.4 0.5 0.6 0.7]
 #define CLOUD_SPEED_2D    1.00 // [0.25 0.50 1.00 2.00 4.00]
 

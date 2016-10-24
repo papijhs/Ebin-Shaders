@@ -167,6 +167,8 @@ option.HORIZON_HEIGHT=Horizon Height
 option.CLOUDS_2D=2D Cloud Plane
 option.CLOUDS_2D.comment=Medium performance cost!
 
+option.CLOUD_HEIGHT_2D=2D Cloud Plane Height
+
 option.CLOUD_COVERAGE_2D=Cloud Coverage
 
 option.CLOUD_SPEED_2D=Cloud Speed

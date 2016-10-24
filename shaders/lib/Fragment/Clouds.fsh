@@ -51,7 +51,7 @@ void Compute2DCloudPlane(inout vec3 color, vec3 worldSpaceVector, vec3 rayPositi
 	return;
 #endif
 	
-	cfloat cloudHeight = 512.0;
+	cfloat cloudHeight = CLOUD_HEIGHT_2D;
 	
 	vec3 camPos = cameraPosition() + rayPosition;
 	
