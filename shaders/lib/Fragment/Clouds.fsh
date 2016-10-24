@@ -46,7 +46,7 @@ float CloudFBM(vec2 coord, out mat4x2 c, vec3 weights, float weight) {
 	return cloud * 0.63;
 }
 
-void Compute2DCloudPlane(inout vec3 color, vec3 worldSpaceVector, vec3 rayPosition, float sunglow) {
+void Compute2DCloudPlane(inout vec3 color, vec3 worldSpaceVector, vec3 rayPosition, float sunglow, float visibility) {
 #ifndef CLOUDS_2D
 	return;
 #endif
@@ -54,6 +54,8 @@ void Compute2DCloudPlane(inout vec3 color, vec3 worldSpaceVector, vec3 rayPositi
 	cfloat cloudHeight = 512.0;
 	
 	vec3 camPos = cameraPosition + rayPosition;
+	
+	visibility = pow(visibility, 10.0) * pow(abs(worldSpaceVector.y), 0.6);
 	
 	if (worldSpaceVector.y <= 0.0 != camPos.y >= cloudHeight) return;
 	
@@ -90,5 +92,5 @@ void Compute2DCloudPlane(inout vec3 color, vec3 worldSpaceVector, vec3 rayPositi
 	
 	cloud.rgb = mix(ambientColor, directColor, sunlight) * 70.0;
 	
-	color = mix(color, cloud.rgb, cloud.a * pow(abs(worldSpaceVector.y), 0.6));
+	color = mix(color, cloud.rgb, cloud.a * visibility);
 }

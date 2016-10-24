@@ -65,7 +65,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define GI_BRIGHTNESS   1.00 // [0.25 0.50 0.75 1.00 2.00 4.00]
 
 #define BLOOM_ENABLED
-#define BLOOM_AMOUNT        0.10 // [0.05 0.10 0.25 0.50 1.00]
+#define BLOOM_AMOUNT        0.15 // [0.15 0.25 0.50 1.00]
 #define BLOOM_CURVE         1.50 // [1.00 1.25 1.50 1.75 2.00]
 
 //#define MOTION_BLUR
@@ -83,7 +83,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define COMPOSITE0_SCALE 0.40 // [0.25 0.33 0.40 0.50 0.75 1.00]
 //#define COMPOSITE0_NOISE
 
-#define FOG_ENABLED
+//#define FOG_ENABLED
 #define FOG_POWER 3.0                      // [1.0 2.0 3.0 4.0 6.0 8.0]
 #define ATMOSPHERIC_SCATTERING_AMOUNT 1.00 // [0.00 0.25 0.50 0.75 1.00 2.00 4.00]
 

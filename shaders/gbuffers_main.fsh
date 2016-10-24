@@ -150,7 +150,6 @@ void main() {
 	gl_FragData[3] = vec4(0.0);
 	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), Encode2x16F(EncodeNormal(normal.xyz)), 0.0, 1.0);
 #else
-	diffuse.a   = clamp01(diffuse.a * 2.2);
 	specularity = clamp(specularity, 0.0, 1.0 - 1.0 / 255.0);
 	
 	Mask mask = EmptyMask;

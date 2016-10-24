@@ -156,7 +156,7 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	
 	vec3 offscreen = reflectedSky * skyLightmap;
 	
-	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.5, 30, 1, reflectedCoord, reflectedViewSpacePosition))
+	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.4, 30, 2, reflectedCoord, reflectedViewSpacePosition))
 		reflection = offscreen;
 	else {
 		reflection = GetColor(reflectedCoord.st);
@@ -230,7 +230,10 @@ void main() {
 	
 	
 	color0 = mix(color0, sky.rgb, CalculateFogFactor(frontPos[0], FOG_POWER));
-	color1 = mix(color1, sky.rgb, CalculateFogFactor(frontPos[0], FOG_POWER));
+	color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER));
+	
+	color0 += AerialPerspective(length(frontPos[0])) * float(depth1 < 1.0);
+	color1 += AerialPerspective(length( backPos[0]));
 	
 	if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
 	

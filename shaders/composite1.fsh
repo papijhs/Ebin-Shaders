@@ -160,7 +160,7 @@ void main() {
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
 		composite = WaterFog(composite, viewSpacePosition0, backPos[0]);
-	show(normal)
+	
 	gl_FragData[0] = vec4(max0(composite), 1.0);
 	
 	exit();

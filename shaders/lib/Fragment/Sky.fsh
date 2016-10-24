@@ -40,8 +40,8 @@ vec3 CalculateSunspot(vec3 worldSpaceVector) {
 	return sunspot * sunlightColor * sunlightColor * vec3(1.0, 0.8, 0.6);
 }
 
-vec3 CalculateAtmosphereScattering(vec3 position) {
-	float factor = pow(length(position), 1.4) * 0.0001 * ATMOSPHERIC_SCATTERING_AMOUNT;
+vec3 AerialPerspective(float dist) {
+	float factor = pow(dist, 1.4) * 0.00015 * ATMOSPHERIC_SCATTERING_AMOUNT;
 	
 	return pow(skylightColor, vec3(2.5)) * factor;
 }
@@ -74,9 +74,9 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	vec3 sunspot  = CalculateSunspot(worldSpaceVector) * (reflection ? sunlight : pow(visibility, 25) * alpha);
 #endif
 	
-	vec3 sky = gradient + sunspot;
+	vec3 sky = gradient + sunspot + AerialPerspective(far + gl_Fog.start) * skyMask;
 	
-	Compute2DCloudPlane(sky, worldSpaceVector, rayPosition, sunglow);
+	Compute2DCloudPlane(sky, worldSpaceVector, rayPosition, sunglow, visibility);
 	
 	return sky * SKY_BRIGHTNESS;
 }
