@@ -41,7 +41,7 @@ vec3 CalculateSunspot(vec3 worldSpaceVector) {
 }
 
 vec3 AerialPerspective(float dist) {
-	float factor = pow(dist, 1.4) * 0.00015 * ATMOSPHERIC_SCATTERING_AMOUNT;
+	float factor = pow(dist, 1.4) * 0.00015 * AERIAL_PERSPECTIVE_AMOUNT;
 	
 	return pow(skylightColor, vec3(2.5)) * factor;
 }
