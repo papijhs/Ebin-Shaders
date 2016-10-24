@@ -43,9 +43,9 @@ vec3 GetWorldSpacePosition() {
 	vec3 worldSpacePosition = mat3(gbufferModelViewInverse) * transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
 	
 #if defined gbuffers_water
-	return worldSpacePosition -= gl_Normal * 0.00005 * float(abs(mc_Entity.x - 8.5) > 0.6);
+	worldSpacePosition -= gl_Normal * mix(0.00005, 0.0, abs(mc_Entity.x - 8.5) < 0.6);
 #endif
-	
+	show(gl_Normal)
 	return worldSpacePosition;
 }
 

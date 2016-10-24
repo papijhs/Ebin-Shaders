@@ -40,7 +40,7 @@ void MotionBlur(inout vec3 color, float depth) {
 	
 	vec4 previousPosition      = gbufferModelViewInverse * projInverseMatrix * position; // Un-project and un-rotate
 	     previousPosition     /= previousPosition.w; // Linearize
-	     previousPosition.xyz += cameraPosition - previousCameraPosition - gbufferModelViewInverse[3].xyz; // Add the world-space difference from the previous frame
+	     previousPosition.xyz += cameraPosition - mod(previousCameraPosition, vec3(100000.0)) - gbufferModelViewInverse[3].xyz; // Add the world-space difference from the previous frame
 	     previousPosition      = projMatrix * gbufferPreviousModelView * previousPosition; // Re-rotate and re-project using the previous frame matrices
 	     previousPosition.st  /= previousPosition.w; // Un-linearize, swizzle to avoid correcting irrelivant components
 	
@@ -104,7 +104,7 @@ vec3[8] GetBloom() {
 }
 
 vec3 Uncharted2Tonemap(vec3 color) {
-	cfloat A = 0.5, B = 0.7, C = 0.2, D = 0.2, E = 0.02, F = 0.6, W = 10.0;
+	cfloat A = 0.5, B = 0.6, C = 0.22, D = 0.5, E = 0.02, F = 0.1, W = 8.0;
 	cfloat whiteScale = 1.0 / (((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F);
 	cfloat ExposureBias = 1.5 * EXPOSURE;
 	
@@ -132,6 +132,10 @@ void main() {
 	color = Uncharted2Tonemap(color);
 	
 	color = SetSaturationLevel(color, SATURATION);
+	
+//	color.r = mix(color.r, cosmooth(color.r), 0.25);
+//	color.g = mix(color.g, cosmooth(color.g), 0.25);
+//	color.b = mix(color.b, cosmooth(color.b), -0.5);
 	
 	gl_FragData[0] = vec4(color, 1.0);
 	

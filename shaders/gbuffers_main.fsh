@@ -159,9 +159,7 @@ void main() {
 		
 		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
 		
-		normal.xy = GetWaveNormals(position[1] - worldDisplacement, worldNormal);
-		normal.z = sqrt(1.0 - length2(normal.xy));
-		normal = tbnMatrix * normal;
+		normal = tbnMatrix * GetWaveNormals(position[1] - worldDisplacement, worldNormal);
 		
 		specularity = 1.0;
 	}

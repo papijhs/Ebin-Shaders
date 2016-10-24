@@ -93,8 +93,8 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define CLOUD_COVERAGE_2D 0.5  // [0.3 0.4 0.5 0.6 0.7]
 #define CLOUD_SPEED_2D    1.00 // [0.25 0.50 1.00 2.00 4.00]
 
-#define WAVE_MULT  1.00 // [0.25 0.50 1.00 2.00 4.00]
-#define WAVE_SPEED 1.00 // [0.25 0.50 1.00 2.00 4.00]
+#define WAVE_MULT  1.0 // [0.0 0.5 1.0 1.5]
+#define WAVE_SPEED 1.0 // [0.0 0.5 1.0 2.0]
 
 //#define DEFORM
 #define DEFORMATION 1 // [1 2 3]

@@ -54,10 +54,6 @@ vec3 GetColor(vec2 coord) {
 	return texture2D(colortex1, coord).rgb;
 }
 
-vec3 GetColorLod(vec2 coord, float lod) {
-	return texture2DLod(colortex1, coord, lod).rgb;
-}
-
 float GetDepth(vec2 coord) {
 	return texture2D(gdepthtex, coord).x;
 }
@@ -77,7 +73,6 @@ vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 }
 
 
-#include "/lib/Fragment/Water_Waves.fsh"
 #include "/lib/Fragment/Sky.fsh"
 
 bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, float firstStepSize, cfloat rayGrowth, cint maxSteps, cint maxRefinements, out vec3 screenSpacePosition, out vec3 viewSpacePosition) {
@@ -164,9 +159,9 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 		reflection = mix(reflection, reflectedSky, CalculateFogFactor(reflectedViewSpacePosition, FOG_POWER));
 		
 		#ifdef REFLECTION_EDGE_FALLOFF
-			float angleCoeff = clamp(pow(dot(vec3(0.0, 0.0, 1.0), normal) + 0.15, 0.25) * 2.0, 0.0, 1.0) * 0.2 + 0.8;
+			float angleCoeff = clamp01(pow(normal.z + 0.15, 0.25) * 2.0) * 0.2 + 0.8;
 			float dist       = length8(abs(reflectedCoord.xy - vec2(0.5)));
-			float edge       = clamp(1.0 - pow2(dist * 2.0 * angleCoeff), 0.0, 1.0);
+			float edge       = clamp01(1.0 - pow2(dist * 2.0 * angleCoeff));
 			reflection       = mix(reflection, offscreen, pow(1.0 - edge, 10.0));
 		#endif
 	}
