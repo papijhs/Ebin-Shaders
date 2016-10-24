@@ -53,7 +53,7 @@ void Compute2DCloudPlane(inout vec3 color, vec3 worldSpaceVector, vec3 rayPositi
 	
 	cfloat cloudHeight = 512.0;
 	
-	vec3 camPos = cameraPosition + rayPosition;
+	vec3 camPos = cameraPosition() + rayPosition;
 	
 	visibility = pow(visibility, 10.0) * pow(abs(worldSpaceVector.y), 0.6);
 	
