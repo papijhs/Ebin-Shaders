@@ -17,7 +17,6 @@ varying mat3 tbnMatrix;
 
 varying mat2x3 position;
 
-varying vec3 worldNormal;
 varying vec3 worldDisplacement;
 
 varying vec2 vertLightmap;
@@ -26,8 +25,8 @@ varying float mcID;
 varying float materialIDs;
 
 #include "/lib/Settings.glsl"
-#include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
+#include "/lib/Utility.glsl"
 #include "/lib/Uniform/Projection_Matrices.fsh"
 #include "/lib/Misc/Calculate_Fogfactor.glsl"
 #include "/lib/Fragment/Masks.fsh"
@@ -80,7 +79,7 @@ float GetSpecularity(vec2 coord) {
 #endif
 }
 
-vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
+vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 #if !defined TERRAIN_PARALLAX || !defined gbuffers_terrain
 	return coord;
 #endif
@@ -92,13 +91,13 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	cfloat MinQuality   =  0.5;
 	cfloat maxQuality   =  1.5;
 	
-	float intensity = clamp01((parallaxDist - length(viewSpacePosition) * FOV / 90.0) / distFade);
+	float intensity = clamp01((parallaxDist - length(position) * FOV / 90.0) / distFade);
 	
 	if (intensity < 0.01) return coord;
 	
-	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(viewSpacePosition), 0.25)), MinQuality, maxQuality);
+	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position), 0.25)), MinQuality, maxQuality);
 	
-	vec3 tangentRay = normalize(viewSpacePosition * tbnMatrix);
+	vec3 tangentRay = normalize(position * tbnMatrix);
 	
 	float tileScale  = atlasSize.x / TEXTURE_PACK_RESOLUTION;
 	vec2  tileCoord  = fract(coord * tileScale);
@@ -106,7 +105,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	
 	vec3 sampleRay = vec3(0.0, 0.0, 1.0);
 	
-	vec3 step = tangentRay * vec3(0.01, 0.01, 1.0 / intensity) / quality * 0.03 * sqrt(length(viewSpacePosition));
+	vec3 step = tangentRay * vec3(0.01, 0.01, 1.0 / intensity) / quality * 0.03 * sqrt(length(position));
 	
 	float sampleHeight = GetTexture(normals, coord).a;
 	
@@ -128,7 +127,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 void main() {
 	if (CalculateFogFactor(position[0], FOG_POWER) >= 1.0) discard;
 	
-	vec2 coord = ComputeParallaxCoordinate(texcoord, position[0]);
+	vec2 coord = ComputeParallaxCoordinate(texcoord, position[1]);
 	
 	
 	vec4 diffuse = GetDiffuse(coord);
@@ -148,7 +147,7 @@ void main() {
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
 	gl_FragData[2] = vec4(0.0);
 	gl_FragData[3] = vec4(0.0);
-	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), Encode2x16F(EncodeNormal(normal.xyz)), 0.0, 1.0);
+	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), EncodeNormal(normal.xyz, 11), 0.0, 1.0);
 #else
 	specularity = clamp(specularity, 0.0, 1.0 - 1.0 / 255.0);
 	
@@ -159,15 +158,15 @@ void main() {
 		
 		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
 		
-		normal = tbnMatrix * GetWaveNormals(position[1] - worldDisplacement, worldNormal);
+		normal = tbnMatrix * GetWaveNormals(position[1] - worldDisplacement, tbnMatrix[2]);
 		
 		specularity = 1.0;
 	}
 	
-	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz, specularity, position);
+	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz * mat3(gbufferModelViewInverse), specularity, position);
 	     composite *= pow(diffuse.rgb, vec3(2.2));
 	
-	gl_FragData[0] = vec4(Encode16(vec2(specularity, vertLightmap.g)), EncodeNormal(normal.xyz), 1.0);
+	gl_FragData[0] = vec4(Encode4x8F(vec4(specularity, vertLightmap.g, 0.0, 0.1)), EncodeNormal(normal.xyz, 11), 0.0, 1.0);
 	gl_FragData[1] = vec4(0.0);
 	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
 	gl_FragData[3] = vec4(composite, diffuse.a);

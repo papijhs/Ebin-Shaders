@@ -87,8 +87,8 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 		for(float j = -range; j <= range; j++) {
 			vec2 offset = vec2(i, j) / vec2(viewWidth, viewHeight);
 			
-			float sampleDepth  =        ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x );
-			vec3  sampleNormal = DecodeNormal(Decode2x16(texture2D(colortex4, texcoord + offset * 8.0).g));
+			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
+			vec3  sampleNormal =     DecodeNormal(texture2D(colortex4, texcoord + offset * 8.0).g, 11);
 			
 			float weight  = 1.0 - abs(depth - sampleDepth);
 			      weight *= dot(normal, sampleNormal);
@@ -121,21 +121,21 @@ void main() {
 	float torchLightmap = decode4.b;
 	float skyLightmap   = decode4.a;
 	
-	vec3 normal = DecodeNormal(Decode2x16(texure4.g));
+	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);
 	
 	float depth1 = mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord);
 	
 	if (depth0 != depth1) {
 		vec3 texure0 = texture2D(colortex0, texcoord).rgb;
 		
-		vec2 decode0 = Decode16(texure0.r);
+		vec4 decode0 = Decode4x8F(texure0.r);
 		
 		mask.transparent = 1.0;
 		mask.water       = float(decode0.r >= 1.0);
 		mask.bits.xy     = vec2(1.0, mask.water);
 		mask.materialIDs = EncodeMaterialIDs(1.0, mask.bits);
 		
-		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), Encode2x16F(texure0.gb));
+		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.gb);
 	}
 	
 	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
@@ -144,7 +144,7 @@ void main() {
 	
 	
 	vec3 GI;
-	BilateralUpsample(normal, depth1, GI);
+	BilateralUpsample(mat3(gbufferModelViewInverse) * normal, depth1, GI);
 	
 	
 	vec3 diffuse = GetDiffuse(texcoord);

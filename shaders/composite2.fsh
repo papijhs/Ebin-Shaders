@@ -206,7 +206,7 @@ void main() {
 	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }
 	
 	
-	vec3 normal = DecodeNormal(Decode2x16(texure4.g));
+	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);
 	
 	vec3 color0 = vec3(0.0);
 	vec3 color1 = vec3(0.0);

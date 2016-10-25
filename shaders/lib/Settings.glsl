@@ -9,7 +9,7 @@ const float drynessHalflife          = 40.0;
 
 /*
 ** Transparent Gbuffers **
-const int colortex0Format = RGB16;
+const int colortex0Format = RG32F;
 const int colortex3Format = R11F_G11F_B10F;
 const int colortex2Format = R8;
 

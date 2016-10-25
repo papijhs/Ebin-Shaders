@@ -14,7 +14,6 @@ varying mat3 tbnMatrix;
 
 varying mat2x3 position;
 
-varying vec3 worldNormal;
 varying vec3 worldDisplacement;
 
 varying vec2 vertLightmap;
@@ -67,8 +66,8 @@ mat3 CalculateTBN(vec3 worldPosition) {
 	tangent  += CalculateVertexDisplacements(worldPosition +  tangent, vertLightmap.g) - worldDisplacement;
 	binormal += CalculateVertexDisplacements(worldPosition + binormal, vertLightmap.g) - worldDisplacement;
 	
-	tangent  = normalize(gl_NormalMatrix *  tangent);
-	binormal = normalize(gl_NormalMatrix * binormal);
+	tangent  = mat3(gbufferModelViewInverse) * gl_NormalMatrix * normalize( tangent);
+	binormal = mat3(gbufferModelViewInverse) * gl_NormalMatrix * normalize(binormal);
 	
 	vec3 normal = normalize(cross(-tangent, binormal));
 	
@@ -95,7 +94,6 @@ void main() {
 	
 	
 	tbnMatrix   = CalculateTBN(worldSpacePosition);
-	worldNormal = mat3(gbufferModelViewInverse) * tbnMatrix[2];
 	
 	
 #if defined gbuffers_water

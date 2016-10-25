@@ -59,12 +59,11 @@ vec3 DecodeNormal(vec2 encodedNormal) {
 }
 
 float EncodeNormal(vec3 normal, cfloat bits) {
-	normal = clamp(normal, -1.0, 1.0);
-	normal.xy = vec2(atan(normal.x, normal.z) + PI, acos(normal.y)) / PI;
-	
+	normal    = clamp(normal, -1.0, 1.0);
+	normal.xy = vec2(atan(normal.x, normal.z), acos(normal.y)) / PI;
+	normal.x += 1.0;
 	normal.xy = round(normal.xy * exp2(bits));
-	
-	normal.x = isnan(normal.x) ? 0.0 : normal.x;
+	normal.x  = isnan(normal.x) ? 0.0 : normal.x;
 	
 	return normal.x + normal.y * exp2(bits + 2);
 }
@@ -82,3 +81,4 @@ vec3 DecodeNormal(float enc, cfloat bits) {
 	
 	return normal.xyz;
 }
+
