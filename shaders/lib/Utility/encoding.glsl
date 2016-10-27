@@ -63,16 +63,14 @@ float EncodeNormal(vec3 normal, cfloat bits) {
 	normal.xy = vec2(atan(normal.x, normal.z), acos(normal.y)) / PI;
 	normal.x += 1.0;
 	normal.xy = round(normal.xy * exp2(bits));
-	normal.x  = isnan(normal.x) ? 0.0 : normal.x;
 	
-	return normal.x + normal.y * exp2(bits + 2);
+	return normal.x + normal.y * exp2(bits + 2.0);
 }
-
 vec3 DecodeNormal(float enc, cfloat bits) {
 	vec4 normal;
 	
 	normal.y    = exp2(bits + 2.0) * floor(enc / exp2(bits + 2.0));
-	normal.x    = enc; // - normal.y; // evidently
+	normal.x    = enc - normal.y;
 	normal.xy  /= exp2(vec2(bits, bits * 2.0 + 2.0));
 	normal.x   -= 1.0;
 	normal.xy  *= PI;
@@ -82,3 +80,79 @@ vec3 DecodeNormal(float enc, cfloat bits) {
 	return normal.xyz;
 }
 
+float EncodeNormalU(vec3 normal, vec3 vertNormal) {
+	normal = clamp(normal, -1.0, 1.0);
+	normal.xy = vec2(atan(normal.x, normal.z), acos(normal.y)) / PI;
+	normal.x += 1.0;
+	normal.xy = round(normal.xy * 2048.0);
+	
+	vertNormal = clamp(vertNormal, -1.0, 1.0);
+	vertNormal.xy = vec2(atan(vertNormal.x, vertNormal.z), acos(vertNormal.y)) / PI;
+	vertNormal.x += 1.0;
+	vertNormal.xy = round(vertNormal.xy * 8.0);
+	
+	uvec4 enc = uvec4(normal.xy, vertNormal.xy);
+	enc.x = enc.x & 4095;
+	enc.z = enc.z & 15;
+	enc.yzw = enc.yzw << uvec3(12, 24, 28);
+	
+	return uintBitsToFloat(sum4(enc));
+}
+
+vec3 DecodeNormalU(float enc, out vec3 vertNormal) {
+	cuvec3 shift  = uvec3(12, 24, 28);
+	cuvec3 modulo = uvec3(4095, 4095, 15);
+	
+	uvec4 e = uvec4(floatBitsToUint(enc));
+	e.yzw = e.yzw >> shift;
+	e.xyz = e.xyz & modulo.xyz;
+	
+	vec4 normal;
+	
+	normal.xy   = e.zw;
+	normal.xy  /= 8.0;
+	normal.x   -= 1.0;
+	normal.xy  *= PI;
+	normal.xwzy = vec4(sin(normal.xy), cos(normal.xy));
+	normal.xz  *= normal.w;
+	vertNormal  = normal.xyz;
+	
+	normal.xy   = e.xy;
+	normal.xy  /= 2048.0;
+	normal.x   -= 1.0;
+	normal.xy  *= PI;
+	normal.xwzy = vec4(sin(normal.xy), cos(normal.xy));
+	normal.xz  *= normal.w;
+	
+	return normal.xyz;
+}
+
+float EncodeNormalU(vec3 normal) {
+	normal = clamp(normal, -1.0, 1.0);
+	normal.xy = vec2(atan(normal.x, normal.z), acos(normal.y)) / PI;
+	normal.x += 1.0;
+	normal.xy = round(normal.xy * 2048.0);
+	
+	uvec2 enc = uvec2(normal.xy);
+	enc.x = enc.x & 4095;
+	enc.y = enc.y << 12;
+	
+	return uintBitsToFloat(enc.x + enc.y);
+}
+
+vec3 DecodeNormalU(float enc) {
+	uvec2 e = uvec2(floatBitsToUint(enc));
+	e.y = e.y >> 12;
+	e.x = e.x & 4095;
+	
+	vec4 normal;
+	
+	normal.xy   = e.xy;
+	normal.xy  /= 2048.0;
+	normal.x   -= 1.0;
+	normal.xy  *= PI;
+	normal.xwzy = vec4(sin(normal.xy), cos(normal.xy));
+	normal.xz  *= normal.w;
+	
+	return normal.xyz;
+}
