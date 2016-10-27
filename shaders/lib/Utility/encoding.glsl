@@ -71,8 +71,8 @@ float EncodeNormal(vec3 normal, cfloat bits) {
 vec3 DecodeNormal(float enc, cfloat bits) {
 	vec4 normal;
 	
-	normal.x    = enc - exp2(bits + 2.0) * floor(enc / exp2(bits + 2.0));
-	normal.y    = enc - normal.x;
+	normal.y    = exp2(bits + 2.0) * floor(enc / exp2(bits + 2.0));
+	normal.x    = enc; // - normal.y; // evidently
 	normal.xy  /= exp2(vec2(bits, bits * 2.0 + 2.0));
 	normal.x   -= 1.0;
 	normal.xy  *= PI;
