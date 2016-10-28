@@ -114,7 +114,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 	float stepCoeff = -tangentRay.z * 64.0 * clamp01(intensity);
 	
 	for (uint i = 0; sampleRay.z > sampleHeight && i < 150; i++) {
-		sampleRay.xy += step.xy * min1((sampleRay.z - sampleHeight) * stepCoeff);
+		sampleRay.xy += step.xy * clamp01((sampleRay.z - sampleHeight) * stepCoeff);
 		sampleRay.z += step.z;
 		
 		sampleHeight = GetTexture(normals, fract(sampleRay.xy * tileScale + tileCoord) / tileScale + atlasCorner).a;
@@ -136,6 +136,8 @@ void main() {
 	float wet = wetness;
 	
 	vec3 normal = GetNormal(coord);
+	
+//	show(abs(normal - DecodeNormal(ReEncodeNormal(EncodeNormalU(normal, tbnMatrix[2]), 11.0), 11.0))*100.0);
 	
 	float specularity = GetSpecularity(coord) + wet;
 	
