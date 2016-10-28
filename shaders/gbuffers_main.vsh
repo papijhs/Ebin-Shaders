@@ -44,7 +44,7 @@ vec3 GetWorldSpacePosition() {
 #if defined gbuffers_water
 	worldSpacePosition -= gl_Normal * mix(0.00005, 0.0, abs(mc_Entity.x - 8.5) < 0.6);
 #endif
-	show(gl_Normal)
+	
 	return worldSpacePosition;
 }
 
