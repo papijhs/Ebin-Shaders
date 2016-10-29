@@ -189,7 +189,7 @@ void main() {
 		{ gl_FragData[0] = vec4(vec3(0.0), 1.0); exit(); return; }
 	
 	
-	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);
+	vec3 normal = DecodeNormalU(texure4.g) * mat3(gbufferModelViewInverse);
 	
 	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
 	

@@ -137,8 +137,6 @@ void main() {
 	
 	vec3 normal = GetNormal(coord);
 	
-//	show(abs(normal - DecodeNormal(ReEncodeNormal(EncodeNormalU(normal, tbnMatrix[2]), 11.0), 11.0))*100.0);
-	
 	float specularity = GetSpecularity(coord) + wet;
 	
 	
@@ -149,7 +147,7 @@ void main() {
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
 	gl_FragData[2] = vec4(0.0);
 	gl_FragData[3] = vec4(0.0);
-	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), EncodeNormal(normal.xyz, 11), 0.0, 1.0);
+	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), EncodeNormalU(normal, tbnMatrix[2]), 0.0, 1.0);
 #else
 	specularity = clamp(specularity, 0.0, 1.0 - 1.0 / 255.0);
 	

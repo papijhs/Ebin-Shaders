@@ -130,19 +130,6 @@ vec3 DecodeNormalU(float enc, out vec3 vertNormal) {
 	return normal.xyz;
 }
 
-float EncodeNormalU(vec3 normal) {
-	normal = clamp(normal, -1.0, 1.0);
-	normal.xy = vec2(atan(normal.x, normal.z), acos(normal.y)) / PI;
-	normal.x += 1.0;
-	normal.xy = round(normal.xy * 2048.0);
-	
-	uvec2 enc = uvec2(normal.xy);
-	enc.x = enc.x & 4095;
-	enc.y = enc.y << 12;
-	
-	return uintBitsToFloat(enc.x + enc.y);
-}
-
 float ReEncodeNormal(float enc, cfloat bits) {
 	uvec2 e = uvec2(floatBitsToUint(enc));
 	e.y = e.y >> 12;
