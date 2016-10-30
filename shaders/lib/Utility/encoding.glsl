@@ -57,7 +57,7 @@ vec3 DecodeNormal(vec2 encodedNormal) {
 	float g = sqrt(1.0 - f * 0.25);
 	return vec3(encodedNormal * g, 1.0 - f * 0.5);
 }
-#line 61
+
 float EncodeNormal(vec3 normal, cfloat bits) {
 	normal    = clamp(normal, -1.0, 1.0);
 	normal.xy = vec2(atan(normal.x, normal.z), acos(normal.y)) / PI;

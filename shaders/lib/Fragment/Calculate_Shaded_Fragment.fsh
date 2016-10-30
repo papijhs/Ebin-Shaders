@@ -15,13 +15,7 @@ struct Lightmap { // Vector light levels with color
 
 
 #include "/lib/Misc/Bias_Functions.glsl"
-#include "/lib/Fragment/Sunlight/GetSunlightShading.fsh"
-
-#if SHADOW_TYPE == 2 && defined composite1
-	#include "/lib/Fragment/Sunlight/ComputeUniformlySoftShadows.fsh"
-#else
-	#include "/lib/Fragment/Sunlight/ComputeHardShadows.fsh"
-#endif
+#include "/lib/Fragment/Sunlight_Shading.fsh"
 
 
 float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
@@ -44,12 +38,11 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 	return hand.x + hand.y;
 }
 
-vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, mat2x3 position) {
+vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, vec3 vertNormal, float smoothness, mat2x3 position) {
 	Shading shading;
 	
-	shading.sunlight  = GetLambertianShading(normal, mask);
-	shading.sunlight *= pow2(skyLightmap);
-	shading.sunlight  = ComputeShadows(position[1], shading.sunlight);
+	shading.sunlight  = GetLambertianShading(normal, mask) * skyLightmap;
+	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight, vertNormal);
 	
 	
 	shading.torchlight  = 1.0 - pow(clamp01(torchLightmap - 0.075), 4.0);

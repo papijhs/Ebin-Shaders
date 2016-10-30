@@ -126,8 +126,7 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 }
 
 #include "/lib/Misc/Bias_Functions.glsl"
-#include "/lib/Fragment/Sunlight/ComputeUniformlySoftShadows.fsh"
-#include "/lib/Fragment/Sunlight/GetSunlightShading.fsh"
+#include "/lib/Fragment/Sunlight_Shading.fsh"
 
 void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
 	if (isEyeInWater == 1) return;
@@ -145,7 +144,7 @@ void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float
 	vec3  reflectedViewSpacePosition;
 	vec3  reflection;
 	
-	float sunlight = ComputeShadows(position[1], 1.0) * GetLambertianShading(normal);
+	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap, vec3(0.0));
 	
 	vec3 reflectedSky = CalculateSky(refRay[1], position[1], 0.0, 1.0, true, sunlight);
 	

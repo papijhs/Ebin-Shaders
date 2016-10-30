@@ -156,7 +156,7 @@ void main() {
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
 	
-	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, smoothness, backPos);
+	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, vertNormal, smoothness, backPos);
 	     composite *= pow(diffuse * 1.2, vec3(2.8));
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)

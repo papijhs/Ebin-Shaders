@@ -74,8 +74,7 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 }
 
 #include "/lib/Misc/Bias_Functions.glsl"
-#include "/lib/Fragment/Sunlight/GetSunlightShading.fsh"
-#include "/lib/Fragment/Sunlight/ComputeHardShadows.fsh"
+#include "/lib/Fragment/Sunlight_Shading.fsh"
 
 #ifndef GI_ENABLED
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
@@ -84,9 +83,8 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	float lightMult = skyLightmap;
 	
 #ifdef GI_BOOST
-	float sunlight  = GetLambertianShading(normal, mask);
-	      sunlight *= skyLightmap;
-	      sunlight  = ComputeHardShadows(worldSpacePosition, sunlight);
+	float sunlight = GetLambertianShading(normal, mask) * skyLightmap;
+	      sunlight = ComputeSunlight(worldSpacePosition, sunlight, vec3(0.0));
 	
 	lightMult = 1.0 - sunlight * 4.0;
 #endif
