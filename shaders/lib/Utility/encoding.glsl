@@ -5,7 +5,11 @@ float Encode4x8F(in vec4 a) {
 }
 
 vec4 Decode4x8F(in float encodedbuffer) {
-	return vec4(floatBitsToUint(encodedbuffer) >> uvec4(0, 8, 16, 24) & 255) / 255.0;
+	uvec4 decode     = uvec4(floatBitsToUint(encodedbuffer));
+	      decode.yzw = decode.yzw >> uvec3(8, 16, 24);
+	      decode.xyz = decode.xyz & 255;
+	
+	return vec4(decode) / 255.0;
 }
 
 float Encode2x16F(in vec2 a) {
@@ -15,7 +19,11 @@ float Encode2x16F(in vec2 a) {
 }
 
 vec2 Decode2x16(in float encodedbuffer) {
-	return vec2(floatBitsToUint(encodedbuffer) >> uvec2(0, 16) & 65535) / 65535.0;
+	uvec2 decode   = uvec2(floatBitsToUint(encodedbuffer));
+	      decode.y = decode.y >> 16;
+	      decode.x = decode.x & 65535;
+	
+	return vec2(decode) / 65535.0;
 }
 
 float Encode16(vec2 encodedBuffer) {
