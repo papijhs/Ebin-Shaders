@@ -39,13 +39,15 @@ vec2 GetDefaultLightmap(vec2 lightmapCoord) {
 #include "/lib/Vertex/Materials.vsh"
 
 vec3 GetWorldSpacePosition() {
-	vec3 worldSpacePosition = mat3(gbufferModelViewInverse) * transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
+	vec3 position = transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
 	
-#if defined gbuffers_water
-	worldSpacePosition -= gl_Normal * mix(0.00005, 0.0, abs(mc_Entity.x - 8.5) < 0.6);
+#if  defined gbuffers_water
+	position -= gl_NormalMatrix * normalize(gl_Normal) * 0.00005 * float(abs(mc_Entity.x - 8.5) > 0.6);
+#elif defined gbuffers_spidereyes
+	position += gl_NormalMatrix * normalize(gl_Normal) * 0.0002;
 #endif
 	
-	return worldSpacePosition;
+	return position * mat3(gbufferModelView);
 }
 
 vec4 ProjectViewSpace(vec3 viewSpacePosition) {
