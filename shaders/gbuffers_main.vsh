@@ -1,7 +1,6 @@
 attribute vec4 mc_Entity;
 attribute vec4 at_tangent;
 
-uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 
 uniform vec3  cameraPosition;
@@ -47,7 +46,7 @@ vec3 GetWorldSpacePosition() {
 	position += gl_NormalMatrix * normalize(gl_Normal) * 0.0002;
 #endif
 	
-	return position * mat3(gbufferModelView);
+	return mat3(gbufferModelViewInverse) * position;
 }
 
 vec4 ProjectViewSpace(vec3 viewSpacePosition) {
@@ -90,7 +89,7 @@ void main() {
 	worldDisplacement = CalculateVertexDisplacements(worldSpacePosition, vertLightmap.g);
 	
 	position[1] = worldSpacePosition + worldDisplacement;
-	position[0] = mat3(gbufferModelView) * position[1];
+	position[0] = position[1] * mat3(gbufferModelViewInverse);
 	
 	gl_Position = ProjectViewSpace(position[0]);
 	

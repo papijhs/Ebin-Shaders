@@ -4,7 +4,7 @@
 #define ShaderStage 10
 #include "/lib/Syntax.glsl"
 
-uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 
