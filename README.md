@@ -24,8 +24,8 @@ This is a Minecraft shaderpack for use with [Optifine](http://www.minecraftforum
 This shaderpack was created after spending years modifying other shaderpacks, primarily [SEUS](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1280299). Ebin was created as a reaction to the many issues and inefficiencies within SEUS (which is by no means a bad shaderpack, it was probably the best shaderpack during inception of Ebin). Developments within the Shaders Mod, such as its adoption by Optifine, and the addition of the #include preprocessor, boosted motivation to develop a more "modern" shaderpack.
 
 ## Team
-- [BruceKnowsHow](https://github.com/BruceKnowsHow): Primary Developper
-- [dotModded](https://github.com/dotModded): Co-Developper
+- [BruceKnowsHow](https://github.com/BruceKnowsHow): Primary Developer
+- [dotModded](https://github.com/dotModded): Co-Developer
 
 ## Contributors
 [DethRaid](https://github.com/DethRaid), [zombye](https://github.com/zombye)
