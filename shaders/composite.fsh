@@ -4,7 +4,7 @@
 #define ShaderStage 0
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:6 */
+/* DRAWBUFFERS:5 */
 
 const bool shadowtex1Mipmap    = true;
 const bool shadowcolor0Mipmap  = true;
@@ -16,7 +16,6 @@ const bool shadowcolor1Nearest = false;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex4;
-uniform sampler2D colortex5;
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
@@ -75,8 +74,7 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 }
 
 #include "/lib/Misc/Bias_Functions.glsl"
-#include "/lib/Fragment/Sunlight/GetSunlightShading.fsh"
-#include "/lib/Fragment/Sunlight/ComputeHardShadows.fsh"
+#include "/lib/Fragment/Sunlight_Shading.fsh"
 
 #ifndef GI_ENABLED
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
@@ -85,9 +83,8 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	float lightMult = skyLightmap;
 	
 #ifdef GI_BOOST
-	float sunlight  = GetLambertianShading(normal, mask);
-	      sunlight *= skyLightmap;
-	      sunlight  = ComputeHardShadows(worldSpacePosition, sunlight);
+	float sunlight = GetLambertianShading(normal, mask) * skyLightmap;
+	      sunlight = ComputeSunlight(worldSpacePosition, sunlight, vec3(0.0));
 	
 	lightMult = 1.0 - sunlight * 4.0;
 #endif
@@ -165,11 +162,13 @@ void main() {
 #endif
 	
 	
-	vec2  buffer0     = Decode16(texture2D(colortex4, texcoord).b);
-	float smoothness  = buffer0.r;
-	float skyLightmap = buffer0.g;
+	vec2 texure4 = textureRaw(colortex4, texcoord).rg;
 	
-	Mask mask = CalculateMasks(Decode16(texture2D(colortex5, texcoord).r).g);
+	vec4  decode4       = Decode4x8F(texure4.r);
+	Mask  mask          = CalculateMasks(decode4.r);
+	float smoothness    = decode4.g;
+	float torchLightmap = decode4.b;
+	float skyLightmap   = decode4.a;
 	
 	float depth1 = (mask.hand > 0.5 ? depth0 : textureRaw(depthtex1, texcoord).x);
 	
@@ -178,16 +177,17 @@ void main() {
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
 	if (depth0 != depth1) {
-		mask.transparent = 1.0;
-		mask.water       = float(texture2D(colortex0, texcoord).r >= 0.5);
+		vec2 decode0 = Decode16(texture2D(colortex0, texcoord).b);
+		
+		mask.water = float(decode0.g >= 1.0);
 	}
-	
-	vec3 normal = DecodeNormal(texture2D(colortex4, texcoord).xy);
 	
 	
 	if (depth1 >= 1.0 || isEyeInWater != mask.water)
 		{ gl_FragData[0] = vec4(vec3(0.0), 1.0); exit(); return; }
 	
+	
+	vec3 normal = DecodeNormalU(texure4.g) * mat3(gbufferModelViewInverse);
 	
 	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
 	

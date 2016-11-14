@@ -1,4 +1,4 @@
-#ifdef CUSTOM_TIME_CYCLE
+#ifdef TIME_OVERRIDE
 	varying mat4 shadowView;
 	
 	#define shadowViewMatrix shadowView

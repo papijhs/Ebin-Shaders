@@ -1,15 +1,14 @@
-/* DRAWBUFFERS:012345 */
+/* DRAWBUFFERS:01234 */
 
 uniform sampler2D texture;
 uniform sampler2D normals;
 uniform sampler2D specular;
-uniform sampler2D noisetex;
 
 uniform ivec2 atlasSize;
 
 uniform float frameTimeCounter;
-uniform float far;
 uniform float wetness;
+uniform float far;
 
 varying vec3 color;
 varying vec2 texcoord;
@@ -18,17 +17,16 @@ varying mat3 tbnMatrix;
 
 varying mat2x3 position;
 
-varying vec3 worldNormal;
+varying vec3 worldDisplacement;
 
 varying vec2 vertLightmap;
 
 varying float mcID;
 varying float materialIDs;
-varying float tbnIndex;
 
 #include "/lib/Settings.glsl"
-#include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
+#include "/lib/Utility.glsl"
 #include "/lib/Uniform/Projection_Matrices.fsh"
 #include "/lib/Misc/Calculate_Fogfactor.glsl"
 #include "/lib/Fragment/Masks.fsh"
@@ -37,6 +35,7 @@ varying float tbnIndex;
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
+#include "/lib/Fragment/Water_Waves.fsh"
 #endif
 
 
@@ -49,17 +48,14 @@ float LOD;
 #endif
 
 vec4 GetDiffuse(vec2 coord) {
-
 	return vec4(color.rgb, 1.0) * GetTexture(texture, coord);
-
 }
 
-vec4 GetNormal(vec2 coord) {
+vec3 GetNormal(vec2 coord) {
 #ifdef NORMAL_MAPS
-	vec4 normal = GetTexture(normals, coord);
-
+	vec3 normal = GetTexture(normals, coord).xyz;
 #else
-	vec4 normal = vec4(0.5, 0.5, 1.0, 1.0);
+	vec3 normal = vec3(0.5, 0.5, 1.0);
 #endif
 	
 	normal.xyz = tbnMatrix * normalize(normal.xyz * 2.0 - 1.0);
@@ -75,42 +71,15 @@ vec3 GetTangentNormal() {
 #endif
 }
 
-#include "/lib/Misc/Get3DNoise.glsl"
-
-float GetRainAlpha(float height, float skyLightmap) {
-	float randWaterSpot  = Get3DNoise(position[1]);
-	      randWaterSpot += Get3DNoise(position[1] / 4.0) * 2.0;
-	
-	float heightOffset = max(0.25, (1.0 - height) * 0.2 + randWaterSpot * 0.8);
-	
-	float wetFactor  = wetness * pow2(skyLightmap) * 2.0;
-	float finalAlpha = clamp01(wetFactor - heightOffset);
-	
-	return clamp01(finalAlpha);
-}
-
-vec2 GetSpecularity(vec2 coord, float wetnessAlpha) {
+float GetSpecularity(vec2 coord) {
 #ifdef SPECULARITY_MAPS
-	vec2 specular = GetTexture(specular, coord).rg;
+	return GetTexture(specular, coord).r;
 #else
-	vec2 specular = vec2(0.0);
+	return 0.0;
 #endif
-	
-	specular.r = mix(specular.r, 0.4, wetnessAlpha);
-	
-	return specular;
 }
 
-vec2 EncodeNormalData(vec3 normalTexture, float tbnIndex) {
-	vec2 encode;
-	
-	encode.r = (tbnIndex + 8.0 * float(abs(mcID - 8.5) < 0.6)) / 16.0;
-	encode.g = Encode16(normalTexture.xy);
-	
-	return encode;
-}
-
-vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
+vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 #if !defined TERRAIN_PARALLAX || !defined gbuffers_terrain
 	return coord;
 #endif
@@ -122,13 +91,13 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	cfloat MinQuality   =  0.5;
 	cfloat maxQuality   =  1.5;
 	
-	float intensity = clamp01((parallaxDist - length(viewSpacePosition) * FOV / 90.0) / distFade);
+	float intensity = clamp01((parallaxDist - length(position) * FOV / 90.0) / distFade);
 	
 	if (intensity < 0.01) return coord;
 	
-	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(viewSpacePosition), 0.25)), MinQuality, maxQuality);
+	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position), 0.25)), MinQuality, maxQuality);
 	
-	vec3 tangentRay = normalize(viewSpacePosition * tbnMatrix);
+	vec3 tangentRay = normalize(position * tbnMatrix);
 	
 	float tileScale  = atlasSize.x / TEXTURE_PACK_RESOLUTION;
 	vec2  tileCoord  = fract(coord * tileScale);
@@ -136,16 +105,16 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 	
 	vec3 sampleRay = vec3(0.0, 0.0, 1.0);
 	
-	vec3 step = tangentRay * vec3(0.01, 0.01, 1.0 / intensity) / quality * 0.03 * sqrt(length(viewSpacePosition));
+	vec3 step = tangentRay * vec3(0.01, 0.01, 1.0 / intensity) / quality * 0.03 * sqrt(length(position));
 	
 	float sampleHeight = GetTexture(normals, coord).a;
-
+	
 	if (sampleRay.z <= sampleHeight) return coord;
 	
 	float stepCoeff = -tangentRay.z * 64.0 * clamp01(intensity);
 	
 	for (uint i = 0; sampleRay.z > sampleHeight && i < 150; i++) {
-		sampleRay.xy += step.xy * min1((sampleRay.z - sampleHeight) * stepCoeff);
+		sampleRay.xy += step.xy * clamp01((sampleRay.z - sampleHeight) * stepCoeff);
 		sampleRay.z += step.z;
 		
 		sampleHeight = GetTexture(normals, fract(sampleRay.xy * tileScale + tileCoord) / tileScale + atlasCorner).a;
@@ -158,49 +127,50 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 viewSpacePosition) {
 void main() {
 	if (CalculateFogFactor(position[0], FOG_POWER) >= 1.0) discard;
 	
-	vec2 coord = ComputeParallaxCoordinate(texcoord, position[0]);
+	vec2 coord = ComputeParallaxCoordinate(texcoord, position[1]);
+	
 	
 	vec4 diffuse = GetDiffuse(coord);
 	if (diffuse.a < 0.1000003) discard;
 	
-	vec4 normal = GetNormal(coord);
+	float wet = wetness;
 	
-	float wetnessAlpha = GetRainAlpha(normal.a, vertLightmap.t);
+	vec3 normal = GetNormal(coord);
 	
-	diffuse.rgb *= mix(vec3(1.0), vec3(0.74, 0.71, 0.87), wetnessAlpha);
-	normal       = mix(normal, vec4(tbnMatrix * vec3(0.0, 0.0, 1.0), 1.0), wetnessAlpha * worldNormal.y);
-	
-	vec2 specularity = GetSpecularity(coord, wetnessAlpha);	
+	float specularity = GetSpecularity(coord) + wet;
 	
 	
 #if !defined gbuffers_water
-	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(specularity.g, 0.0, 0.0, 0.0));
-	
-	vec2 encode = vec2(Encode16(vec2(specularity.r, vertLightmap.g)), Encode16(vec2(vertLightmap.r, encodedMaterialIDs)));
+	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0));
 	
 	gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
 	gl_FragData[2] = vec4(0.0);
 	gl_FragData[3] = vec4(0.0);
-	gl_FragData[4] = vec4(EncodeNormal(normal.xyz), encode.r, 1.0);
-	gl_FragData[5] = vec4(encode.g, 0.0, 0.0, 1.0);
+	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), EncodeNormalU(normal, tbnMatrix[2]), 0.0, 1.0);
 #else
-	float encode = Encode16(vec2(specularity.r, vertLightmap.g));
-	
-	vec2 encodedNormal = EncodeNormalData(GetTangentNormal(), tbnIndex);
+	specularity = clamp(specularity, 0.0, 1.0 - 1.0 / 255.0);
 	
 	Mask mask = EmptyMask;
 	
-	if (abs(mcID - 8.5) < 0.6) diffuse = vec4(0.215, 0.356, 0.533, 0.75);
+	if (abs(mcID - 8.5) < 0.6) {
+		if (!gl_FrontFacing) discard;
+		
+		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
+		
+		normal = tbnMatrix * GetWaveNormals(position[1] - worldDisplacement, tbnMatrix[2]);
+		
+		specularity = 1.0;
+	}
 	
-
-	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz, specularity.r, position);
+	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], specularity, position);
 	     composite *= pow(diffuse.rgb, vec3(2.2));
 	
-	gl_FragData[0] = vec4(encodedNormal, encode, 1.0);
+	gl_FragData[0] = vec4(Encode4x8F(vec4(specularity, vertLightmap.g, 0.0, 0.1)), EncodeNormal(normal.xyz, 11), 0.0, 1.0);
 	gl_FragData[1] = vec4(0.0);
 	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
 	gl_FragData[3] = vec4(composite, diffuse.a);
+	gl_FragData[4] = vec4(0.0);
 #endif
 	
 	exit();

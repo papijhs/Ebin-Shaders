@@ -1,4 +1,4 @@
-#ifdef CUSTOM_TIME_CYCLE	
+#ifdef TIME_OVERRIDE	
 	varying mat4 shadowView;
 	
 	#define shadowViewMatrix shadowView
@@ -11,7 +11,7 @@
 	
 	
 	#include "/lib/EbinScript/Load.vsh"
-	#include "/UserProgram/CustomTimeCycle.vsh"
+	#include "/UserProgram/Time_Override.vsh"
 	#include "/lib/EbinScript/Unload.vsh"
 	
 	void GetDaylightVariables(out float isNight, out vec3 worldLightVector) {

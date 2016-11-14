@@ -13,19 +13,23 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 
 #define sum4(v) ((v.x + v.y) + (v.z + v.w))
 
-#define diagonal2(mat) vec2(mat[0].x, mat[1].y)
-#define diagonal3(mat) vec3(mat[0].x, mat[1].y, mat[2].z)
+#define diagonal2(mat) vec2((mat)[0].x, (mat)[1].y)
+#define diagonal3(mat) vec3((mat)[0].x, (mat)[1].y, mat[2].z)
 
-#define transMAD(mat, v) (     mat3(mat) * (v) + mat[3].xyz)
-#define  projMAD(mat, v) (diagonal3(mat) * (v) + mat[3].xyz)
+#define transMAD(mat, v) (     mat3(mat) * (v) + (mat)[3].xyz)
+#define  projMAD(mat, v) (diagonal3(mat) * (v) + (mat)[3].xyz)
 
-#define textureRaw(samplr, coord) texelFetch(samplr, ivec2(coord * vec2(viewWidth, viewHeight)), 0)
+#define textureRaw(samplr, coord) texelFetch(samplr, ivec2((coord) * vec2(viewWidth, viewHeight)), 0)
 #define ScreenTex(samplr) texelFetch(samplr, ivec2(gl_FragCoord.st), 0)
 
 #if !defined gbuffers_shadow
-	#define cameraPosition (cameraPosition + gbufferModelViewInverse[3].xyz)
+	#define cameraPosition() (vec3(mod(cameraPosition.x + 12345.0, 987654.0), cameraPosition.y, mod(cameraPosition.z + 12345.0, 987654.0)) + gbufferModelViewInverse[3].xyz)
+#else
+	#define cameraPosition() vec3(mod(cameraPosition.x + 12345.0, 987654.0), cameraPosition.y, mod(cameraPosition.z + 12345.0, 987654.0))
 #endif
 
+
+#include "/lib/Utility/fastMath.glsl"
 
 #include "/lib/Utility/smoothing.glsl"
 
@@ -39,8 +43,6 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 
 #include "/lib/Utility/blending.glsl"
 
-#include "/lib/Utility/fastMath.glsl"
-
 
 float pow2(float f) {
 	return dot(f, f);
@@ -51,7 +53,9 @@ vec2 clampScreen(vec2 coord, vec2 pixel) {
 }
 
 vec3 SetSaturationLevel(vec3 color, float level) {
-	float luminance = max(0.1175, dot(color, lumaCoeff));
+	color = clamp01(color);
+	
+	float luminance = dot(color, lumaCoeff);
 	
 	return mix(vec3(luminance), color, level);
 }

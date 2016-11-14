@@ -104,9 +104,9 @@ vec3[8] GetBloom() {
 }
 
 vec3 Uncharted2Tonemap(vec3 color) {
-	cfloat A = 0.15, B = 0.5, C = 0.1, D = 0.2, E = 0.02, F = 0.3, W = 11.2;
+	cfloat A = 0.5, B = 0.6, C = 0.22, D = 0.5, E = 0.02, F = 0.1, W = 8.0;
 	cfloat whiteScale = 1.0 / (((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F);
-	cfloat ExposureBias = exp2(EXPOSURE);
+	cfloat ExposureBias = 1.5 * EXPOSURE;
 	
 	vec3 curr = ExposureBias * color;
 	     curr = ((curr * (A * curr + C * B) + D * E) / (curr * (A * curr + B) + D * F)) - E / F;
@@ -132,6 +132,10 @@ void main() {
 	color = Uncharted2Tonemap(color);
 	
 	color = SetSaturationLevel(color, SATURATION);
+	
+//	color.r = mix(color.r, cosmooth(color.r), 0.25);
+//	color.g = mix(color.g, cosmooth(color.g), 0.25);
+//	color.b = mix(color.b, cosmooth(color.b), -0.5);
 	
 	gl_FragData[0] = vec4(color, 1.0);
 	

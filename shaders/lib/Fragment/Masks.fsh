@@ -6,14 +6,13 @@ struct Mask {
 	
 	float grass;
 	float leaves;
-	float water;
 	float hand;
 	
-	float metallic;
 	float transparent;
+	float water;
 };
 
-#define EmptyMask Mask(0.0, 0.0, vec4(0.0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+#define EmptyMask Mask(0.0, 0.0, vec4(0.0), 0.0, 0.0, 0.0, 0.0, 0.0)
 
 float EncodeMaterialIDs(float materialIDs, vec4 bits) {
 	materialIDs += dot(vec4(greaterThan(bits, vec4(0.5))), vec4(128.0, 64.0, 32.0, 16.0));
@@ -50,9 +49,8 @@ Mask CalculateMasks(float materialIDs) {
 	mask.leaves = GetMaterialMask(3, mask.matIDs);
 	mask.hand   = GetMaterialMask(5, mask.matIDs);
 	
-	mask.metallic    = mask.bits.x;
-	mask.transparent = mask.bits.y;
-	mask.water       = mask.bits.z;
+	mask.transparent = mask.bits.x;
+	mask.water       = mask.bits.y;
 	
 	return mask;
 }

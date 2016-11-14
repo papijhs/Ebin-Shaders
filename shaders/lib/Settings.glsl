@@ -9,23 +9,25 @@ const float drynessHalflife          = 40.0;
 
 /*
 ** Transparent Gbuffers **
-const int colortex0Format = RGB16;
+const int colortex0Format = RG32F;
 const int colortex3Format = R11F_G11F_B10F;
 const int colortex2Format = R8;
 
 ** Flat Gbuffers **
 const int colortex1Format = R11F_G11F_B10F;
-const int colortex4Format = RGB16;
-const int colortex5Format = R16;
+const int colortex4Format = RG32F;
 
 ** composite0 Buffer **
-const int colortex6Format = RGBA16;
+const int colortex5Format = RGB8;
 
 
 const float eyeBrightnessHalflife = 1.5;
+const float ambientOcclusionLevel = 0.65;
 */
 
 const int noiseTextureResolution = 64;
+cfloat noiseRes = noiseTextureResolution;
+cfloat noiseResInverse = 1.0 / noiseRes;
 
 
 
@@ -38,7 +40,7 @@ const int noiseTextureResolution = 64;
 
 
 #define EXPOSURE            0.8  // [0.2 0.4 0.6 0.8 1.0 2.0 4.0  8.0]
-#define SATURATION          1.00 // [0.00 0.50 1.00 1.15 1.20 1.30]
+#define SATURATION          1.15 // [0.00 0.50 1.00 1.15 1.20 1.30]
 #define SUN_LIGHT_LEVEL     1.00 // [0.00 0.25 0.50 1.00 2.00 4.00 8.00 16.00]
 #define SKY_LIGHT_LEVEL     1.00 // [0.00 0.25 0.50 1.00 2.00 4.00 8.00 16.00]
 #define AMBIENT_LIGHT_LEVEL 1.00 // [0.00 0.25 0.50 1.00 2.00 4.00 8.00 16.00]
@@ -47,7 +49,7 @@ const int noiseTextureResolution = 64;
 
 
 #define SHADOW_MAP_BIAS 0.80     // [0.00 0.60 0.70 0.80 0.85 0.90]
-#define SHADOW_TYPE 2 // [1 2 3]
+#define SHADOW_TYPE 2 // [1 2]
 #define PLAYER_SHADOW
 
 #if !defined low_profile
@@ -56,14 +58,14 @@ const int noiseTextureResolution = 64;
 
 //#define PLAYER_GI_BOUNCE
 #define GI_MODE         1    // [1]
-#define GI_RADIUS       4   // [4 8 16 24 32]
+#define GI_RADIUS       16   // [4 8 16 24 32]
 #define GI_SAMPLE_COUNT 80   // [20 40 80 128 160 256]
 #define GI_BOOST
 #define GI_TRANSLUCENCE 0.2  // [0.0 0.2 0.4 0.6 0.8 1.0]
-#define GI_BRIGHTNESS   4.00 // [0.25 0.50 0.75 1.00 2.00 4.00 8.00]
+#define GI_BRIGHTNESS   1.00 // [0.25 0.50 0.75 1.00 2.00 4.00]
 
 #define BLOOM_ENABLED
-#define BLOOM_AMOUNT        0.10 // [0.05 0.10 0.25 0.50 1.00]
+#define BLOOM_AMOUNT        0.15 // [0.15 0.25 0.50 1.00]
 #define BLOOM_CURVE         1.50 // [1.00 1.25 1.50 1.75 2.00]
 
 //#define MOTION_BLUR
@@ -81,45 +83,41 @@ const int noiseTextureResolution = 64;
 #define COMPOSITE0_SCALE 0.40 // [0.25 0.33 0.40 0.50 0.75 1.00]
 //#define COMPOSITE0_NOISE
 
-#define FOG_ENABLED
+//#define FOG_ENABLED
 #define FOG_POWER 3.0                      // [1.0 2.0 3.0 4.0 6.0 8.0]
-#define ATMOSPHERIC_SCATTERING_AMOUNT 1.00 // [0.00 0.25 0.50 0.75 1.00 2.00 4.00]
-
-#if !defined low_profile
-	#define GI_ENABLED
-#endif
+#define AERIAL_PERSPECTIVE_AMOUNT 1.00 // [0.00 0.25 0.50 0.75 1.00 2.00 4.00]
 
 #define REFLECTION_EDGE_FALLOFF
 
-#define WAVE_MULT 1.0
-#define WAVE_SPEED 0.35
+#define CLOUDS_2D
+#define CLOUD_HEIGHT_2D   512  // [384 512 640 768]
+#define CLOUD_COVERAGE_2D 0.5  // [0.3 0.4 0.5 0.6 0.7]
+#define CLOUD_SPEED_2D    1.00 // [0.25 0.50 1.00 2.00 4.00]
 
-#define FRESNEL 4 // [1 2 3 4]
-#define undefF0 0.02
-#define PBR_SKEW 3 // [1 2 3]
-#define PBR_RAYS 2 // [1 2 4 8 16 32 64]
-#define PBR_GEOMETRY_MODEL 5 // [1 2 3 4 5 6]
-#define PBR_DISTROBUTION_MODEL 3 // [1 2 3]
-#define PBR_Diffuse 3 // [1 2 3 4 5]
+#define WAVE_MULT  1.0 // [0.0 0.5 1.0 1.5]
+#define WAVE_SPEED 1.0 // [0.0 0.5 1.0 2.0]
 
 //#define DEFORM
 #define DEFORMATION 1 // [1 2 3]
 
 
-
-#define CUSTOM_HORIZON_HEIGHT
+//#define CUSTOM_HORIZON_HEIGHT
 #define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]
+
+//#define TIME_OVERRIDE
+#define TIME_OVERRIDE_MODE 1 // [1 2 3]
+#define CONSTANT_TIME_HOUR 3 // [0 3 6 9 12 15 18 21]
+#define CUSTOM_DAY_NIGHT   1 // [1 2]
+#define CUSTOM_TIME_MISC   1 // [1 2]
 
 
 #define DEBUG_VIEW 1 // [-1 0 1 2 3 7]
 
 
 //#define PHYSICAL_ATMOSPHERE
-//#define ENABLE_CLOUDS
-//#define CUSTOM_TIME_CYCLE
 //#define FREEZE_TIME
-//#define USE_SKYBOX
-//define WATER_SHADOW
+
+//#define WATER_SHADOW
 
 
 #ifdef DEFAULT_TEXTURE_PACK
@@ -131,16 +129,11 @@ const int noiseTextureResolution = 64;
 	
 	#define NORMAL_MAPS
 	
-	#define SPECULARITY_MAPS
-	//#define PBR_TEXTURE_PACK
-	
-#ifdef NORMAL_MAPS
-	#define TERRAIN_PARALLAX
-#endif
-	
-	#ifdef PBR_TEXTURE_PACK
-		#define PBR
+	#ifdef NORMAL_MAPS
+		//#define TERRAIN_PARALLAX
 	#endif
+	
+	#define SPECULARITY_MAPS
 #endif
 
 //#define FOV_OVERRIDE

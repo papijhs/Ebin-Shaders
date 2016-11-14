@@ -3,7 +3,7 @@
 	
 	GetDaylightVariables(isNight, worldLightVector);
 	
-	lightVector = mat3(gbufferModelView) * worldLightVector;
+	lightVector = worldLightVector * mat3(gbufferModelViewInverse);
 	sunVector   = worldLightVector * (1.0 - isNight * 2.0);
 	
 	float LdotUp = worldLightVector.y * (1.0 - isNight * 2.0);

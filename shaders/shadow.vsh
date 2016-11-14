@@ -48,9 +48,9 @@ vec4 ProjectShadowMap(vec4 position) {
 	
 	position.xy /= biasCoeff;
 	
-	position.z += 0.001 * sin(max0(vertNormal.z)); // Offset the z-coordinate to reduce shadow acne
+	position.z += 0.001 * sin(max0(vertNormal.z));
 	position.z += 0.000005 / (abs(position.x) + 1.0);
-	position.z += 0.006 * pow2(biasCoeff);
+	position.z += 0.006 * pow2(biasCoeff) * 2048.0 / shadowMapResolution;
 	
 	position.z /= 4.0; // Shrink the domain of the z-buffer. This counteracts the noticable issue where far terrain would not have shadows cast, especially when the sun was near the horizon
 	
@@ -59,12 +59,11 @@ vec4 ProjectShadowMap(vec4 position) {
 
 
 void main() {
-	
 #ifndef WATER_SHADOW
 	if (abs(mc_Entity.x - 8.5) < 0.6) { gl_Position = vec4(-1.0); return; }
 #endif
 	
-#ifdef CUSTOM_TIME_CYCLE
+#ifdef TIME_OVERRIDE
 	CalculateShadowView();
 #endif
 	

@@ -23,11 +23,11 @@ vec3 CalculateSkyGradient(vec3 worldSpacePosition, float sunglow) {
 	
 	vec3 sunglowColor = mix(skylightColor, sunlightColor * 0.5, gradientCoeff * sunglow) * sunglow;
 	
-	vec3 color  = primaryHorizonColor * gradientCoeff * 8.0;
+	vec3 color  = primaryHorizonColor * gradientCoeff * 5.0;
 	     color *= 1.0 + sunglowColor * 2.0;
 	     color += sunglowColor * 5.0;
 	
-	return color * 0.9;
+	return color;
 }
 
 vec3 CalculateSunspot(vec3 worldSpaceVector) {
@@ -40,18 +40,8 @@ vec3 CalculateSunspot(vec3 worldSpaceVector) {
 	return sunspot * sunlightColor * sunlightColor * vec3(1.0, 0.8, 0.6);
 }
 
-vec3 CalculatePhysicalSunspot(vec3 worldSpaceVector) {
-	float sunspot  = max0(dot(worldSpaceVector, sunVector) - 0.01);
-	      sunspot  = pow(sunspot, 350.0);
-	      sunspot  = pow(sunspot + 1.0, 400.0) - 1.0;
-	      sunspot  = min(sunspot, 20.0);
-	      sunspot += 100.0 * float(sunspot == 20.0);
-	
-	return sunspot * vec3(1.0, 0.8, 0.6);
-}
-
-vec3 CalculateAtmosphereScattering(vec3 position) {
-	float factor = pow(length(position), 1.4) * 0.0001 * ATMOSPHERIC_SCATTERING_AMOUNT;
+vec3 AerialPerspective(float dist) {
+	float factor = pow(dist, 1.4) * 0.00015 * AERIAL_PERSPECTIVE_AMOUNT;
 	
 	return pow(skylightColor, vec3(2.5)) * factor;
 }
@@ -60,43 +50,33 @@ vec3 CalculateAtmosphereScattering(vec3 position) {
 
 #include "/lib/Fragment/Atmosphere.fsh"
 
-vec3 CalculateAtmosphericSky(vec3 worldSpacePosition, cbool reflection) {
-	float horizon = (reflection ? 0.0 : max0(cameraPosition.y - HORIZON_HEIGHT));
-	vec3 worldPosition = vec3(0.0, planetRadius + 1.061e3 + horizon * 400.0, 0.0);
-	
-	/*
-#ifdef CUSTOM_HORIZON_HEIGHT
-	float radius = max(176.0, far * sqrt(2.0) * 2.0);
-	
-	worldSpacePosition.y  = radius * worldSpacePosition.y / length(worldSpacePosition.xz) + cameraPosition.y - HORIZON_HEIGHT; // Reproject the world vector to have a consistent horizon height
-	worldSpacePosition.xz = normalize(worldSpacePosition.xz) * radius;
-#endif
-	*/
+vec3 CalculateAtmosphericSky(vec3 worldSpacePosition) {
+	vec3 worldPosition = vec3(0.0, planetRadius + 1.061e3 + max0(cameraPosition.y - HORIZON_HEIGHT) * 400.0, 0.0);
 	
 	return ComputeAtmosphericSky(worldSpacePosition, worldPosition, sunVector, 2.0);
-	
-	return vec3(0.0);
 }
 
 
-vec3 CalculateSky(mat2x3 position, vec3 rayPosition, float alpha, cbool reflection, float sunlight) {
-	float visibility = CalculateFogFactor(position[0], FOG_POWER);
-	if (  visibility < 0.001 && !reflection) return vec3(0.0);
+vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, float alpha, cbool reflection, float sunlight) {
+	float visibility = CalculateFogFactor(worldSpacePosition, FOG_POWER, skyMask);
+	if (!reflection && visibility < 0.001) return vec3(0.0);
 	
 	
-	vec3 worldSpaceVector = normalize(position[1]);
+	vec3 worldSpaceVector = normalize(worldSpacePosition);
 	
 	float sunglow = CalculateSunglow(worldSpaceVector);
 	
-	vec3 clouds = Compute2DCloudPlane(position[1], worldSpaceVector, rayPosition, sunglow);
+#ifdef PHYSICAL_ATMOSPHERE
+	vec3 gradient = CalculateAtmosphericSky(worldSpacePosition);
+	vec3 sunspot  = vec3(0.0);
+#else
+	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow);
+	vec3 sunspot  = CalculateSunspot(worldSpaceVector) * (reflection ? sunlight : pow(visibility, 25) * alpha);
+#endif
 	
-	#ifdef PHYSICAL_ATMOSPHERE
-		vec3 gradient = CalculateAtmosphericSky(position[1], reflection);
-		vec3 sunspot  =	min(CalculatePhysicalSunspot(worldSpaceVector) * pow(gradient, vec3(0.25)), 30) * (reflection ? 10.0 * sunlight : pow(visibility, 25) * alpha);
-	#else
-		vec3 gradient = CalculateSkyGradient(position[1], sunglow);
-		vec3 sunspot  = CalculateSunspot(worldSpaceVector) * (reflection ? sunlight : pow(visibility, 25) * alpha);
-	#endif
+	vec3 sky = gradient + sunspot + AerialPerspective(far + gl_Fog.start) * skyMask;
 	
-	return (gradient + sunspot + clouds) * SKY_BRIGHTNESS;
+	Compute2DCloudPlane(sky, worldSpaceVector, rayPosition, sunglow, visibility);
+	
+	return sky * SKY_BRIGHTNESS;
 }

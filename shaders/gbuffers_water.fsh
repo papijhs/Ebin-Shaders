@@ -6,9 +6,12 @@
 
 
 uniform sampler2DShadow shadow;
+uniform sampler2D noisetex;
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowProjection;
+
+uniform vec3 cameraPosition;
 
 uniform ivec2 eyeBrightnessSmooth;
 uniform int heldBlockLightValue;

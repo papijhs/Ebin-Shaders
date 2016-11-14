@@ -17,6 +17,18 @@ option.PBR_TEXTURE_PACK=PBR Texture Pack
 option.PBR_TEXTURE_PACK.comment=Enable this if you're using a PBR texture-pack.
 
 
+screen.FOV=FOV Override
+screen.FOV.comment=FOV Override can mitigate chunk-rendering issues with large scale terrain deformation
+
+option.FOV_OVERRIDE=FOV Override
+option.FOV_OVERRIDE.comment=Manually override the FOV from the in-game setting. Set the in-game FOV higher than your actual FOV to reduce chunk artifacts with large-scale vertex deformations
+
+option.FOV_DEFAULT_TENS=In-game FOV
+option.FOV_TRUE_TENS=Actual FOV
+option.FOV_TRUE_FIVES=Actual FOV
+
+
+
 screen.Brightness=Brightness and Saturation
 
 option.EXPOSURE=Exposure
@@ -61,16 +73,16 @@ screen.Motion_Blur=Motion Blur
 option.MOTION_BLUR=Motion Blur
 
 option.VARIABLE_MOTION_BLUR_SAMPLES=Variable Sample Count
-option.VARIABLE_MOTION_BLUR_SAMPLES.comment=Whether to vary the amount of blur samples based on the amount of samples needed. This allows for higher sample counts and better quality blur. High performance impact!
+option.VARIABLE_MOTION_BLUR_SAMPLES.comment=Whether to vary the amount of blur samples based on the amount of samples needed. This allows for higher sample counts and better quality blur. High performance cost!
 
 option.CONSTANT_MOTION_BLUR_SAMPLE_COUNT=Constant Sample Count
-option.CONSTANT_MOTION_BLUR_SAMPLE_COUNT.comment=The sample count to be used when "variable sample count" is disabled. Medium performance impact!
+option.CONSTANT_MOTION_BLUR_SAMPLE_COUNT.comment=The sample count to be used when "variable sample count" is disabled. Medium performance cost!
 
 option.MAX_MOTION_BLUR_SAMPLE_COUNT=Max Variable Sample Count
-option.MAX_MOTION_BLUR_SAMPLE_COUNT.comment=The maximum sample count to be used when "variable sample count" is enabled. Medium performance impact!
+option.MAX_MOTION_BLUR_SAMPLE_COUNT.comment=The maximum sample count to be used when "variable sample count" is enabled. Medium performance cost!
 
 option.VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT=Variable Sample Coefficient
-option.VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT.comment=The sample-count-coefficient for when "variable sample count" is enabled. Medium Performance impact!
+option.VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT.comment=The sample-count-coefficient for when "variable sample count" is enabled. Medium Performance cost!
 
 option.MOTION_BLUR_INTENSITY=Blur Intensity
 
@@ -99,19 +111,19 @@ option.SHADOW_MAP_BIAS=Shadow Map Bias
 option.SHADOW_MAP_BIAS.comment=Higher values make nearby shadows look better, at the cost of making farther off shadows look worse
 
 option.SHADOW_TYPE=Shadow Type
-option.SHADOW_TYPE.comment=1: Hard shadows. 2: Uniformly soft shadows. 3: Softness based on distance from shadow caster. Higher values have a medium performance cost!
+option.SHADOW_TYPE.comment=1: Hard shadows. 2: Uniformly soft shadows. Higher values have a medium performance cost!
 
 option.PLAYER_SHADOW=Player Shadow
 option.PLAYER_SHADOW.comment=Whether or not the player casts a shadow
 
 
-screen.Composite0=GI & AO
+screen.Composite0=GI
 
 option.COMPOSITE0_SCALE=Resolution Coefficient
 option.COMPOSITE0_SCALE.comment=The resolution coefficient at which global illumination and volumetric fog are computed.
 
 option.COMPOSITE0_NOISE=Ditherred Noise
-option.COMPOSITE0_NOISE.comment=Helps hide artifacts due to low sample counts. Medium performance impact!. Causes flickering at lower resolutions!
+option.COMPOSITE0_NOISE.comment=Helps hide artifacts due to low sample counts. Medium performance cost!. Causes flickering at lower resolutions!
 
 
 screen.Fog=Fog
@@ -121,8 +133,8 @@ option.FOG_ENABLED=Fog Enabled
 option.FOG_POWER=Fog Power
 option.FOG_POWER.comment=Higher values make fog more subtle nearby, but more intense farther away
 
-option.ATMOSPHERIC_SCATTERING_AMOUNT=Atmospheric Scattering Amount
-option.ATMOSPHERIC_SCATTERING_AMOUNT.comment=Blue-Purple "haze" effect. Independant of fog setting
+option.AERIAL_PERSPECTIVE_AMOUNT=Aerial Perspective Amount
+option.AERIAL_PERSPECTIVE_AMOUNT.comment=Blue-Purple "haze" effect. Independant of fog setting
 
 
 screen.Global_Illumination=Global Illumination
@@ -131,9 +143,6 @@ option.GI_ENABLED=GI Enabled
 
 option.PLAYER_GI_BOUNCE=Player GI Bounce
 option.PLAYER_GI_BOUNCE.comment=If this is enabled the player will cause GI to bounce off the player. This usually looks unnatural so it is off be default.
-
-option.GI_MODE=GI Mode
-option.GI_MODE.comment=1: Better for natural terrain and general gameplay. 2: Mix of 1 & 3. 3: More Physically accurate. Higher values may have medium performance cost!
 
 option.GI_RADIUS=GI Radius
 option.GI_RADIUS.comment=The radius of global illumination light bounces
@@ -150,47 +159,39 @@ option.GI_TRANSLUCENCE.comment=Higher values make global illumination seem to "b
 option.GI_BRIGHTNESS=GI Brightness
 
 
-option.AO_ENABLED=Ambient Occlusion
-option.AO_ENABLED.comment=Ambient Occlusion darkens corners semi naturally to give the effect of depth and changes in geometry.
-
-option.AO_MODE=Ambient Occlusion Mode
-option.AO_MODE.comment=1: AlchemyAO. 2: HBAO
-
-
-option.PBR=Physically Based Rendering
-option.PBR.comment=Physically Based Rendering or PBR is an effect that defines how light interacts with different materials. Needs a supported PBR resource pack!
-
-option.PBR_Diffuse=Diffuse Rendering
-option.PBR_Diffuse.comment=The way light diffuses into and off of the surface to your eye. 1: Lambertian. 2:Burley, Physical. 3: Oren Nayar, Physical. 4: Oren Nayar Fresnel, Physical. 5: Gotanda, Physical.
-
-option.IOR=IOR
-option.IOR.comment=Changes how much light is allowed to reflect. If the game seems too shiny lower the number.
-
-option.PBR_SKEW=PBR Ray Skew
-option.PBR_SKEW.comment=Ray Skewing adds microfacets so the SSR. This will be higher quality the more rays you send. 1: Phong. 2: Beckmann. 3: GGX.
-
-option.FRESNEL=Fresnel
-option.FRESNEL.comment=How much more reflectance at grazing angles. we give an option on which algorithm you can use. 1: Schlick. 2: Spherical Gaussian. 3: Cook Torrance. 4: No Approximation, Slowest but most accurate.
-
-option.PBR_RAYS=PBR Rays
-option.PBR_RAYS.comment=The number of rays that are sent per pixel, the more rays the higher quality.
-
-
-option.PBR_GEOMETRY_MODEL=PBR Geometry Model
-option.PBR_GEOMETRY_MODEL.comment=This is an advanced option! Different geometry models interact with direct light differently. 1: Implict. 2: Newmann. 3: Cook Torrance. 4: Smith. 5: GGX - PBR. 6: Schlick Beckmann - PBR.
-
-option.PBR_DISTROBUTION_MODEL=PBR Microfacet distribution
-option.PBR_DISTROBUTION_MODEL.comment=This is an advanced option! This option determines how direct light spreads across a surface based on roughness. 1: Phong. 2: Beckmann. 3: GGX.
-
-
-option.TERRAIN_PARALLAX=Terrain Parallax
-option.WATER_PARALLAX=Water Parallax
-
-
-
 option.CUSTOM_HORIZON_HEIGHT=Custom Horizon Height
 
 option.HORIZON_HEIGHT=Horizon Height
+
+
+option.CLOUDS_2D=2D Cloud Plane
+option.CLOUDS_2D.comment=Medium performance cost!
+
+option.CLOUD_HEIGHT_2D=2D Cloud Plane Height
+
+option.CLOUD_COVERAGE_2D=Cloud Coverage
+
+option.CLOUD_SPEED_2D=Cloud Speed
+
+
+
+option.WAVE_MULT=Wave Height
+option.WAVE_SPEED=Wave Speed
+
+
+screen.Time=Time Override
+
+option.TIME_OVERRIDE=Time Override
+option.TIME_OVERRIDE.comment=Modify or override the in-game time, based on the settings on this page
+
+option.TIME_OVERRIDE_MODE=Time Override Mode
+option.TIME_OVERRIDE_MODE.comment=1: Force Constant Time. 2: Day/Night Only. 3: Misc Time Effect
+
+option.CONSTANT_TIME_HOUR=[1] Constant Time Hour
+option.CONSTANT_TIME_HOUR.comment=The hour to set the time. Example: 3 = 3000 ticks
+
+option.CUSTOM_DAY_NIGHT=[2] Day/Night Only
+option.CUSTOM_DAY_NIGHT.comment=1: Day only. 2: Night only
 
 option.CUSTOM_TIME_MISC=[3] Misc Time Effect
 option.CUSTOM_TIME_MISC.comment=1: Old North (Retro Sun Direction). 2: User rotation
@@ -202,7 +203,6 @@ option.DEFORM=Terrain Deformation
 
 option.DEFORMATION=Deformation Type
 option.DEFORMATION.comment=1: Planetoid. 2: Acid. 3: User deformation
-
 
 
 screen.Misc=Misc

@@ -7,20 +7,17 @@
 /* DRAWBUFFERS:3 */
 
 const bool colortex1MipmapEnabled = true;
-const bool colortex6MipmapEnabled = true;
 
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
-uniform sampler2D colortex6;
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 uniform sampler2DShadow shadow; 
 
-uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowProjection;
 
@@ -34,6 +31,8 @@ uniform float viewHeight;
 
 uniform float near;
 uniform float far;
+
+uniform ivec2 eyeBrightnessSmooth;
 
 uniform int isEyeInWater;
 
@@ -52,10 +51,6 @@ varying vec2 pixelSize;
 
 vec3 GetColor(vec2 coord) {
 	return texture2D(colortex1, coord).rgb;
-}
-
-vec3 GetColorLod(vec2 coord, float lod) {
-	return texture2DLod(colortex1, coord, lod).rgb;
 }
 
 float GetDepth(vec2 coord) {
@@ -77,7 +72,6 @@ vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 }
 
 
-#include "/lib/Fragment/Water_Waves.fsh"
 #include "/lib/Fragment/Sky.fsh"
 
 bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, float firstStepSize, cfloat rayGrowth, cint maxSteps, cint maxRefinements, out vec3 screenSpacePosition, out vec3 viewSpacePosition) {
@@ -130,139 +124,98 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 	return false;
 }
 
-#include "lib/Misc/EquirectangularProjection.glsl"
 #include "/lib/Misc/Bias_Functions.glsl"
-#include "/lib/Fragment/Sunlight/ComputeUniformlySoftShadows.fsh"
-#include "/lib/Fragment/Sunlight/GetSunlightShading.fsh"
+#include "/lib/Fragment/Sunlight_Shading.fsh"
 
-#include "/lib/Fragment/Reflection_Functions.fsh"
-
-
-vec2 GetRefractedCoord(vec2 coord, vec3 viewSpacePosition, vec3 tangentNormal) {
-	vec4 screenSpacePosition = projMatrix * vec4(viewSpacePosition, 1.0);
+void ComputeReflectedLight(inout vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
+	if (isEyeInWater == 1) return;
 	
-	cfloat refractAmount = 0.5;
+	float alpha = (pow2(min1(1.0 + dot(normalize(position[0]), normal))) * 0.99 + 0.01) * smoothness;
 	
-	vec2 refraction = tangentNormal.st / FOV * 90.0 * refractAmount;
+	if (length(alpha) < 0.005) return;
 	
-	vec2 refractedCoord = screenSpacePosition.st + refraction;
+	mat2x3 refRay;
+	refRay[0] = reflect(position[0], normal);
+	refRay[1] = mat3(gbufferModelViewInverse) * refRay[0];
 	
-	refractedCoord = refractedCoord / screenSpacePosition.w * 0.5 + 0.5;
+	float firstStepSize = mix(1.0, 30.0, pow2(length(position[1].xz) / 144.0));
+	vec3  reflectedCoord;
+	vec3  reflectedViewSpacePosition;
+	vec3  reflection;
 	
-	refractedCoord = clampScreen(refractedCoord, pixelSize);
+	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap, vec3(0.0));
 	
-	return refractedCoord;
-}
-
-mat3 DecodeTBN(float tbnIndex) {
-	tbnIndex = round(tbnIndex * 16.0);
+	vec3 reflectedSky = CalculateSky(refRay[1], position[1], 1.0, 1.0, true, sunlight);
 	
-	vec3 tangent;
-	vec3 binormal;
+	vec3 offscreen = reflectedSky * skyLightmap;
 	
-	if (tbnIndex == 1.0) {
-		tangent  = vec3( 0.0,  0.0,  1.0);
-		binormal = vec3( 0.0, -1.0,  0.0);
-	} else if (tbnIndex == 2.0) {
-		tangent  = vec3( 0.0,  0.0,  1.0);
-		binormal = vec3( 0.0,  1.0,  0.0);
-	} else if (tbnIndex == 3.0) {
-		tangent  = vec3( 1.0,  0.0,  0.0);
-		binormal = vec3( 0.0,  1.0,  0.0);
-	} else if (tbnIndex == 4.0) {
-		tangent  = vec3( 1.0,  0.0,  0.0);
-		binormal = vec3( 0.0, -1.0,  0.0);
-	} else if (tbnIndex == 5.0) {
-		tangent  = vec3(-1.0,  0.0,  0.0);
-		binormal = vec3( 0.0,  0.0, -1.0);
-	} else {
-		tangent  = vec3( 1.0,  0.0,  0.0);
-		binormal = vec3( 0.0,  0.0, -1.0);
+	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.4, 30, 2, reflectedCoord, reflectedViewSpacePosition))
+		reflection = offscreen;
+	else {
+		reflection = GetColor(reflectedCoord.st);
+		
+		reflection = mix(reflection, reflectedSky, CalculateFogFactor(reflectedViewSpacePosition, FOG_POWER));
+		
+		#ifdef REFLECTION_EDGE_FALLOFF
+			float angleCoeff = clamp01(pow(normal.z + 0.15, 0.25) * 2.0) * 0.2 + 0.8;
+			float dist       = length8(abs(reflectedCoord.xy - vec2(0.5)));
+			float edge       = clamp01(1.0 - pow2(dist * 2.0 * angleCoeff));
+			reflection       = mix(reflection, offscreen, pow(1.0 - edge, 10.0));
+		#endif
 	}
 	
-	vec3 normal = cross(tangent, binormal);
-
-	return mat3(tangent, binormal, normal);
+	color = mix(color, reflection, alpha);
 }
 
-#include "lib/Fragment/WaterDepthFog.fsh"
+#include "lib/Fragment/Water_Depth_Fog.fsh"
 
 void main() {
 	float depth0 = GetDepth(texcoord);
-
-	mat2x3 frontPos; // Position matrices: [0] = View Space, [1] = World Space
+	
+	mat2x3 frontPos;
 	frontPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth0));
 	frontPos[1] = mat3(gbufferModelViewInverse) * frontPos[0];
 	
-	vec2 encode = Decode16(texture2D(colortex5, texcoord).r);
-	float torchLightmap = encode.r;
-	Mask mask = CalculateMasks(encode.g);
 	
-	vec2   refractedCoord = texcoord;
-	float  depth1         = depth0;
-	mat2x3 backPos        = frontPos;
-	vec2   encodedNormal  = vec2(0.0);
-	vec3   normal         = vec3(0.0);
-	float  alpha          = 0.0;
+	vec2 texure4 = ScreenTex(colortex4).rg;
 	
-	if (depth0 < 1.0) { // NOT sky
-		encodedNormal = texture2D(colortex4, texcoord).xy;
+	vec4  decode4       = Decode4x8F(texure4.r);
+	Mask  mask          = CalculateMasks(decode4.r);
+	float smoothness    = decode4.g;
+	float skyLightmap   = decode4.a;
+	
+	float  depth1  = depth0;
+	mat2x3 backPos = frontPos;
+	float  alpha   = 0.0;
+	
+	if (mask.transparent > 0.5) {
+		depth1 = (mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord));
 		
-		if (mask.transparent > 0.5) { // Layered fragment, back layer is unique and needs to be computed
-			mat3 tbnMatrix = DecodeTBN(encodedNormal.x);
-			vec3 tangentNormal;
-			
-			tangentNormal.xy = mask.water > 0.5 ?
-			GetWaveNormals(frontPos[1], tbnMatrix[2]) :
-
-			Decode16(encodedNormal.y) * 2.0 - 1.0;
-			
-			tangentNormal.z = sqrt(1.0 - length2(tangentNormal.xy));
-			
-			normal = mat3(gbufferModelView) * tbnMatrix * tangentNormal;
-			
-			
-			refractedCoord = GetRefractedCoord(texcoord, frontPos[0], tangentNormal);
-			
-			depth1 = (mask.hand > 0.5 ? depth0 : GetTransparentDepth(refractedCoord));
-			
-			backPos[0] = CalculateViewSpacePosition(vec3(refractedCoord, depth1));
-			backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
-			
-			alpha = texture2D(colortex2, refractedCoord).r;
-		}
+		backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
+		backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
+		
+		alpha = texture2D(colortex2, texcoord).r;
 	}
 	
-
-	vec3 sky = CalculateSky(backPos, vec3(0.0), 1.0 - alpha, false, 1.0);
+	vec3 sky = CalculateSky(backPos[1], vec3(0.0), float(depth1 >= 1.0), 1.0 - alpha, false, 1.0);
 	
 	if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
 	
 	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }
 	
 	
-	float smoothness;
-	float skyLightmap;
-	Decode16(texture2D(colortex4, texcoord).b, smoothness, skyLightmap);
-	smoothness = mix(smoothness, 0.90, mask.water);
+	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);
 	
 	vec3 color0 = vec3(0.0);
 	vec3 color1 = vec3(0.0);
 	
-	if (mask.transparent > 0.5) {
-		color0 = texture2D(colortex3, refractedCoord).rgb / alpha;
-		
-		if (any(isnan(color0))) color0 = vec3(0.0);
-	} else {
-		normal = DecodeNormal(encodedNormal.xy);
-	}
+	if (mask.transparent > 0.5)
+		color0 = texture2D(colortex3, texcoord).rgb / alpha;
 	
-	color1 = texture2D(colortex1, refractedCoord).rgb;
-	
+	color1 = texture2D(colortex1, texcoord).rgb;
 	color0 = mix(color1, color0, mask.transparent - mask.water);
 	
-	
-	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap, mask);
+	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
 	
 	
 	if (depth1 >= 1.0)
@@ -270,7 +223,10 @@ void main() {
 	
 	
 	color0 = mix(color0, sky.rgb, CalculateFogFactor(frontPos[0], FOG_POWER));
-	color1 = mix(color1, sky.rgb, CalculateFogFactor(frontPos[0], FOG_POWER));
+	color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER));
+	
+	color0 += AerialPerspective(length(frontPos[0])) * float(depth1 < 1.0);
+	color1 += AerialPerspective(length( backPos[0]));
 	
 	if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
 	

@@ -19,17 +19,8 @@
 */
 
 
-void OldNorth() { // Makes the sun and moon rise in the north, instead of the east
-	float temp = timeAngle;
-	
-	timeAngle = pathRotationAngle + 90.0;
-	pathRotationAngle = temp;
-	twistAngle += 180.0;
-}
-
 void UserRotation() {
 	timeAngle = position.x * 25;
-
 }
 
 void TimeOverride() {
@@ -56,7 +47,6 @@ void TimeOverride() {
 	
 	
 #endif
-
 }
 
 // End of #include "/UserProgram/CustomTimeCycle.vsh"

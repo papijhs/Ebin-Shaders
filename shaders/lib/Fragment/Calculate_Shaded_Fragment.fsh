@@ -1,11 +1,11 @@
-struct Shading {      // Contains scalar light levels without any color
+struct Shading { // Scalar light levels
 	float sunlight;
 	float skylight;
 	float torchlight;
 	float ambient;
 };
 
-struct Lightmap {    // Contains vector light levels with color
+struct Lightmap { // Vector light levels with color
 	vec3 sunlight;
 	vec3 skylight;
 	vec3 torchlight;
@@ -15,20 +15,7 @@ struct Lightmap {    // Contains vector light levels with color
 
 
 #include "/lib/Misc/Bias_Functions.glsl"
-#include "/lib/Fragment/Sunlight/GetSunlightShading.fsh"
-
-#if SHADOW_TYPE == 3 && defined composite1
-	#include "/lib/Fragment/Sunlight/ComputeVariablySoftShadows.fsh"
-#elif SHADOW_TYPE == 2 && defined composite1
-	#include "/lib/Fragment/Sunlight/ComputeUniformlySoftShadows.fsh"
-#else
-	#include "/lib/Fragment/Sunlight/ComputeHardShadows.fsh"
-#endif
-
-#if defined composite1
-// Underwater light caustics
-#endif
-
+#include "/lib/Fragment/Sunlight_Shading.fsh"
 
 
 float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
@@ -46,17 +33,16 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 	
 	vec2 hand  = max0(falloff - 0.0625);
 	     hand  = mix(hand, vec2(2.0), handMask * vec2(greaterThan(viewSpacePosition.x * vec2(1.0, -1.0), vec2(0.0))));
-	
 	     hand *= vec2(heldBlockLightValue, heldBlockLightValue2) / 16.0;
+	
 	return hand.x + hand.y;
 }
 
-vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, mat2x3 position) {
+vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, vec3 vertNormal, float smoothness, mat2x3 position) {
 	Shading shading;
 	
-	shading.sunlight  = GetNormalShading(normal, mask, position[0], 1.0 - smoothness);
-	shading.sunlight *= pow2(skyLightmap);
-	shading.sunlight  = ComputeShadows(position[1], shading.sunlight);
+	shading.sunlight  = GetLambertianShading(normal, mask) * skyLightmap;
+	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight, vertNormal);
 	
 	
 	shading.torchlight  = 1.0 - pow(clamp01(torchLightmap - 0.075), 4.0);
