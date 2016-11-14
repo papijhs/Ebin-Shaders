@@ -2,6 +2,8 @@
 
 This is a Minecraft shaderpack for use with [Optifine](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1272953). Ebin is aiming to provide maximum performance, configurability, and visual quality. Whether you want to create easy scenic screenshots to post on reddit, film a complex Minecraft cinematic, or play on a competitive multiplayer server, Ebin is intended to accommodate all these situations, and more.
 
+[Talk to use on Discord.](https://discord.gg/9YTc4Q4)
+
 ## Features
 - Shadows / Shading - the basics
 - Global Illumination
@@ -19,9 +21,33 @@ This is a Minecraft shaderpack for use with [Optifine](http://www.minecraftforum
 - OptiFine 1.10.2 D1 or newer
 - OpenGL 4.1 compatible hardware
 
+# Installation
+
+1. Download and install a compatible version of Optifine
+2. Launch the game once to create the 'shaderpacks' folder, which is located with your "saves" folder
+3. Make sure the Ebin-Shaders folder structure is correct if you're downloading from the GitHub repository
+4. Place the Ebin-Shaders folder into your 'shaderpacks' folder.
+
+### Folder Structure
+It should be either:
+>Ebin-Shaders/shaders/(.vsh & .fsh files)
+
+or:
+>Ebin-Shaders.zip/shaders/(.vsh & .fsh files)
+
+If you download it from GitHub, it will be:
+>Ebin-Shaders.zip/Ebin-Shaders/shaders/(.vsh & .fsh files)
+
+# How to submit a crashlog
+1. Relaunch the game to clear any older crashlogs
+2. From the main menu, select the copy of Ebin that is causing a crash
+3. Log in to a singleplayer world
+4. Close the game
+5. The crashlog is located in '/logs/shadersmod.log', Send it to us on [Discord](https://discord.gg/9YTc4Q4)
+
 # History
 
-This shaderpack was created after spending years modifying other shaderpacks, primarily [SEUS](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1280299). Ebin was created as a reaction to the many issues and inefficiencies within SEUS (which is by no means a bad shaderpack, it was probably the best shaderpack during inception of Ebin). Developments within the Shaders Mod, such as its adoption by Optifine, and the addition of the #include preprocessor, boosted motivation to develop a more "modern" shaderpack.
+This shaderpack was created after spending years modifying other shaderpacks, primarily [SEUS](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1280299). Ebin was created as a reaction to the many issues and inefficiencies within SEUS (which is by no means a bad shaderpack, it was probably the best shaderpack during the inception of Ebin). Developments within the Shaders Mod, such as its adoption by Optifine, and the addition of the #include preprocessor, boosted motivation to develop a more "modern" shaderpack.
 
 ## Team
 - [BruceKnowsHow](https://github.com/BruceKnowsHow): Primary Developer
