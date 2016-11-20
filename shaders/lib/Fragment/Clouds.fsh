@@ -55,7 +55,7 @@ void Compute2DCloudPlane(inout vec3 color, vec3 worldSpaceVector, vec3 rayPositi
 	
 	vec3 camPos = cameraPosition() + rayPosition;
 	
-	visibility = pow(visibility, 10.0) * pow(abs(worldSpaceVector.y), 0.6);
+	visibility = pow(visibility, 10.0) * abs(worldSpaceVector.y);
 	
 	if (worldSpaceVector.y <= 0.0 != camPos.y >= cloudHeight) return;
 	
@@ -80,9 +80,11 @@ void Compute2DCloudPlane(inout vec3 color, vec3 worldSpaceVector, vec3 rayPositi
 	sunlight +=  GetNoise(coords[2] + lightOffset) * weights.y;
 	sunlight +=  GetNoise(coords[3] + lightOffset) * weights.z;
 	sunlight  = GetCoverage(weight - sunlight, coverage);
-	sunlight  = pow(1.3 - sunlight, 7.0);
-	sunlight *= mix(pow(cloud.a, 1.6) * 2.5, 1.0, sunglow);
-	sunlight *= mix(11.5, 1.0, sqrt(sunglow));
+	sunlight  = pow(1.3 - sunlight, 5.5);
+	sunlight *= mix(pow(cloud.a, 1.6) * 2.5, 2.0, sunglow);
+	sunlight *= mix(10.0, 1.0, sqrt(sunglow));
+	
+	show(sqrt(sunglow));
 	
 	vec3 directColor  = sunlightColor * 2.0;
 	     directColor *= 1.0 + pow(sunglow, 10.0) * 10.0 / (sunlight * 0.8 + 0.2);

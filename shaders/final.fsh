@@ -103,19 +103,17 @@ vec3[8] GetBloom() {
 	return bloom;
 }
 
-vec3 Uncharted2Tonemap(vec3 color) {
-	cfloat A = 0.5, B = 0.6, C = 0.22, D = 0.5, E = 0.02, F = 0.1, W = 8.0;
-	cfloat whiteScale = 1.0 / (((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F);
-	cfloat ExposureBias = 1.5 * EXPOSURE;
+void Vignette(io vec3 color) {
+	float edge = distance(texcoord, vec2(0.5));
 	
-	vec3 curr = ExposureBias * color;
-	     curr = ((curr * (A * curr + C * B) + D * E) / (curr * (A * curr + B) + D * F)) - E / F;
-	
-	color = curr * whiteScale;
-	
-	return pow(color, vec3(1.0 / 2.2));
+	color *= 1.0 - pow(edge * 1.3, 1.5);
 }
 
+void Tonemap(io vec3 color) {
+	color *= EXPOSURE;
+	color  = color / (color + 1.0);
+	color  = pow(color, vec3(1.15 / 2.2));
+}
 
 void main() {
 	float depth = GetDepth(texcoord);
@@ -124,18 +122,12 @@ void main() {
 	
 	MotionBlur(color, depth);
 	
-	
 	vec3[8] bloom = GetBloom();
 	
-	color = mix(color, pow(bloom[0], vec3(BLOOM_CURVE)), BLOOM_AMOUNT);
+	color  = mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
 	
-	color = Uncharted2Tonemap(color);
-	
-	color = SetSaturationLevel(color, SATURATION);
-	
-//	color.r = mix(color.r, cosmooth(color.r), 0.25);
-//	color.g = mix(color.g, cosmooth(color.g), 0.25);
-//	color.b = mix(color.b, cosmooth(color.b), -0.5);
+	Vignette(color);
+	Tonemap(color);
 	
 	gl_FragData[0] = vec4(color, 1.0);
 	

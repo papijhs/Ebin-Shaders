@@ -11,6 +11,7 @@ float GetMaterialIDs(int mc_ID) { // Gather material masks
 		case 38:                     // Rose
 		case 59:                     // Wheat
 		case 83:                     // Sugar Cane
+		case 142:                    // Potatoes
 		case 175:                    // Double Tall Grass
 			materialID = 2.0; break; // Grass
 		case 18:                     // Generic leaves

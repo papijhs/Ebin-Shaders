@@ -7,10 +7,12 @@
 	#define varying out
 #endif
 
+#define io inout
+
 #define cbool  const bool
-#define cbvec2  const bvec2
-#define cbvec3  const bvec3
-#define cbvec4  const bvec4
+#define cbvec2 const bvec2
+#define cbvec3 const bvec3
+#define cbvec4 const bvec4
 
 #define cuint  const uint
 #define cuvec2 const uvec2

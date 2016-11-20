@@ -52,11 +52,11 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	shading.skylight = pow(skyLightmap, 2.0);
 	
 #ifndef GI_ENABLED
-	shading.skylight /= 0.7;
+	shading.skylight /= 0.8;
 #endif
 	
 	
-	shading.ambient = 1.0 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 1.3;
+	shading.ambient = 1.0 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 1.7;
 	
 	
 	Lightmap lightmap;
@@ -75,10 +75,10 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	
 	
 	return vec3(
-	    lightmap.sunlight   * 6.0    * SUN_LIGHT_LEVEL
-	+   lightmap.skylight   * 0.7    * SKY_LIGHT_LEVEL
+	    lightmap.sunlight   * 16.0  * SUN_LIGHT_LEVEL
+	+   lightmap.skylight   * 2.2   * SKY_LIGHT_LEVEL * SKY_BRIGHTNESS
 	+   lightmap.GI         * 1.0
-	+   lightmap.ambient    * 0.0175 * AMBIENT_LIGHT_LEVEL
-	+   lightmap.torchlight * 3.0    * TORCH_LIGHT_LEVEL
+	+   lightmap.ambient    * 0.015 * AMBIENT_LIGHT_LEVEL
+	+   lightmap.torchlight * 6.0   * TORCH_LIGHT_LEVEL
 	    );
 }

@@ -5,7 +5,7 @@ float GetLambertianShading(vec3 normal) {
 float GetLambertianShading(vec3 normal, Mask mask) {
 	float shading = clamp01(dot(normal, lightVector));
 	      shading = mix(shading, 1.0, mask.grass);
-	      shading = mix(shading, 0.5, mask.leaves);
+	      shading = mix(shading, 1.0, mask.leaves);
 	
 	return shading;
 }

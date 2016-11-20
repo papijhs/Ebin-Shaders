@@ -1,4 +1,4 @@
-#define iSteps 18
+#define iSteps 50
 #define jSteps 1
 
 cfloat     planetRadius = 6371.0e2;

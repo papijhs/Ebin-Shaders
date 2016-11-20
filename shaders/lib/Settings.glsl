@@ -39,8 +39,8 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 //#define DEFAULT_TEXTURE_PACK
 
 
-#define EXPOSURE            0.8  // [0.2 0.4 0.6 0.8 1.0 2.0 4.0  8.0]
-#define SATURATION          1.15 // [0.00 0.50 1.00 1.15 1.20 1.30]
+#define EXPOSURE            1.0  // [0.2 0.4 0.6 0.8 1.0 2.0 4.0  8.0]
+#define SATURATION          1.1  // [0.0 0.5 1.0 1.1 1.2 1.3]
 #define SUN_LIGHT_LEVEL     1.00 // [0.00 0.25 0.50 1.00 2.00 4.00 8.00 16.00]
 #define SKY_LIGHT_LEVEL     1.00 // [0.00 0.25 0.50 1.00 2.00 4.00 8.00 16.00]
 #define AMBIENT_LIGHT_LEVEL 1.00 // [0.00 0.25 0.50 1.00 2.00 4.00 8.00 16.00]
@@ -65,7 +65,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define GI_BRIGHTNESS   1.00 // [0.25 0.50 0.75 1.00 2.00 4.00]
 
 #define BLOOM_ENABLED
-#define BLOOM_AMOUNT        0.15 // [0.15 0.25 0.50 1.00]
+#define BLOOM_AMOUNT        0.15 // [0.15 0.30 0.45]
 #define BLOOM_CURVE         1.50 // [1.00 1.25 1.50 1.75 2.00]
 
 //#define MOTION_BLUR

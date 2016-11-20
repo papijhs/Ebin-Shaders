@@ -107,6 +107,13 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 
 #include "lib/Fragment/Water_Depth_Fog.fsh"
 
+vec3 AerialPerspective(float dist, float skyLightmap) {
+	float factor  = pow(dist, 1.4) * 0.00019 * (1.0 - isEyeInWater) * AERIAL_PERSPECTIVE_AMOUNT;
+	      factor *= mix(skyLightmap * 0.7 + 0.3, 1.0, eyeBrightnessSmooth.g / 240.0);
+	
+	return pow(skylightColor, vec3(1.3 - clamp01(factor) * 0.4)) * factor;
+}
+
 void main() {
 	float depth0 = GetDepth(texcoord);
 	
@@ -157,10 +164,12 @@ void main() {
 	
 	
 	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, vertNormal, smoothness, backPos);
-	     composite *= pow(diffuse * 1.2, vec3(2.8));
+	     composite *= pow(diffuse, vec3(2.8));
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
 		composite = WaterFog(composite, viewSpacePosition0, backPos[0]);
+	
+	composite += AerialPerspective(length(backPos[0]), skyLightmap);
 	
 	gl_FragData[0] = vec4(max0(composite), 1.0);
 	

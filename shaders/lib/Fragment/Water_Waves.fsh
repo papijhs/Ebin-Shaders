@@ -18,7 +18,7 @@ float GetWaves(vec3 position) {
 	
 	vec2 pos  = position.xz + position.y;
 	     pos += time * vec2(1.0, -1.0);
-	     pos *= 0.05;
+	     pos *= 0.065;
 	
 	
 	float weight, waves, weights;
@@ -69,10 +69,10 @@ vec3 GetWaveNormals(vec3 worldSpacePosition, vec3 flatWorldNormal) {
 	
 	float viewVectorCoeff  = -dot(flatWorldNormal, normalize(worldSpacePosition.xyz));
 	      viewVectorCoeff /= clamp(length(worldSpacePosition) * 0.05, 1.0, 10.0);
-	      viewVectorCoeff  = clamp01(viewVectorCoeff * 4.0);
+	      viewVectorCoeff  = clamp01(viewVectorCoeff * 2.5);
 	      viewVectorCoeff  = sqrt(viewVectorCoeff);
 	
-	diff *= 1.5 * WAVE_MULT * viewVectorCoeff;
+	diff *= 1.0 * WAVE_MULT * viewVectorCoeff;
 	
 	return vec3(diff, sqrt(1.0 - length2(diff)));
 }

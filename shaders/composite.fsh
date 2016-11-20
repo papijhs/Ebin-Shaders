@@ -98,7 +98,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	
 	vec3 shadowViewPosition = transMAD(shadowViewMatrix, worldSpacePosition + gbufferModelViewInverse[3].xyz);
 	
-	vec2 basePos = shadowViewPosition.xy * diagonal3(shadowProjection).xy + shadowProjection[3].xy;
+	vec2 basePos = shadowViewPosition.xy * diagonal2(shadowProjection) + shadowProjection[3].xy;
 	
 	normal = mat3(shadowViewMatrix) * mat3(gbufferModelViewInverse) * -normal;
 	
@@ -107,7 +107,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	
 	cvec3 sampleMax = vec3(0.0, 0.0, radius * radius);
 	
-	cfloat brightness = 12.5 * radius * radius * GI_BRIGHTNESS * SUN_LIGHT_LEVEL;
+	cfloat brightness = 8.0 * radius * radius * GI_BRIGHTNESS * SUN_LIGHT_LEVEL;
 	cfloat scale      = radius / 256.0;
 	
 	noise *= scale;

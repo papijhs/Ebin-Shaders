@@ -225,9 +225,6 @@ void main() {
 	color0 = mix(color0, sky.rgb, CalculateFogFactor(frontPos[0], FOG_POWER));
 	color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER));
 	
-	color0 += AerialPerspective(length(frontPos[0])) * float(depth1 < 1.0);
-	color1 += AerialPerspective(length( backPos[0]));
-	
 	if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
 	
 	
