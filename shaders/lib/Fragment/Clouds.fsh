@@ -46,25 +46,25 @@ float CloudFBM(vec2 coord, out mat4x2 c, vec3 weights, float weight) {
 	return cloud * 0.63;
 }
 
-void Compute2DCloudPlane(io vec3 color, vec3 worldSpaceVector, vec3 rayPosition, float sunglow, float visibility) {
+void Compute2DCloudPlane(io vec3 color, vec3 ray, vec3 rayPos, float sunglow, float visibility) {
 #ifndef CLOUDS_2D
 	return;
 #endif
 	
 	cfloat cloudHeight = CLOUD_HEIGHT_2D;
 	
-	vec3 camPos = cameraPosition() + rayPosition;
+	vec3 camPos = cameraPosition() + rayPos;
 	
-	visibility = pow(visibility, 10.0) * abs(worldSpaceVector.y);
+	visibility = pow(visibility, 10.0) * abs(ray.y);
 	
-	if (worldSpaceVector.y <= 0.0 != camPos.y >= cloudHeight) return;
+	if (ray.y <= 0.0 != camPos.y >= cloudHeight) return;
 	
 	
 	cfloat coverage = CLOUD_COVERAGE_2D * 1.16;
 	cvec3  weights  = vec3(0.5, 0.135, 0.075);
 	cfloat weight   = weights.x + weights.y + weights.z;
 	
-	vec2 coord = worldSpaceVector.xz / worldSpaceVector.y * (cloudHeight - camPos.y) + camPos.xz;
+	vec2 coord = ray.xz / ray.y * (cloudHeight - camPos.y) + camPos.xz;
 	
 	vec4 cloud;
 	mat4x2 coords;
@@ -84,8 +84,6 @@ void Compute2DCloudPlane(io vec3 color, vec3 worldSpaceVector, vec3 rayPosition,
 	sunlight *= mix(pow(cloud.a, 1.6) * 2.5, 2.0, sunglow);
 	sunlight *= mix(10.0, 1.0, sqrt(sunglow));
 	
-	show(sqrt(sunglow));
-	
 	vec3 directColor  = sunlightColor * 2.0;
 	     directColor *= 1.0 + pow(sunglow, 10.0) * 10.0 / (sunlight * 0.8 + 0.2);
 	     directColor *= mix(vec3(1.0), vec3(0.4, 0.5, 0.6), timeNight);
@@ -95,4 +93,8 @@ void Compute2DCloudPlane(io vec3 color, vec3 worldSpaceVector, vec3 rayPosition,
 	cloud.rgb = mix(ambientColor, directColor, sunlight) * 70.0;
 	
 	color = mix(color, cloud.rgb, cloud.a * visibility);
+}
+
+void Compute3DCloudPlane(io vec3 color, vec3 ray, vec3 rayPos, float sunglow, float visibility) {
+	
 }

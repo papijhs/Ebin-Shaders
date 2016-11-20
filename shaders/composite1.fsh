@@ -115,11 +115,6 @@ vec3 AerialPerspective(float dist, float skyLightmap) {
 }
 
 void main() {
-	float depth0 = GetDepth(texcoord);
-	
-	if (depth0 >= 1.0) { discard; }
-	
-	
 	vec2 texure4 = ScreenTex(colortex4).rg;
 	
 	vec4  decode4       = Decode4x8F(texure4.r);
@@ -127,6 +122,8 @@ void main() {
 	float smoothness    = decode4.g;
 	float torchLightmap = decode4.b;
 	float skyLightmap   = decode4.a;
+	
+	float depth0 = (mask.hand > 0.5 ? 0.55 : GetDepth(texcoord));
 	
 	vec3 vertNormal;
 	vec3 normal = DecodeNormalU(texure4.g, vertNormal) * mat3(gbufferModelViewInverse);
@@ -148,7 +145,7 @@ void main() {
 	
 	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
 	
-	if (depth1 >= 1.0) return;
+	if (depth1 - mask.hand >= 1.0) return;
 	
 	
 	vec3 GI;

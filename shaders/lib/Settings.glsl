@@ -32,8 +32,8 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 
 
 // GUI Settings
-//#define low_profile
-#define standard_profile
+#define low_profile
+//#define standard_profile
 
 
 //#define DEFAULT_TEXTURE_PACK
@@ -133,7 +133,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 		//#define TERRAIN_PARALLAX
 	#endif
 	
-	#define SPECULARITY_MAPS
+	//#define SPECULARITY_MAPS
 #endif
 
 //#define FOV_OVERRIDE

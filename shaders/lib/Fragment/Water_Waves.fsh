@@ -72,7 +72,7 @@ vec3 GetWaveNormals(vec3 worldSpacePosition, vec3 flatWorldNormal) {
 	      viewVectorCoeff  = clamp01(viewVectorCoeff * 2.5);
 	      viewVectorCoeff  = sqrt(viewVectorCoeff);
 	
-	diff *= 1.0 * WAVE_MULT * viewVectorCoeff;
+	diff *= WAVE_MULT * viewVectorCoeff;
 	
 	return vec3(diff, sqrt(1.0 - length2(diff)));
 }
