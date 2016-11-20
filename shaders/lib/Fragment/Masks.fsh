@@ -23,7 +23,7 @@ float EncodeMaterialIDs(float materialIDs, vec4 bits) {
 	return materialIDs;
 }
 
-void DecodeMaterialIDs(inout float matID, out vec4 bits) {
+void DecodeMaterialIDs(io float matID, out vec4 bits) {
 	matID *= 255.0;
 	
 	bits = mod(vec4(matID), vec4(256.0, 128.0, 64.0, 32.0));

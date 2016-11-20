@@ -32,7 +32,7 @@ float GetDepth(vec2 coord) {
 }
 
 
-void MotionBlur(inout vec3 color, float depth) {
+void MotionBlur(io vec3 color, float depth) {
 #ifdef MOTION_BLUR
 //	if (mask.hand > 0.5) return;
 	

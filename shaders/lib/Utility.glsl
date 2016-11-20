@@ -39,13 +39,17 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 
 #include "/lib/Utility/encoding.glsl"
 
-#include "/lib/Utility/rotation.glsl"
-
 #include "/lib/Utility/blending.glsl"
 
 
 float pow2(float f) {
 	return dot(f, f);
+}
+
+vec2 rotate(in vec2 vector, float radians) {
+	return vector *= mat2(
+		cos(radians), -sin(radians),
+		sin(radians),  cos(radians));
 }
 
 vec2 clampScreen(vec2 coord, vec2 pixel) {
