@@ -200,7 +200,6 @@ void main() {
 	if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
 	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }
 	
-	
 	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);
 	
 	vec3 color0 = vec3(0.0);
@@ -208,10 +207,10 @@ void main() {
 	
 	if (mask.transparent > 0.5)
 		color0 = texture2D(colortex3, texcoord).rgb / alpha;
-	
+
 	color1 = texture2D(colortex1, texcoord).rgb;
-	color0 = mix(color1, color0, 0.0);
-	
+	color0 = mix(color1, color0, alpha);
+
 	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
 	
 	if (depth1 >= 1.0)
