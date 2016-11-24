@@ -209,7 +209,7 @@ void main() {
 		color0 = texture2D(colortex3, texcoord).rgb / alpha;
 
 	color1 = texture2D(colortex1, texcoord).rgb;
-	color0 = mix(color1, color0, alpha);
+	color0 = mix(color1, color0, mask.transparent - mask.water);
 
 	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
 	
