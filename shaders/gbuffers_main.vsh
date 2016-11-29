@@ -76,6 +76,10 @@ mat3 CalculateTBN(vec3 worldPosition) {
 }
 
 void main() {
+#ifdef HIDE_ENTITIES
+	if (mc_Entity.x < 0.5) { gl_Position = vec4(-1.0); return; }
+#endif
+	
 	SetupProjection();
 	
 	color        = gl_Color.rgb;

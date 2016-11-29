@@ -63,6 +63,10 @@ void main() {
 	if (abs(mc_Entity.x - 8.5) < 0.6) { gl_Position = vec4(-1.0); return; }
 #endif
 	
+#ifdef HIDE_ENTITIES
+	if (mc_Entity.x < 0.5) { gl_Position = vec4(-1.0); return; }
+#endif
+	
 #ifdef TIME_OVERRIDE
 	CalculateShadowView();
 #endif

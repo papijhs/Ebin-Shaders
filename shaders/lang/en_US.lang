@@ -159,10 +159,6 @@ option.GI_TRANSLUCENCE.comment=Higher values make global illumination seem to "b
 option.GI_BRIGHTNESS=GI Brightness
 
 
-option.CUSTOM_HORIZON_HEIGHT=Custom Horizon Height
-
-option.HORIZON_HEIGHT=Horizon Height
-
 
 option.CLOUDS_2D=2D Cloud Plane
 option.CLOUDS_2D.comment=Medium performance cost!
@@ -206,6 +202,12 @@ option.DEFORMATION.comment=1: Planetoid. 2: Acid. 3: User deformation
 
 
 screen.Misc=Misc
+
+option.CUSTOM_HORIZON_HEIGHT=Custom Horizon Height
+
+option.HORIZON_HEIGHT=Horizon Height
+
+option.HIDE_ENTITIES=Hide Entities
 
 option.REFLECTION_EDGE_FALLOFF=Reflection Edge Falloff
 option.REFLECTION_EDGE_FALLOFF.comment=Whether or not screen-space-reflections "fade out" on the edges of the screen

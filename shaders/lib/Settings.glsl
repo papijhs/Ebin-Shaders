@@ -87,8 +87,6 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define FOG_POWER 3.0                      // [1.0 2.0 3.0 4.0 6.0 8.0]
 #define AERIAL_PERSPECTIVE_AMOUNT 1.00 // [0.00 0.25 0.50 0.75 1.00 2.00 4.00]
 
-#define REFLECTION_EDGE_FALLOFF
-
 #define CLOUDS_2D
 #define CLOUD_HEIGHT_2D   512  // [384 512 640 768]
 #define CLOUD_COVERAGE_2D 0.5  // [0.3 0.4 0.5 0.6 0.7]
@@ -103,6 +101,8 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 
 //#define CUSTOM_HORIZON_HEIGHT
 #define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]
+#define REFLECTION_EDGE_FALLOFF
+//#define HIDE_ENTITIES
 
 //#define TIME_OVERRIDE
 #define TIME_OVERRIDE_MODE 1 // [1 2 3]
