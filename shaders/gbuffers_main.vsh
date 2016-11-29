@@ -82,7 +82,7 @@ void main() {
 	
 	SetupProjection();
 	
-	color        = gl_Color.rgb;
+	color        = abs(mc_Entity.x - 10.5) > 0.6 ? gl_Color.rgb : vec3(1.0);
 	texcoord     = gl_MultiTexCoord0.st;
 	mcID         = mc_Entity.x;
 	vertLightmap = GetDefaultLightmap(mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st);
