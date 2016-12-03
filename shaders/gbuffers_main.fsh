@@ -187,7 +187,7 @@ void main() {
 	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
 	gl_FragData[3] = vec4(composite, diffuse.a);
 	gl_FragData[4] = vec4(0.0);
-	gl_FragData[5] = vec4(Encode4x8F(vec4(0.95, 0.2, 0.0, 1.0)), 0.0, 0.0, 1.0);
+	gl_FragData[5] = vec4(Encode4x8F(vec4(0.05, 0.8, 0.0, 1.0)), 0.0, 0.0, 1.0);
 #endif
 	
 	exit();
