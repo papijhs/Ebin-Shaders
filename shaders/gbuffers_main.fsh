@@ -4,6 +4,8 @@ uniform sampler2D texture;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
+uniform vec4 entityColor;
+
 uniform ivec2 atlasSize;
 
 uniform float frameTimeCounter;
@@ -48,7 +50,7 @@ float LOD;
 #endif
 
 vec4 GetDiffuse(vec2 coord) {
-	return vec4(color.rgb, 1.0) * GetTexture(texture, coord);
+	return vec4(color.rgb, 1.0) * GetTexture(texture, coord) * (1.0 + entityColor);
 }
 
 vec3 GetNormal(vec2 coord) {
