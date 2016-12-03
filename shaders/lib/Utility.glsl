@@ -46,6 +46,10 @@ float pow2(float f) {
 	return dot(f, f);
 }
 
+vec3 pow2(vec3 f) {
+	return f*f;
+}
+
 vec2 rotate(in vec2 vector, float radians) {
 	return vector *= mat2(
 		cos(radians), -sin(radians),

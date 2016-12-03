@@ -19,6 +19,7 @@ const int colortex4Format = RG32F;
 
 ** composite0 Buffer **
 const int colortex5Format = RGB8;
+const int colortex6Format = RG32F;
 
 
 const float eyeBrightnessHalflife = 1.5;

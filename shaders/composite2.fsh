@@ -13,6 +13,7 @@ uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
+uniform sampler2D colortex6;
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
@@ -59,6 +60,18 @@ float GetDepth(vec2 coord) {
 
 float GetTransparentDepth(vec2 coord) {
 	return texture2D(depthtex1, coord).x;
+}
+
+void unpackMatData(out float reflectance, out float roughness, out float metal, out float AO, out vec3 f0) {
+	vec2 compressedData = ScreenTex(colortex6).rg;
+	vec4 unpackedBase = Decode4x8F(compressedData.r);
+	vec4 unpackedAlt = Decode4x8F(compressedData.g);
+
+	reflectance = unpackedBase.r;
+	roughness = unpackedBase.g;
+	metal = unpackedBase.b;
+	AO = unpackedBase.a;
+	f0 = unpackedAlt.rgb;
 }
 
 vec3 CalculateViewSpacePosition(vec3 screenPos) {
@@ -126,13 +139,14 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight_Shading.fsh"
+#include "/lib/Fragment/BRDF.fsh"
 
 void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
 	if (isEyeInWater == 1) return;
 	
-	float alpha = (pow2(min1(1.0 + dot(normalize(position[0]), normal))) * 0.99 + 0.01) * smoothness;
-	
-	if (length(alpha) < 0.005) return;
+	float reflectance, roughness, metal, AO, NoL; vec3 f0;
+	unpackMatData(reflectance, roughness, metal, AO, f0);
+	if(metal < 0.5) f0 = vec3(reflectance);
 	
 	mat2x3 refRay;
 	refRay[0] = reflect(position[0], normal);
@@ -144,18 +158,19 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	vec3  reflection;
 	
 	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap, vec3(0.0));
-	
-	vec3 reflectedSky = CalculateSky(refRay[1], position[1], 1.0, 1.0, true, sunlight);
-	
+
+	vec3 brdf = BRDF(normalize(refRay[0]), -normalize(position[0]), normal, roughness, f0);
+
+	vec3 reflectedSky = CalculateSky(refRay[1], position[1], 1.0, 1.0, true, sunlight) * brdf;
 	vec3 offscreen = reflectedSky * skyLightmap;
 	
 	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.4, 30, 2, reflectedCoord, reflectedViewSpacePosition))
 		reflection = offscreen;
 	else {
-		reflection = GetColor(reflectedCoord.st);
+		reflection = GetColor(reflectedCoord.st) * brdf;
 		
 		reflection = mix(reflection, reflectedSky, CalculateFogFactor(reflectedViewSpacePosition, FOG_POWER));
-		
+
 		#ifdef REFLECTION_EDGE_FALLOFF
 			float angleCoeff = clamp01(pow(normal.z + 0.15, 0.25) * 2.0) * 0.2 + 0.8;
 			float dist       = length8(abs(reflectedCoord.xy - vec2(0.5)));
@@ -164,7 +179,7 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 		#endif
 	}
 	
-	color = mix(color, reflection, alpha);
+	color = BlendMaterial(color, reflection, color, f0);
 }
 
 #include "lib/Fragment/Water_Depth_Fog.fsh"
