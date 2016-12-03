@@ -22,11 +22,11 @@ vec3 BlendMaterial(vec3 Kdiff, vec3 Kspec, vec3 diffuseColor, vec3 f0) {
   vec3  dielectric = diffuseColor + Kspec;
   vec3  metal = diffuseColor * Kspec;
 
-  return mix(dielectric, metal, scRange);
+  return dielectric;
 }
 
 vec3 BRDF(vec3 L, vec3 V, vec3 N, float roughness, vec3 f0) {
-    roughness = max(roughness, 0.05);
+    roughness = clamp(roughness, 0.01, 1.0);
     vec3 H = normalize(V + L);
 
     float NoV = abs(dot(N, V)) + 1e-5;

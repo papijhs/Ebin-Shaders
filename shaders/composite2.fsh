@@ -68,7 +68,7 @@ void unpackMatData(out float reflectance, out float roughness, out float metal, 
 	vec4 unpackedAlt = Decode4x8F(compressedData.g);
 
 	reflectance = unpackedBase.r;
-	roughness = unpackedBase.g;
+	roughness = 1.0 - unpackedBase.g;
 	metal = unpackedBase.b;
 	AO = unpackedBase.a;
 	f0 = unpackedAlt.rgb;
@@ -160,7 +160,6 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap, vec3(0.0));
 
 	vec3 brdf = BRDF(normalize(refRay[0]), -normalize(position[0]), normal, roughness, f0);
-
 	vec3 reflectedSky = CalculateSky(refRay[1], position[1], 1.0, 1.0, true, sunlight) * brdf;
 	vec3 offscreen = reflectedSky * skyLightmap;
 	
@@ -226,7 +225,8 @@ void main() {
 	color1 = texture2D(colortex1, texcoord).rgb;
 	color0 = mix(color1, color0, mask.transparent - mask.water);
 
-	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
+	if (mask.hand < 0.5)
+		ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
 	
 	if (depth1 >= 1.0)
 		color0 = mix(sky.rgb, color0, mix(alpha, 0.0, isEyeInWater == 1));

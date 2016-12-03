@@ -71,16 +71,16 @@ vec3 GetTangentNormal() {
 #endif
 }
 
-void GetMatData(vec2 coord, out float reflectance, out float roughness, out float metal, out float AO, out vec3 f0) {
+void GetMatData(vec2 coord, out float reflectance, out float smoothness, out float metal, out float AO, out vec3 f0) {
 	vec4 sampledData = texture2D(specular, coord);
 	float matData = sampledData.a; //0.5 metal, //0.0 dielectric //(More info to come due to anisotropic materials)
 	if (matData < 0.5) {
 		reflectance = sampledData.r;
-		roughness = 1.0 - sampledData.g;
+		smoothness = sampledData.g;
 		metal = 0.0;
 		AO = sampledData.b;
 	} else {
-		roughness = 1.0 - sampledData.g;
+		smoothness = sampledData.g;
 		metal = 1.0;
 		AO = sampledData.b;
 		f0 = vec3(sampledData.r); //changing when extra specular 
@@ -146,10 +146,10 @@ void main() {
 	vec3 normal = GetNormal(coord);
 	
 	float specularity = 0.0;
-	float reflectance, roughness, metal, AO;
+	float reflectance, smoothness, metal, AO;
 	vec3 f0;
 
-	GetMatData(coord, reflectance, roughness, metal, AO, f0);
+	GetMatData(coord, reflectance, smoothness, metal, AO, f0);
 	
 	
 #if !defined gbuffers_water
@@ -160,7 +160,10 @@ void main() {
 	gl_FragData[2] = vec4(0.0);
 	gl_FragData[3] = vec4(0.0);
 	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), EncodeNormalU(normal, tbnMatrix[2]), 0.0, 1.0);
-	gl_FragData[5] = vec4(Encode4x8F(vec4(reflectance, roughness, metal, AO)), Encode4x8F(vec4(f0, 1.0)), 0.0, 1.0);
+
+	#ifdef gbuffers_terrain
+		gl_FragData[5] = vec4(Encode4x8F(vec4(reflectance, smoothness, metal, AO)), Encode4x8F(vec4(f0, 1.0)), 0.0, 1.0);
+	#endif
 #else
 	specularity = clamp(specularity, 0.0, 1.0 - 1.0 / 255.0);
 	
@@ -184,7 +187,7 @@ void main() {
 	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
 	gl_FragData[3] = vec4(composite, diffuse.a);
 	gl_FragData[4] = vec4(0.0);
-	gl_FragData[5] = vec4(Encode4x8F(vec4(0.05, 0.2, 0.0, 1.0)), 0.0, 0.0, 1.0);
+	gl_FragData[5] = vec4(Encode4x8F(vec4(0.95, 0.2, 0.0, 1.0)), 0.0, 0.0, 1.0);
 #endif
 	
 	exit();
