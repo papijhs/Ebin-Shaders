@@ -22,6 +22,7 @@ varying vec2 pixelSize;
 #include "/lib/Debug.glsl"
 #include "/lib/Uniform/Projection_Matrices.fsh"
 #include "/lib/Fragment/Masks.fsh"
+#include "/lib/Fragment/Camera.fsh"
 
 vec3 GetColor(vec2 coord) {
 	return DecodeColor(texture2D(colortex3, coord).rgb);
@@ -118,13 +119,14 @@ void Tonemap(io vec3 color) {
 void main() {
 	float depth = GetDepth(texcoord);
 	vec3  color = GetColor(texcoord);
+	color = convertLuminance2Color(color);
 	
 	
-	MotionBlur(color, depth);
+	//MotionBlur(color, depth);
 	
-	vec3[8] bloom = GetBloom();
+	//vec3[8] bloom = GetBloom();
 	
-	color  = mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
+	//color  = mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
 	
 	Vignette(color);
 	Tonemap(color);

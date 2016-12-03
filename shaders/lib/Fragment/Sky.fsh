@@ -58,7 +58,7 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	vec3 gradient = CalculateAtmosphericSky(worldSpacePosition);
 	vec3 sunspot  = vec3(0.0);
 #else
-	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow);
+	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow) * skyIlluminance;
 	vec3 sunspot  = CalculateSunspot(worldSpaceVector) * (reflection ? sunlight : pow(visibility, 25) * alpha);
 #endif
 	
@@ -66,5 +66,5 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	
 	Compute2DCloudPlane(sky, worldSpaceVector, rayPosition, sunglow, visibility);
 	
-	return sky * SKY_BRIGHTNESS;
+	return sky;
 }

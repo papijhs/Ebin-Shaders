@@ -25,6 +25,23 @@ vec3 BlendMaterial(vec3 Kdiff, vec3 Kspec, vec3 diffuseColor, vec3 f0) {
   return dielectric;
 }
 
+float DisneyDiffuse(vec3 V, vec3 L, vec3 N, float linearRoughness) {
+    vec3 H = normalize(V + L);
+    float NoV = abs(dot(N, V));
+    float NoL = clamp01(dot(N, L));
+    float LoH = clamp01(dot(L, H));
+
+    float energyBias = mix(0.0, 0.5,  linearRoughness);
+    float energyFactor = mix(1.0, 1.0 / 1.51,  linearRoughness);
+    float fd90 = energyBias + 2.0 * LoH*LoH * linearRoughness;
+
+    vec3 f0 = vec3(1.0);
+    float lightScatter = fresnel(f0, fd90 , NoL).r;
+    float viewScatter = fresnel(f0, fd90 , NoV).r;
+
+    return  lightScatter * viewScatter * energyFactor;
+}
+
 vec3 BRDF(vec3 L, vec3 V, vec3 N, float roughness, vec3 f0) {
     roughness = clamp(roughness, 0.01, 1.0);
     vec3 H = normalize(V + L);

@@ -83,3 +83,53 @@ vec3 rgb(vec3 c) {
 	vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
 	return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
+
+
+vec3 L2sRGB(vec3 c) {
+	vec3 sRGBLo = c * 12.92;
+	vec3 sRGBHi = (pow(abs(c), vec3(1.0/2.4)) * 1.055) - 0.055;
+	vec3 sRGB = mix(sRGBHi, sRGBLo, lessThanEqual(c, vec3(0.0031308)));
+
+	return sRGB;
+}
+
+vec3 sRGB2L(vec3 sRGBCol) {
+	vec3 linearRGBLo  = sRGBCol / 12.92;
+	vec3 linearRGBHi  = pow((sRGBCol + 0.055) / 1.055, vec3(2.4));
+	vec3 linearRGB    = mix(linearRGBHi, linearRGBLo, lessThanEqual(sRGBCol, vec3(0.04045)));
+
+	return  linearRGB;
+}
+
+vec3 RGBfromTemp(float kelvin) {
+	float red, green, blue;
+	kelvin /= 100;
+
+	if(kelvin <= 66) {
+		red = 255;
+	} else {
+		red = kelvin - 60;
+		red = 329.698727446 * pow(red, -0.1332047592);
+		red = clamp(red, 0.0, 255.0);
+	}
+
+	if(kelvin <= 66) {
+		green = kelvin;
+		green = 99.4708025861 * log(green) - 161.1195681661;
+		green = clamp(green, 0.0, 255.0);
+	} else {
+		green = kelvin - 60;
+		green = 288.1221695283 * pow(green, -0.0755148492);
+		green = clamp(green, 0.0, 255.0);
+	}
+
+	if(kelvin >= 66) {
+		blue = 255.0;
+	} else {
+		blue = kelvin - 10;
+		blue = 138.5177312231 * log(blue) - 305.0447927307;
+		blue = clamp(blue, 0.0, 255.0);
+	}
+
+	return vec3(red, green, blue) / 255.0;
+}

@@ -1,6 +1,19 @@
-vec3 sunlightDay      = vec3(1.00);
+float sunlightTemperatureDay = 5200.0;
+float sunlightTemperatureSunrise = 2000.0;
+
+float sunIlluminanceDay = 94000.0;
+float sunIlluminanceSunrise = 59800.0;
+float sunIlluminanceNight = 1.0;
+float sunIlluminanceMoonrise = 1000;
+
+float skyIlluminanceDay = 19600.0;
+float skyIlluminanceSunrise = 25700.0;
+float skyIlluminanceNight = 0.002;
+float skyIlluminanceMoonrise = 1;
+
+vec3 sunlightDay      = vec3(RGBfromTemp(sunlightTemperatureDay));
 vec3 sunlightNight    = vec3(0.23, 0.45, 1.00);
-vec3 sunlightSunrise  = vec3(1.00, 0.45, 0.10);
+vec3 sunlightSunrise  = vec3(RGBfromTemp(sunlightTemperatureSunrise));
 vec3 sunlightMoonrise = vec3(0.90, 1.00, 1.00);
 
 vec3 skylightDay     = vec3(0.13, 0.26, 1.00);
@@ -9,9 +22,9 @@ vec3 skylightSunrise = vec3(0.29, 0.48, 1.00);
 vec3 skylightHorizon = skylightNight;
 
 
-sunlightDay      *= 1.0 / length(sunlightDay      * lumaCoeff);
+//sunlightDay      *= 1.0 / length(sunlightDay      * lumaCoeff);
 sunlightNight    *= 0.1 / length(sunlightNight    * lumaCoeff);
-sunlightSunrise  *= 2.0 / length(sunlightSunrise  * lumaCoeff);
+//sunlightSunrise  *= 2.0 / length(sunlightSunrise  * lumaCoeff);
 sunlightMoonrise *= 0.5 / length(sunlightMoonrise * lumaCoeff);
 
 skylightDay     *= 1.0  / length(skylightDay);

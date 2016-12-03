@@ -30,4 +30,12 @@
 	skylightColor =
 		mix(skylightDay, skylightSunrise, timeHorizon) * timeDay +
 		skylightNight * timeNight + skylightHorizon * timeHorizon;
+
+	sunIlluminance =
+		mix(sunIlluminanceDay  , sunIlluminanceSunrise , timeHorizon) * timeDay +
+		mix(sunIlluminanceNight, sunIlluminanceMoonrise, timeMoonrise * timeNight) * timeNight;
+
+	skyIlluminance =
+		mix(skyIlluminanceDay  , skyIlluminanceSunrise , timeHorizon) * timeDay +
+		mix(skyIlluminanceNight, skyIlluminanceMoonrise, timeMoonrise * timeNight) * timeNight;
 // }

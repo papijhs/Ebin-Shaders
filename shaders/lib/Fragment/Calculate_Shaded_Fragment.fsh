@@ -16,6 +16,7 @@ struct Lightmap { // Vector light levels with color
 
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight_Shading.fsh"
+#include "/lib/Fragment/BRDF.fsh"
 
 
 float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
@@ -41,7 +42,7 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, vec3 vertNormal, float smoothness, mat2x3 position) {
 	Shading shading;
 	
-	shading.sunlight  = GetLambertianShading(normal, mask) * skyLightmap;
+	shading.sunlight  = GetLambertianShading(normal, mask) * DisneyDiffuse(normalize(position[0]), lightVector, normal, 0.5) * skyLightmap; //TODO: ROUGHNESS
 	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight, vertNormal);
 	
 	
@@ -61,9 +62,9 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	
 	Lightmap lightmap;
 	
-	lightmap.sunlight = shading.sunlight * sunlightColor;
+	lightmap.sunlight = shading.sunlight * sunlightColor * sunIlluminance;
 	
-	lightmap.skylight = shading.skylight * pow(skylightColor, vec3(0.5));
+	lightmap.skylight = shading.skylight * pow(skylightColor, vec3(0.5)) * skyIlluminance;
 	
 	
 	
@@ -75,8 +76,8 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	
 	
 	return vec3(
-	    lightmap.sunlight   * 16.0  * SUN_LIGHT_LEVEL
-	+   lightmap.skylight   * 2.2   * SKY_LIGHT_LEVEL * SKY_BRIGHTNESS
+	    lightmap.sunlight
+	+   lightmap.skylight
 	+   lightmap.GI         * 1.0
 	+   lightmap.ambient    * 0.015 * AMBIENT_LIGHT_LEVEL
 	+   lightmap.torchlight * 6.0   * TORCH_LIGHT_LEVEL

@@ -8,3 +8,5 @@ varying float timeHorizon;
 
 varying vec3 sunlightColor;
 varying vec3 skylightColor;
+varying float sunIlluminance;
+varying float skyIlluminance;

@@ -92,7 +92,7 @@ void Compute2DCloudPlane(io vec3 color, vec3 ray, vec3 rayPos, float sunglow, fl
 	
 	cloud.rgb = mix(ambientColor, directColor, sunlight) * 70.0;
 	
-	color = mix(color, cloud.rgb, cloud.a * visibility);
+	color = mix(color, cloud.rgb * 3000, cloud.a * visibility); //TODO: LUMINANCE
 }
 
 void Compute3DCloudPlane(io vec3 color, vec3 ray, vec3 rayPos, float sunglow, float visibility) {
