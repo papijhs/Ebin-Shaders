@@ -4,6 +4,10 @@ This is a Minecraft shaderpack for use with [Optifine](http://www.minecraftforum
 
 [Talk to use on Discord.](https://discord.gg/9YTc4Q4)
 
+# PBM Branch
+
+More documentation coming, things are about to become complex.
+
 ## Features
 - Shadows / Shading - the basics
 - Global Illumination
