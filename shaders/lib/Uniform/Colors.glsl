@@ -1,13 +1,13 @@
 float sunlightTemperatureDay = 5200.0;
 float sunlightTemperatureSunrise = 2000.0;
 
-float sunIlluminanceDay = 94000.0;
-float sunIlluminanceSunrise = 59800.0;
+float sunIlluminanceDay = 123100.0;
+float sunIlluminanceSunrise = 79000.0;
 float sunIlluminanceNight = 1.0;
 float sunIlluminanceMoonrise = 1.0;
 
-float skyIlluminanceDay = 19600.0;
-float skyIlluminanceSunrise = 25700.0;
+float skyIlluminanceDay = 27300.0;
+float skyIlluminanceSunrise = 20000.0;
 float skyIlluminanceNight = 0.2;
 float skyIlluminanceMoonrise = 1;
 

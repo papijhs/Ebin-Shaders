@@ -55,8 +55,8 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	float sunglow = CalculateSunglow(worldSpaceVector);
 	
 #ifdef PHYSICAL_ATMOSPHERE
-	vec3 gradient = CalculateAtmosphericSky(worldSpacePosition);
-	vec3 sunspot  = vec3(0.0);
+	vec3 gradient = CalculateAtmosphericSky(worldSpacePosition) * skyIlluminance;
+	vec3 sunspot  = CalculateSunspot(worldSpaceVector) * (reflection ? sunlight : pow(visibility, 25) * alpha);
 #else
 	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow) * skyIlluminance;
 	vec3 sunspot  = CalculateSunspot(worldSpaceVector) * (reflection ? sunlight : pow(visibility, 25) * alpha);

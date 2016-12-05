@@ -1,8 +1,8 @@
-#define iSteps 50
-#define jSteps 1
+#define iSteps 100
+#define jSteps 2
 
-cfloat     planetRadius = 6371.0e2;
-cfloat atmosphereRadius = 6471.0e2 * 1.3;
+cfloat     planetRadius = 6371.0e3;
+cfloat atmosphereRadius = 6471.0e3 * 1.3;
 
 cfloat atmosphereHeight = atmosphereRadius - planetRadius;
 
@@ -13,7 +13,7 @@ cfloat      mieCoeff = 7e-6;
 
 cfloat g = 0.9;
 cfloat rayleighHeight = 8.0e3 * 1.5;
-cfloat      mieHeight = 1.2e3 * 3.0;
+cfloat      mieHeight = 7.2e3 * 1.15;
 
 cvec2 invScatterHeight = -1.0 / vec2(rayleighHeight, mieHeight); // Optical step constant to save computations inside the loop
 

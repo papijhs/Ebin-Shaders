@@ -15,7 +15,7 @@ float GGX(float NoH, float alpha) {
     float alpha2 = alpha * alpha;
     float denom = (NoH * alpha2 - NoH) * NoH + 1.0;
 
-    return  alpha2 / (PI * denom * denom);
+    return  alpha2 / (denom * denom);
 }
 vec3 BlendMaterial(vec3 Kdiff, vec3 Kspec, vec3 diffuseColor, vec3 f0) {
   vec3 scRange = smoothstep(vec3(0.25), vec3(0.45), f0);
