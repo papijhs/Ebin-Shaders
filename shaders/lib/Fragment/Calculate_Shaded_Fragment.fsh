@@ -54,23 +54,23 @@ vec3 SunMRP(vec3 normal, vec3 viewVector) {
   return (DdotR < d) ? normalize(d * D + normalize(S) * r) : R;
 }
 
-vec3 doSunlightShading(vec3 diffuseColor, Mask mask, float skyLightmap, vec3 normal, vec3 vertNormal, float roughness, float f0, mat2x3 position) {
+vec3 doSunlightShading(vec3 diffuseColor, Mask mask, float skyLightmap, vec3 normal, vec3 vertNormal, float roughness, vec3 f0, mat2x3 position) {
 	vec3 viewVector = -normalize(position[0]);
 	vec3 L = SunMRP(normal, viewVector);
 	float illuminance = sunIlluminance * GetLambertianShading(normal, mask);
 
 	vec3 diffuse = diffuseColor * DisneyDiffuse(viewVector, lightVector, normal, roughness) * (1.0 - f0);
-	vec3 specular = BRDF(L, viewVector, normal, pow2(roughness), vec3(f0));
+	vec3 specular = BRDF(L, viewVector, normal, pow2(roughness), f0);
 
 	float shadows = ComputeSunlight(position[1], 1.0, vertNormal);
 
 	return (diffuse + specular) * illuminance * shadows;
 }
 
-vec3 CalculateShadedFragment(vec3 diffuseColor, Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, vec3 vertNormal, float roughness, float f0, mat2x3 position) {
+vec3 CalculateShadedFragment(vec3 diffuseColor, Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, vec3 vertNormal, float roughness, vec3 f0, mat2x3 position) {
 	Shading shading;
 
-	vec3 sunlight = doSunlightShading(diffuseColor, mask, skyLightmap, normal, vertNormal, roughness, clamp(f0, 0.02, 1.0), position);
+	vec3 sunlight = doSunlightShading(diffuseColor, mask, skyLightmap, normal, vertNormal, roughness, f0, position);
 
 	shading.sunlight  = ComputeSunlight(position[1], 1.0, vertNormal);
 	

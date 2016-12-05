@@ -1,4 +1,4 @@
-/* DRAWBUFFERS:012346 */
+/* DRAWBUFFERS:01234 */
 
 uniform sampler2D texture;
 uniform sampler2D normals;
@@ -73,17 +73,15 @@ vec3 GetTangentNormal() {
 #endif
 }
 
-void GetMatData(vec2 coord, out float reflectance, out float smoothness, out float metal, out float AO, out vec3 f0) {
+void GetMatData(vec2 coord, out float smoothness, out float AO, out vec3 f0) {
 	vec4 sampledData = texture2D(specular, coord);
 	float matData = sampledData.a; //0.5 metal, //0.0 dielectric //(More info to come due to anisotropic materials)
 	if (matData < 0.5) {
-		reflectance = sampledData.r;
+		f0 = vec3(sampledData.r); //changing when extra specular 
 		smoothness = sampledData.g;
-		metal = 0.0;
 		AO = sampledData.b;
 	} else {
 		smoothness = sampledData.g;
-		metal = 1.0;
 		AO = sampledData.b;
 		f0 = vec3(sampledData.r); //changing when extra specular 
 	}
@@ -148,10 +146,10 @@ void main() {
 	vec3 normal = GetNormal(coord);
 	
 	float specularity = 0.0;
-	float reflectance, smoothness, metal, AO;
+	float smoothness, AO;
 	vec3 f0;
 
-	GetMatData(coord, reflectance, smoothness, metal, AO, f0);
+	GetMatData(coord, smoothness, AO, f0);
 	
 	
 #if !defined gbuffers_water
@@ -161,34 +159,30 @@ void main() {
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
 	gl_FragData[2] = vec4(0.0);
 	gl_FragData[3] = vec4(0.0);
-	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), EncodeNormalU(normal, tbnMatrix[2]), 0.0, 1.0);
-
-	#ifdef gbuffers_terrain
-		gl_FragData[5] = vec4(Encode4x8F(vec4(reflectance, smoothness, metal, AO)), Encode4x8F(vec4(f0, 1.0)), 0.0, 1.0);
-	#endif
+	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, smoothness, vertLightmap.rg)), EncodeNormalU(normal, tbnMatrix[2]), Encode4x8F(vec4(f0, AO)), 1.0);
 #else
-	specularity = clamp(specularity, 0.0, 1.0 - 1.0 / 255.0);
-	
 	Mask mask = EmptyMask;
 	
 	if (abs(mcID - 8.5) < 0.6) {
 		if (!gl_FrontFacing) discard;
 		
-		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
+		diffuse = vec4(0.0215, 0.0356, 0.0533, 0.75);
 		
 		normal = tbnMatrix * GetWaveNormals(position[1] - worldDisplacement, tbnMatrix[2]);
-		
-		specularity = 1.0;
+
+		f0 = vec3(0.05);
+		smoothness = 0.8;
+		AO = 1.0;
 	}
 	
-	vec3 composite  = CalculateShadedFragment(diffuse.rgb, mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], 1.0 - smoothness, reflectance, position);
+	vec3 composite = CalculateShadedFragment(vec3(diffuse.rgb), mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], 1.0 - smoothness, f0, position);
+
 	
-	gl_FragData[0] = vec4(Encode4x8F(vec4(specularity, vertLightmap.g, 0.0, 0.1)), EncodeNormal(normal.xyz, 11), 0.0, 1.0);
+	gl_FragData[0] = vec4(Encode4x8F(vec4(smoothness, vertLightmap.g, 0.0, 0.1)), EncodeNormal(normal.xyz, 11), Encode4x8F(vec4(f0, AO)), 1.0);
 	gl_FragData[1] = vec4(0.0);
 	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
 	gl_FragData[3] = vec4(composite, diffuse.a);
 	gl_FragData[4] = vec4(0.0);
-	gl_FragData[5] = vec4(Encode4x8F(vec4(0.05, 0.8, 0.0, 1.0)), 0.0, 0.0, 1.0);
 #endif
 	
 	exit();

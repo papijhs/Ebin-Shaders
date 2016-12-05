@@ -115,22 +115,20 @@ vec3 AerialPerspective(float dist, float skyLightmap) {
 	return pow(skylightColor, vec3(1.3 - clamp01(factor) * 0.4)) * factor;
 }
 
-void unpackMatData(out float reflectance, out float roughness, out float metal, out float AO, out vec3 f0) {
-	vec2 compressedData = ScreenTex(colortex6).rg;
-	vec4 unpackedBase = Decode4x8F(compressedData.r);
-	vec4 unpackedAlt = Decode4x8F(compressedData.g);
+void unpackMatData(in vec3 compressedData, out float roughness, out float AO, out vec3 f0) {
+	float smoothness = Decode4x8F(compressedData.r).b;
+	vec4 unpackedf0AO = Decode4x8F(compressedData.b);
 
-	reflectance = unpackedBase.r;
-	roughness = 1.0 - unpackedBase.g;
-	metal = unpackedBase.b;
-	AO = unpackedBase.a;
-	f0 = unpackedAlt.rgb;
+	roughness = 1.0 - smoothness;
+	AO = unpackedf0AO.a;
+	f0 = unpackedf0AO.rgb;
 }
 
 void main() {
-	float reflectance, roughness, metal, AO, NoL; vec3 f0;
-	unpackMatData(reflectance, roughness, metal, AO, f0);
-	vec2 texure4 = ScreenTex(colortex4).rg;
+	vec3 texure4 = ScreenTex(colortex4).rgb;
+	
+	float roughness, AO; vec3 f0;
+	unpackMatData(texure4, roughness, AO, f0);
 	
 	vec4  decode4       = Decode4x8F(texure4.r);
 	Mask  mask          = CalculateMasks(decode4.r);
@@ -154,7 +152,7 @@ void main() {
 		mask.bits.xy     = vec2(1.0, mask.water);
 		mask.materialIDs = EncodeMaterialIDs(1.0, mask.bits);
 		
-		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.gb);
+		texure4.rg = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.gb);
 	} else texure4.g = ReEncodeNormal(texure4.g, 11.0);
 	
 	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
@@ -174,7 +172,7 @@ void main() {
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
 	
-	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, GI, normal, vertNormal, roughness, reflectance, backPos);
+	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, GI, normal, vertNormal, roughness, f0, backPos);
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
 		composite = WaterFog(composite, viewSpacePosition0, backPos[0]);
