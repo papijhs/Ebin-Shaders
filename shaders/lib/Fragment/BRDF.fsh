@@ -39,7 +39,7 @@ float DisneyDiffuse(vec3 V, vec3 L, vec3 N, float linearRoughness) {
     float lightScatter = fresnel(f0, fd90 , NoL).r;
     float viewScatter = fresnel(f0, fd90 , NoV).r;
 
-    return  lightScatter * viewScatter * energyFactor;
+    return lightScatter * viewScatter * energyFactor;
 }
 
 vec3 BRDF(vec3 L, vec3 V, vec3 N, float roughness, vec3 f0) {
@@ -58,4 +58,23 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, float roughness, vec3 f0) {
     vec3 specular = distribution * fresnel * Vis / PI;
 
     return specular * NoL;
+}
+
+float BSDF(vec3 L, vec3 D, vec3 V, vec3 N, float roughness, float f0) {
+    roughness = clamp(roughness, 0.01, 1.0);
+    vec3 H = normalize(V + L);
+
+    float NoV = abs(dot(N, V)) + 1e-5;
+    float VoH = clamp01(dot(V, H));
+    float NoH = clamp01(dot(N, H));
+    float NoL = clamp01(dot(N, L));
+ 
+    float fresnel = fresnel(vec3(f0), 1.0, VoH).r;
+    float Vis = Vis_SmithJointApprox(roughness, NoV, NoL);
+    float distribution = GGX(NoH, roughness);
+
+    float specular = distribution * fresnel * Vis / PI;
+    float diffuse = DisneyDiffuse(V, D, N, pow2(roughness)) / PI;
+
+    return (specular);
 }

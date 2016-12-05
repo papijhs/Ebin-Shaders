@@ -1,5 +1,6 @@
 struct Shading { // Scalar light levels
 	float sunlight;
+	float diffuse;
 	float skylight;
 	float torchlight;
 	float ambient;
@@ -39,11 +40,39 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 	return hand.x + hand.y;
 }
 
-vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, vec3 vertNormal, float roughness, float f0, mat2x3 position) {
+vec3 SunMRP(vec3 normal, vec3 viewVector) {
+  vec3 R = reflect(viewVector, normal);
+  float angularRadius = 0.000071;
+
+  vec3 D = lightVector;
+  float d = cos(angularRadius);
+  float r = sin(angularRadius);
+
+  float DdotR = dot(D, R);
+  vec3 S = R - DdotR * D;
+
+  return (DdotR < d) ? normalize(d * D + normalize(S) * r) : R;
+}
+
+vec3 doSunlightShading(vec3 diffuseColor, Mask mask, float skyLightmap, vec3 normal, vec3 vertNormal, float roughness, float f0, mat2x3 position) {
+	vec3 viewVector = -normalize(position[0]);
+	vec3 L = SunMRP(normal, viewVector);
+	float illuminance = sunIlluminance * GetLambertianShading(normal, mask);
+
+	vec3 diffuse = diffuseColor * DisneyDiffuse(viewVector, lightVector, normal, roughness) * (1.0 - f0);
+	vec3 specular = BRDF(L, viewVector, normal, pow2(roughness), vec3(f0));
+
+	float shadows = ComputeSunlight(position[1], 1.0, vertNormal);
+
+	return (diffuse + specular) * illuminance * shadows;
+}
+
+vec3 CalculateShadedFragment(vec3 diffuseColor, Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, vec3 vertNormal, float roughness, float f0, mat2x3 position) {
 	Shading shading;
-	
-	shading.sunlight  = GetLambertianShading(normal, mask) * DisneyDiffuse(normalize(position[0]), lightVector, normal, roughness)  * (1.0 - f0) * skyLightmap; //TODO: ROUGHNESS
-	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight, vertNormal);
+
+	vec3 sunlight = doSunlightShading(diffuseColor, mask, skyLightmap, normal, vertNormal, roughness, clamp(f0, 0.02, 1.0), position);
+
+	shading.sunlight  = ComputeSunlight(position[1], 1.0, vertNormal);
 	
 	
 	shading.torchlight  = 1.0 - pow(clamp01(torchLightmap - 0.075), 4.0);
@@ -62,7 +91,7 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	
 	Lightmap lightmap;
 	
-	lightmap.sunlight = shading.sunlight * sunlightColor * sunIlluminance;
+	lightmap.sunlight = sunlight * sunlightColor;
 	
 	lightmap.skylight = shading.skylight * pow(skylightColor, vec3(0.5)) * skyIlluminance;
 	
@@ -77,9 +106,9 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	
 	return vec3(
 	    lightmap.sunlight
-	+   lightmap.skylight
-	+   lightmap.GI         * 1.0
-	+   lightmap.ambient    * 0.015 * AMBIENT_LIGHT_LEVEL
-	+   lightmap.torchlight * 6.0   * TORCH_LIGHT_LEVEL
+	//+   lightmap.skylight
+	//+   lightmap.GI         * 1.0
+	//+   lightmap.ambient    * 0.015 * AMBIENT_LIGHT_LEVEL
+	//+   lightmap.torchlight * 6.0   * TORCH_LIGHT_LEVEL
 	    );
 }

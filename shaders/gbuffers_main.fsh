@@ -181,8 +181,7 @@ void main() {
 		specularity = 1.0;
 	}
 	
-	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], 1.0 - smoothness, reflectance, position);
-	     composite *= pow(diffuse.rgb, vec3(2.2));
+	vec3 composite  = CalculateShadedFragment(diffuse.rgb, mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], 1.0 - smoothness, reflectance, position);
 	
 	gl_FragData[0] = vec4(Encode4x8F(vec4(specularity, vertLightmap.g, 0.0, 0.1)), EncodeNormal(normal.xyz, 11), 0.0, 1.0);
 	gl_FragData[1] = vec4(0.0);

@@ -166,7 +166,7 @@ void main() {
 	BilateralUpsample(mat3(gbufferModelViewInverse) * normal, depth1, GI);
 	
 	
-	vec3 diffuse = GetDiffuse(texcoord);
+	vec3 diffuse = sRGB2L(GetDiffuse(texcoord));
 	vec3 viewSpacePosition0 = CalculateViewSpacePosition(vec3(texcoord, depth0));
 	
 	mat2x3 backPos;
@@ -174,8 +174,7 @@ void main() {
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
 	
-	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, vertNormal, roughness, reflectance, backPos);
-	     composite *= pow(diffuse, vec3(2.8));
+	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, GI, normal, vertNormal, roughness, reflectance, backPos);
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
 		composite = WaterFog(composite, viewSpacePosition0, backPos[0]);
