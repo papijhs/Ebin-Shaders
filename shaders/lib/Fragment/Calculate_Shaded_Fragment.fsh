@@ -42,7 +42,7 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 
 vec3 SunMRP(vec3 normal, vec3 viewVector) {
   vec3 R = reflect(viewVector, normal);
-  float angularRadius = 0.000071;
+  float angularRadius = 3.14 * 0.54 / 180.0;
 
   vec3 D = lightVector;
   float d = cos(angularRadius);
