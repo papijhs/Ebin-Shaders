@@ -32,9 +32,9 @@ vec3 CalculateSunspot(vec3 worldSpaceVector) {
 	float sunspot  = max0(dot(worldSpaceVector, worldLightVector) - 0.01);
 	      sunspot  = pow(sunspot, 375.0);
 	      sunspot  = pow(sunspot + 1.0, 400.0) - 1.0;
-	      sunspot  = min(sunspot, 20.0) * 6.0;
+	      sunspot  = min(sunspot, 20.0);
 	
-	return sunspot * sunlightColor * sunlightColor * vec3(1.0, 0.8, 0.6);
+	return sunspot * sunlightColor * sunlightColor * vec3(1.0, 0.8, 0.6) * sunIlluminance;
 }
 
 #include "/lib/Fragment/Clouds.fsh"

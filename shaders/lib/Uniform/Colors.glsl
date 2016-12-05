@@ -4,11 +4,11 @@ float sunlightTemperatureSunrise = 2000.0;
 float sunIlluminanceDay = 94000.0;
 float sunIlluminanceSunrise = 59800.0;
 float sunIlluminanceNight = 1.0;
-float sunIlluminanceMoonrise = 1000;
+float sunIlluminanceMoonrise = 1.0;
 
 float skyIlluminanceDay = 19600.0;
 float skyIlluminanceSunrise = 25700.0;
-float skyIlluminanceNight = 0.002;
+float skyIlluminanceNight = 0.2;
 float skyIlluminanceMoonrise = 1;
 
 vec3 sunlightDay      = vec3(RGBfromTemp(sunlightTemperatureDay));

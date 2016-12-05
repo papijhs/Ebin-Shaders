@@ -13,6 +13,7 @@ uniform sampler2D colortex1;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
+uniform sampler2D colortex6;
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
@@ -114,12 +115,25 @@ vec3 AerialPerspective(float dist, float skyLightmap) {
 	return pow(skylightColor, vec3(1.3 - clamp01(factor) * 0.4)) * factor;
 }
 
+void unpackMatData(out float reflectance, out float roughness, out float metal, out float AO, out vec3 f0) {
+	vec2 compressedData = ScreenTex(colortex6).rg;
+	vec4 unpackedBase = Decode4x8F(compressedData.r);
+	vec4 unpackedAlt = Decode4x8F(compressedData.g);
+
+	reflectance = unpackedBase.r;
+	roughness = 1.0 - unpackedBase.g;
+	metal = unpackedBase.b;
+	AO = unpackedBase.a;
+	f0 = unpackedAlt.rgb;
+}
+
 void main() {
+	float reflectance, roughness, metal, AO, NoL; vec3 f0;
+	unpackMatData(reflectance, roughness, metal, AO, f0);
 	vec2 texure4 = ScreenTex(colortex4).rg;
 	
 	vec4  decode4       = Decode4x8F(texure4.r);
 	Mask  mask          = CalculateMasks(decode4.r);
-	float smoothness    = decode4.g;
 	float torchLightmap = decode4.b;
 	float skyLightmap   = decode4.a;
 	
@@ -160,7 +174,7 @@ void main() {
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
 	
-	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, vertNormal, smoothness, backPos);
+	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, vertNormal, roughness, reflectance, backPos);
 	     composite *= pow(diffuse, vec3(2.8));
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
