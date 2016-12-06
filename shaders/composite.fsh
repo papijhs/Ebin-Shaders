@@ -11,7 +11,7 @@ const bool shadowcolor0Mipmap  = true;
 const bool shadowcolor1Mipmap  = true;
 
 const bool shadowtex1Nearest   = true;
-const bool shadowcolor0Nearest = false;
+const bool shadowcolor0Nearest = true;
 const bool shadowcolor1Nearest = false;
 
 uniform sampler2D colortex0;
@@ -34,6 +34,7 @@ uniform float near;
 uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform float frameTimeCounter;
 
 uniform int isEyeInWater;
 
@@ -69,8 +70,7 @@ vec3 GetNormal(vec2 coord) {
 vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise pattern ranging {-1.0 to 1.0} that repeats every n pixels
 	coord *= vec2(viewWidth, viewHeight);
 	coord  = mod(coord, vec2(n));
-	coord /= noiseTextureResolution;
-	return texture2D(noisetex, coord).xy;
+	return texelFetch(noisetex, ivec2(coord), 0).xy;
 }
 
 #include "/lib/Misc/Bias_Functions.glsl"
@@ -78,7 +78,7 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 
 #ifndef GI_ENABLED
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
-#elif GI_MODE == 1
+#else
 vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLightmap, cfloat radius, vec2 noise, Mask mask) {
 	float lightMult = skyLightmap;
 	
@@ -86,7 +86,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	float sunlight = GetLambertianShading(normal, mask) * skyLightmap;
 	      sunlight = ComputeSunlight(worldSpacePosition, sunlight, vec3(0.0));
 	
-	lightMult = 1.0 - sunlight * 4.0;
+	lightMult = (pow2(skyLightmap) * 0.9 + 0.1) - sunlight * 4.0;
 #endif
 	
 	if (lightMult < 0.05) return vec3(0.0);
@@ -116,8 +116,12 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	
 	#include "/lib/Samples/GI.glsl"
 	
+	float translucent = clamp01(GI_TRANSLUCENCE + mask.translucent);
+	
 	for (int i = 0; i < GI_SAMPLE_COUNT; i++) {
 		vec2 offset = samples[i] * scale + noise;
+		
+		if (dot(offset.xy, normal.xy) - mask.translucent >= 0.0) continue; // Faux-hemisphere
 		
 		vec3 samplePos = vec3(basePos.xy + offset, 0.0);
 		
@@ -135,10 +139,10 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 		
 		vec3 lightCoeffs   = vec3(finversesqrt(sampleLengthSqrd) * sampleDiff * mat2x3(normal, shadowNormal), sampleLengthSqrd);
 		     lightCoeffs   = max(lightCoeffs, sampleMax);
-		     lightCoeffs.x = mix(lightCoeffs.x, 1.0, GI_TRANSLUCENCE);
+		     lightCoeffs.x = mix(lightCoeffs.x, 1.0, translucent);
 		     lightCoeffs.y = fsqrt(lightCoeffs.y);
 		
-		vec3 flux = pow(texture2DLod(shadowcolor, mapPos, sampleLOD).rgb, vec3(2.2));
+		vec3 flux = texture2DLod(shadowcolor, mapPos, sampleLOD).rgb;
 		
 		GI += flux * lightCoeffs.x * lightCoeffs.y / lightCoeffs.z;
 	}
@@ -192,7 +196,7 @@ void main() {
 	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
 	
 	
-	gl_FragData[0] = vec4(pow(GI * 0.2, vec3(1.0 / 2.2)), 1.0);
+	gl_FragData[0] = vec4(sqrt(GI * 0.2), 1.0);
 	
 	exit();
 }

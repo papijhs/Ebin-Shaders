@@ -28,9 +28,6 @@ uniform vec3 upPosition;
 uniform float near;
 uniform float far;
 
-uniform float viewWidth;
-uniform float viewHeight;
-
 uniform ivec2 eyeBrightnessSmooth;
 
 uniform int isEyeInWater;
@@ -38,6 +35,7 @@ uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
 
 varying vec2 texcoord;
+varying vec2 pixelSize;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
@@ -76,39 +74,42 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 	GI = vec3(0.0);
 	
 #if defined GI_ENABLED
-	depth = ExpToLinearDepth(depth);
+	vec2 scaledCoord = texcoord * COMPOSITE0_SCALE;
 	
-	float totalGIWeight = 0.0;
+	depth = ExpToLinearDepth(depth);
 	
 	cfloat kernal = 2.0;
 	cfloat range = kernal * 0.5 - 0.5;
 	
-	for(float i = -range; i <= range; i++) {
-		for(float j = -range; j <= range; j++) {
-			vec2 offset = vec2(i, j) / vec2(viewWidth, viewHeight);
+	float totalGIWeight = 0.0;
+	
+	for(float y = -range; y <= range; y++) {
+		for(float x = -range; x <= range; x++) {
+			vec2 offset = vec2(x, y) * pixelSize;
 			
 			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
 			vec3  sampleNormal =    DecodeNormalU(texture2D(colortex4, texcoord + offset * 8.0).g);
 			
-			float weight  = 1.0 - abs(depth - sampleDepth);
-			      weight *= dot(normal, sampleNormal);
-			      weight  = pow(weight, 32);
-			      weight  = max(1.0e-6, weight);
+			float weight  = clamp01(1.0 - abs(depth - sampleDepth));
+			      weight *= abs(dot(normal, sampleNormal)) * 0.5 + 0.5;
+			      weight += 0.001;
 			
-			GI += pow(texture2DLod(colortex5, texcoord * COMPOSITE0_SCALE + offset * 2.0, 1).rgb, vec3(2.2)) * weight;
+			GI += pow2(texture2DLod(colortex5, scaledCoord + offset * 2.0, 1).rgb) * weight;
 			
 			totalGIWeight += weight;
 		}
 	}
 	
-	GI *= 5.0 / totalGIWeight;
+	GI /= totalGIWeight;
+	
+	GI *= 5.0;
 #endif
 }
 
 #include "lib/Fragment/Water_Depth_Fog.fsh"
 
 vec3 AerialPerspective(float dist, float skyLightmap) {
-	float factor  = pow(dist, 1.4) * 0.00019 * (1.0 - isEyeInWater) * AERIAL_PERSPECTIVE_AMOUNT;
+	float factor  = pow(dist, 1.4) * 0.00023 * (1.0 - isEyeInWater) * AERIAL_PERSPECTIVE_AMOUNT;
 	      factor *= mix(skyLightmap * 0.7 + 0.3, 1.0, eyeBrightnessSmooth.g / 240.0);
 	
 	return pow(skylightColor, vec3(1.3 - clamp01(factor) * 0.4)) * factor;
@@ -140,7 +141,7 @@ void main() {
 		mask.bits.xy     = vec2(1.0, mask.water);
 		mask.materialIDs = EncodeMaterialIDs(1.0, mask.bits);
 		
-		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.gb);
+		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.g);
 	} else texure4.g = ReEncodeNormal(texure4.g, 11.0);
 	
 	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);

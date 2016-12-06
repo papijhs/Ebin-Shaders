@@ -43,7 +43,15 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 
 
 float pow2(float f) {
-	return dot(f, f);
+	return f * f;
+}
+
+vec2 pow2(vec2 v) {
+	return v * v;
+}
+
+vec3 pow2(vec3 v) {
+	return v * v;
 }
 
 vec2 rotate(in vec2 vector, float radians) {

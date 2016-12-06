@@ -16,6 +16,8 @@ varying vec3 vertNormal;
 void main() {
 	vec4 diffuse = color * texture2D(texture, texcoord);
 	
+	diffuse.rgb = sqrt(diffuse.rgb);
+	
 	gl_FragData[0] = diffuse;
 	gl_FragData[1] = vec4(vertNormal.xy * 0.5 + 0.5, 0.0, 1.0);
 }

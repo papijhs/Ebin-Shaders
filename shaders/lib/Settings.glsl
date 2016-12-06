@@ -4,7 +4,7 @@ const float shadowDistance           = 140.0;
 const float shadowIntervalSize       = 4.0;
 const bool  shadowHardwareFiltering0 = true;
 
-const float wetnessHalflife          = 200.0;
+const float wetnessHalflife          = 40.0;
 const float drynessHalflife          = 40.0;
 
 /*
@@ -39,13 +39,13 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 //#define DEFAULT_TEXTURE_PACK
 
 
-#define EXPOSURE            1.0  // [0.2 0.4 0.6 0.8 1.0 2.0 4.0  8.0]
+#define EXPOSURE            1.0  // [0.2 0.4 0.6 0.8 1.0 2.0 4.0]
 #define SATURATION          1.1  // [0.0 0.5 1.0 1.1 1.2 1.3]
-#define SUN_LIGHT_LEVEL     1.00 // [0.00 0.25 0.50 1.00 2.00 4.00 8.00 16.00]
-#define SKY_LIGHT_LEVEL     1.00 // [0.00 0.25 0.50 1.00 2.00 4.00 8.00 16.00]
-#define AMBIENT_LIGHT_LEVEL 1.00 // [0.00 0.25 0.50 1.00 2.00 4.00 8.00 16.00]
-#define TORCH_LIGHT_LEVEL   1.00 // [0.00 0.25 0.50 1.00 2.00 4.00 8.00 16.00]
-#define SKY_BRIGHTNESS      0.8  // [0.2 0.4 0.6 0.8 1.0 2.0 4.0 8.0]
+#define SUN_LIGHT_LEVEL     1.00 // [0.00 0.25 0.50 1.00 2.00 4.00]
+#define SKY_LIGHT_LEVEL     1.00 // [0.00 0.25 0.50 1.00 2.00 4.00]
+#define AMBIENT_LIGHT_LEVEL 1.00 // [0.00 0.25 0.50 1.00 2.00 4.00]
+#define TORCH_LIGHT_LEVEL   1.00 // [0.00 0.25 0.50 1.00 2.00 4.00]
+#define SKY_BRIGHTNESS      0.8  // [0.2 0.4 0.6 0.8 1.0 2.0 4.0]
 
 
 #define SHADOW_MAP_BIAS 0.80     // [0.00 0.60 0.70 0.80 0.85 0.90]
@@ -57,11 +57,10 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #endif
 
 //#define PLAYER_GI_BOUNCE
-#define GI_MODE         1    // [1]
-#define GI_RADIUS       16   // [4 8 16 24 32]
-#define GI_SAMPLE_COUNT 80   // [20 40 80 128 160 256]
+#define GI_RADIUS       16   // [4 8 16 32]
+#define GI_SAMPLE_COUNT 40   // [20 40 80 128 160 256]
 #define GI_BOOST
-#define GI_TRANSLUCENCE 0.2  // [0.0 0.2 0.4 0.6 0.8 1.0]
+#define GI_TRANSLUCENCE 0.50  // [0.00 0.25 0.50 0.75 1.00]
 #define GI_BRIGHTNESS   1.00 // [0.25 0.50 0.75 1.00 2.00 4.00]
 
 #define BLOOM_ENABLED
@@ -80,8 +79,8 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define WAVING_LEAVES
 #define WAVING_WATER
 
-#define COMPOSITE0_SCALE 0.40 // [0.25 0.33 0.40 0.50 0.75 1.00]
-//#define COMPOSITE0_NOISE
+#define COMPOSITE0_SCALE 0.50 // [0.25 0.33 0.40 0.50 0.75 1.00]
+#define COMPOSITE0_NOISE
 
 //#define FOG_ENABLED
 #define FOG_POWER 3.0                      // [1.0 2.0 3.0 4.0 6.0 8.0]
