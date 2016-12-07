@@ -18,6 +18,21 @@ MatData unpackMatData(in vec3 compressedData) {
     return mat;
 }
 
+
+vec3 SunMRP(vec3 normal, vec3 viewVector, vec3 lightVector) {
+  vec3 R = reflect(viewVector, normal);
+  float angularRadius = 3.14 * 0.54 / 180.0;
+
+  vec3 D = lightVector;
+  float d = cos(angularRadius);
+  float r = sin(angularRadius);
+
+  float DdotR = dot(D, R);
+  vec3 S = R - DdotR * D;
+
+  return (DdotR < d) ? normalize(d * D + normalize(S) * r) : R;
+}
+
 vec2 Hammersley(uint i, uint N)  {
     float ri = bitfieldReverse(i) * 2.3283064365386963e-10f;
     return vec2(float(i) / float(N), ri);

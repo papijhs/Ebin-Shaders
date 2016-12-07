@@ -137,7 +137,7 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 #include "/lib/Fragment/Sunlight_Shading.fsh"
 #include "/lib/Fragment/BRDF.fsh"
 
-void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float skyLightmap, MatData mat) {
+void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float skyLightmap, Mask mask, MatData mat) {
 	if (isEyeInWater == 1) return;
 
 	mat2x3 refRay;
@@ -148,16 +148,22 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sk
 	vec3  reflectedCoord;
 	vec3  reflectedViewSpacePosition;
 	vec3  reflection;
+	vec3 viewVector = -normalize(position[0]);
 	float NoV;
-	
+
+	vec3 L = SunMRP(normal, viewVector, lightVector);
 	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap, vec3(0.0));
+
+	float illuminance = sunIlluminance * clamp01(dot(normal, L));
+	vec3 sunSpecular = BRDF(L, viewVector, normal, pow2(mat.roughness), mat.f0) * illuminance * sunlight;
+	
 	vec3 brdf = BRDF(normalize(refRay[0]), -normalize(position[0]), normal, mat.roughness, mat.f0);
 
 	vec3 reflectedSky = integrateSpecularIBL(-normalize(position[0]), normal, mat.roughness, mat.f0, NoV);
 	vec3 offscreen = reflectedSky * skyLightmap * computeSpecularOcclusion(mat.AO, NoV, mat.roughness);
 	
 	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.4, 30, 2, reflectedCoord, reflectedViewSpacePosition))
-		reflection = offscreen;
+		reflection = offscreen + sunSpecular;
 	else {
 		reflection = GetColor(reflectedCoord.st) * brdf;
 		
@@ -219,7 +225,7 @@ void main() {
 	color1 = texture2D(colortex1, texcoord).rgb;
 	color0 = mix(color1, color0, mask.transparent - mask.water);
 
-	ComputeReflectedLight(color0, frontPos, normal, skyLightmap, mat);
+	ComputeReflectedLight(color0, frontPos, normal, skyLightmap, mask, mat);
 
 	if (depth1 >= 1.0)
 		color0 = mix(sky.rgb, color0, mix(alpha, 0.0, isEyeInWater == 1));

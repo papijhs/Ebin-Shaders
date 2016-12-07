@@ -38,20 +38,6 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 	return hand.x + hand.y;
 }
 
-vec3 SunMRP(vec3 normal, vec3 viewVector) {
-  vec3 R = reflect(viewVector, normal);
-  float angularRadius = 3.14 * 0.54 / 180.0;
-
-  vec3 D = lightVector;
-  float d = cos(angularRadius);
-  float r = sin(angularRadius);
-
-  float DdotR = dot(D, R);
-  vec3 S = R - DdotR * D;
-
-  return (DdotR < d) ? normalize(d * D + normalize(S) * r) : R;
-}
-
 vec3 ComputeAmbientDiffuseLight(vec3 diffuseColor, vec3 normal, vec3 viewVector, float skyLightmap, MatData mat) {
 	#if ShaderStage == 1
 		vec3 reflectedSky = integrateDiffuseIBL(viewVector, normal, mat.roughness, mat.f0) * mat.AO;
@@ -64,15 +50,12 @@ vec3 ComputeAmbientDiffuseLight(vec3 diffuseColor, vec3 normal, vec3 viewVector,
 }
 
 vec3 ComputeDirectShading(vec3 diffuseColor, mat2x3 position, vec3 normal, vec3 vertNormal, vec3 viewVector, float skyLightmap, Mask mask, MatData mat) {
-	vec3 L = SunMRP(normal, viewVector);
 	float illuminance = sunIlluminance * GetLambertianShading(normal, mask);
-
 	vec3 diffuse = (diffuseColor * DisneyDiffuse(viewVector, lightVector, normal, mat.roughness) / PI) * (1.0 - mat.f0);
-	vec3 specular = BRDF(L, viewVector, normal, pow2(mat.roughness), mat.f0);
 
 	float shadows = ComputeSunlight(position[1], 1.0, vertNormal);
 
-	return (diffuse + specular) * illuminance * shadows;
+	return (diffuse) * illuminance * shadows;
 }
 
 vec3 CalculateShadedFragment(vec3 diffuseColor, mat2x3 position, vec3 normal, vec3 vertNormal, float torchLightmap, float skyLightmap, vec3 GI, Mask mask, MatData mat) {
