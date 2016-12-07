@@ -29,6 +29,7 @@ varying float materialIDs;
 #include "/lib/Settings.glsl"
 #include "/lib/Debug.glsl"
 #include "/lib/Utility.glsl"
+#include "/lib/Fragment/BRDF.fsh"
 #include "/lib/Uniform/Projection_Matrices.fsh"
 #include "/lib/Misc/Calculate_Fogfactor.glsl"
 #include "/lib/Fragment/Masks.fsh"
@@ -73,20 +74,26 @@ vec3 GetTangentNormal() {
 #endif
 }
 
-void GetMatData(vec2 coord, out float smoothness, out float AO, out vec3 f0) {
+MatData GetMatData(in vec2 coord) {
+	MatData mat;
+
 	vec4 sampledData = texture2D(specular, coord);
 	float matData = sampledData.a; //0.5 metal, //0.0 dielectric //(More info to come due to anisotropic materials)
+
 	if (matData < 0.5) {
-		f0 = vec3(sampledData.r); //changing when extra specular 
-		smoothness = sampledData.g;
-		AO = sampledData.b;
+		mat.f0 = vec3(sampledData.r); //changing when extra specular 
+		mat.smoothness = sampledData.g;
+		mat.AO = sampledData.b;
 	} else {
-		smoothness = sampledData.g;
-		AO = sampledData.b;
-		f0 = vec3(sampledData.r); //changing when extra specular 
+		mat.smoothness = sampledData.g;
+		mat.AO = sampledData.b;
+		mat.f0 = vec3(sampledData.r); //changing when extra specular 
 	}
 
-	if(AO == 0) AO = 1.0 - AO;
+	if(mat.AO == 0)
+		mat.AO = 1.0 - mat.AO;
+
+	return mat;
 }
 
 vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
@@ -147,8 +154,8 @@ void main() {
 	
 	vec3 normal = GetNormal(coord);
 	
-	float smoothness, AO; vec3 f0;
-	GetMatData(coord, smoothness, AO, f0);
+	MatData mat = GetMatData(coord);
+	mat.roughness = (1.0 - mat.smoothness);
 	
 #if !defined gbuffers_water
 	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0));
@@ -157,7 +164,7 @@ void main() {
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
 	gl_FragData[2] = vec4(0.0);
 	gl_FragData[3] = vec4(0.0);
-	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, smoothness, vertLightmap.rg)), EncodeNormalU(normal, tbnMatrix[2]), Encode4x8F(vec4(f0, AO)), 1.0);
+	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, mat.smoothness, vertLightmap.rg)), EncodeNormalU(normal, tbnMatrix[2]), Encode4x8F(vec4(mat.f0, mat.AO)), 1.0);
 #else
 	Mask mask = EmptyMask;
 	float water = 1.0;
@@ -169,15 +176,15 @@ void main() {
 		normal = tbnMatrix * GetWaveNormals(position[1] - worldDisplacement, tbnMatrix[2]);
 		
 		water = 0.5;
-		f0 = vec3(0.05);
-		smoothness = 0.8;
-		AO = 1.0;
+		mat.f0 = vec3(0.05);
+		mat.smoothness = 0.8;
+		mat.roughness = 1.0 - mat.smoothness;
+		mat.AO = 1.0;
 	}
 	
-	vec3 composite = CalculateShadedFragment(vec3(diffuse.rgb), mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], 1.0 - smoothness, f0, position);
-
+	vec3 composite = CalculateShadedFragment(diffuse.rgb, position, normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], vertLightmap.r, vertLightmap.g, vec3(0.0), mask, mat);
 	
-	gl_FragData[0] = vec4(Encode4x8F(vec4(smoothness, vertLightmap.g, water, 0.1)), EncodeNormal(normal.xyz, 11), Encode4x8F(vec4(f0, AO)), 1.0);
+	gl_FragData[0] = vec4(Encode4x8F(vec4(mat.smoothness, vertLightmap.g, water, 0.1)), EncodeNormal(normal.xyz, 11), Encode4x8F(vec4(mat.f0, mat.AO)), 1.0);
 	gl_FragData[1] = vec4(0.0);
 	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
 	gl_FragData[3] = vec4(composite, diffuse.a);

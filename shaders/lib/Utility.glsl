@@ -103,7 +103,7 @@ vec3 sRGB2L(vec3 sRGBCol) {
 
 vec3 RGBfromTemp(float kelvin) {
 	float red, green, blue;
-	kelvin /= 100;
+	kelvin /= 100.0;
 
 	if(kelvin <= 66) {
 		red = 255;

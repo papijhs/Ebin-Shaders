@@ -64,15 +64,6 @@ float GetTransparentDepth(vec2 coord) {
 	return texture2D(depthtex1, coord).x;
 }
 
-void unpackMatData(in vec3 compressedData, out float roughness, out float AO, out vec3 f0) {
-	float smoothness = Decode4x8F(compressedData.r).g;
-	vec4 unpackedf0AO = Decode4x8F(compressedData.b);
-
-	roughness = 1.0 - smoothness;
-	AO = unpackedf0AO.a;
-	f0 = unpackedf0AO.rgb;
-}
-
 vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	screenPos = screenPos * 2.0 - 1.0;
 	
@@ -85,9 +76,8 @@ vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 
 vec3 getSkyProjected(in vec3 direction, in float lod) {
     vec2 sphereCoords;
-
-	sphereCoords.x = atan(-direction.z, -direction.x) * (1.0 / (PI * 2.0)) + 0.5;
-	sphereCoords.y = direction.y * 0.5 + 0.5;
+	     sphereCoords.x = atan(-direction.z, -direction.x) * (1.0 / (PI * 2.0)) + 0.5;
+	     sphereCoords.y = direction.y * 0.5 + 0.5;
 
     return texture2DLod(colortex6, sphereCoords * COMPOSITE0_SCALE, lod).rgb;
 }
@@ -148,23 +138,8 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 #include "/lib/Fragment/Sunlight_Shading.fsh"
 #include "/lib/Fragment/BRDF.fsh"
 
-void ComputeAmbientDiffuseLight(vec3 diffuse, io vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
-	float roughness, AO; vec3 f0;
-	vec3 texture4 = texture2D(colortex4, texcoord).rgb;
-	unpackMatData(texture4, roughness, AO, f0);
-	show(AO);
-	vec3 reflectedSky = integrateDiffuseIBL(-normalize(position[0]), normal, roughness, f0) * AO;
-	diffuse *= reflectedSky * skyLightmap;
-
-	color += diffuse;
-}
-
-void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
+void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float skyLightmap, MatData mat) {
 	if (isEyeInWater == 1) return;
-	
-	float roughness, AO; vec3 f0;
-	vec3 texture4 = texture2D(colortex4, texcoord).rgb;
-	unpackMatData(texture4, roughness, AO, f0);
 
 	mat2x3 refRay;
 	refRay[0] = reflect(position[0], normal);
@@ -177,10 +152,10 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	float NoV;
 	
 	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap, vec3(0.0));
-	vec3 brdf = BRDF(normalize(refRay[0]), -normalize(position[0]), normal, roughness, f0);
+	vec3 brdf = BRDF(normalize(refRay[0]), -normalize(position[0]), normal, mat.roughness, mat.f0);
 
-	vec3 reflectedSky = integrateSpecularIBL(-normalize(position[0]), normal, roughness, f0, NoV);
-	vec3 offscreen = reflectedSky * skyLightmap * computeSpecularOcclusion(AO, NoV, roughness);
+	vec3 reflectedSky = integrateSpecularIBL(-normalize(position[0]), normal, mat.roughness, mat.f0, NoV);
+	vec3 offscreen = reflectedSky * skyLightmap * computeSpecularOcclusion(mat.AO, NoV, mat.roughness);
 	
 	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.4, 30, 2, reflectedCoord, reflectedViewSpacePosition))
 		reflection = offscreen;
@@ -197,17 +172,17 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 		#endif
 	}
 	
-	color = BlendMaterial(color, reflection, color, f0);
+	color = BlendMaterial(color, reflection, color, mat.f0);
 }
 
 #include "lib/Fragment/Water_Depth_Fog.fsh"
 
 void main() {
-	vec2 texure4 = ScreenTex(colortex4).rg;
+	vec3 texure4 = ScreenTex(colortex4).rgb;
 	
 	vec4  decode4       = Decode4x8F(texure4.r);
 	Mask  mask          = CalculateMasks(decode4.r);
-	float smoothness    = decode4.g;
+	MatData mat         = unpackMatData(texure4);
 	float skyLightmap   = decode4.a;
 	
 	float depth0 = (mask.hand > 0.5 ? 0.55 : GetDepth(texcoord));
@@ -247,8 +222,7 @@ void main() {
 	color1 = texture2D(colortex1, texcoord).rgb;
 	color0 = mix(color1, color0, mask.transparent - mask.water);
 
-	ComputeAmbientDiffuseLight(diffuse, color0, frontPos, normal, smoothness, skyLightmap);
-	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
+	ComputeReflectedLight(color0, frontPos, normal, skyLightmap, mat);
 
 	if (depth1 >= 1.0)
 		color0 = mix(sky.rgb, color0, mix(alpha, 0.0, isEyeInWater == 1));

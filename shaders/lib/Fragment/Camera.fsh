@@ -10,7 +10,7 @@ float convertEV100ToExposure(float EV100) {
 vec3 convertLuminance2Color(vec3 luminance) {
     cfloat aperature = 16.0;
     cfloat shutterTime = 1.0 / 125.0;
-    cfloat ISO = 200.0;
+    cfloat ISO = 400.0;
 
     float EV100 = computeEV100(aperature, shutterTime, ISO);
     float EV = convertEV100ToExposure(EV100);

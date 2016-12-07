@@ -1,3 +1,23 @@
+struct MatData { // Vector light levels with color
+	float roughness;
+    float smoothness;
+	float AO;
+	vec3 f0;
+};
+
+MatData unpackMatData(in vec3 compressedData) {
+    MatData mat;
+
+	float smoothness = Decode4x8F(compressedData.r).g;
+	vec4 unpackedf0AO = Decode4x8F(compressedData.b);
+
+	mat.roughness = 1.0 - smoothness;
+	mat.AO = unpackedf0AO.a;
+	mat.f0 = unpackedf0AO.rgb;
+
+    return mat;
+}
+
 vec2 Hammersley(uint i, uint N)  {
     float ri = bitfieldReverse(i) * 2.3283064365386963e-10f;
     return vec2(float(i) / float(N), ri);
@@ -121,7 +141,7 @@ vec3 importanceSampleGGX(vec2 Xi, float roughness, vec3 N) {
     return normalize(TangentX * H.x + TangentY * H.y + N * H.z);
 }
 
-#if ShaderStage == 2
+#if ShaderStage == 1 || ShaderStage == 2
 vec3 integrateSpecularIBL(vec3 V, vec3 N, float roughness, vec3 f0, out float NoV) {
     NoV = clamp01(dot(V, N));
     vec3 accum = vec3(0.0);
@@ -171,7 +191,7 @@ vec3 integrateDiffuseIBL(vec3 V, vec3 N, float roughness, vec3 f0) {
 
         if(NoL > 0.0) {
             vec3 sky = getSkyProjected(L, 5);
-            accum += sky * DisneyDiffuse(V, L, N, roughness) * NoL / PI;
+            accum += sky * (DisneyDiffuse(V, L, N, roughness) * NoL) / PI;
         }
     }
 

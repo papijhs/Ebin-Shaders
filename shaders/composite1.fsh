@@ -70,7 +70,15 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
 }
 
+vec3 getSkyProjected(in vec3 direction, in float lod) {
+    vec2 sphereCoords;
+	     sphereCoords.x = atan(-direction.z, -direction.x) * (1.0 / (PI * 2.0)) + 0.5;
+	     sphereCoords.y = direction.y * 0.5 + 0.5;
 
+    return texture2DLod(colortex6, sphereCoords * COMPOSITE0_SCALE, lod).rgb;
+}
+
+#include "/lib/Fragment/BRDF.fsh"
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
 
 void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
@@ -115,15 +123,6 @@ vec3 AerialPerspective(float dist, float skyLightmap) {
 	return pow(skylightColor, vec3(1.3 - clamp01(factor) * 0.4)) * factor;
 }
 
-void unpackMatData(in vec3 compressedData, out float roughness, out float AO, out vec3 f0) {
-	float smoothness = Decode4x8F(compressedData.r).g;
-	vec4 unpackedf0AO = Decode4x8F(compressedData.b);
-
-	roughness = 1.0 - smoothness;
-	AO = unpackedf0AO.a;
-	f0 = unpackedf0AO.rgb;
-}
-
 void main() {
 	vec3 texure4 = ScreenTex(colortex4).rgb;
 	
@@ -141,11 +140,7 @@ void main() {
 	
 	if (depth0 != depth1) {
 		vec4 texure0 = texture2D(colortex0, texcoord);
-		
 		vec4 decode0 = Decode4x8F(texure0.r);
-
-		float roughness, AO; vec3 f0;
-		unpackMatData(texure4, roughness, AO, f0);
 		
 		mask.transparent = 1.0;
 		mask.water       = float(decode0.b <= 0.6);
@@ -154,12 +149,10 @@ void main() {
 		
 		texure4.rgb = vec3(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.g, texure0.b);
 	} else texure4.g = ReEncodeNormal(texure4.g, 11.0);
+
+	 MatData mat = unpackMatData(texure4);
 	
 	gl_FragData[1] = vec4(texure4.rgb, 1.0);
-
-	float roughness, AO; vec3 f0;
-	unpackMatData(texure4, roughness, AO, f0);
-
 	
 	if (depth1 - mask.hand >= 1.0) return;
 	
@@ -175,7 +168,7 @@ void main() {
 	backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
-	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, GI, normal, vertNormal, roughness, f0, backPos);
+	vec3 composite = CalculateShadedFragment(diffuse, backPos, normal, vertNormal, torchLightmap, skyLightmap, GI, mask, mat);
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
 		composite = WaterFog(composite, viewSpacePosition0, backPos[0]);

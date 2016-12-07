@@ -17,8 +17,6 @@ struct Lightmap { // Vector light levels with color
 
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight_Shading.fsh"
-#include "/lib/Fragment/BRDF.fsh"
-
 
 float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 	const mat2x3 lightPos = mat2x3(
@@ -54,23 +52,34 @@ vec3 SunMRP(vec3 normal, vec3 viewVector) {
   return (DdotR < d) ? normalize(d * D + normalize(S) * r) : R;
 }
 
-vec3 doSunlightShading(vec3 diffuseColor, Mask mask, float skyLightmap, vec3 normal, vec3 vertNormal, float roughness, vec3 f0, mat2x3 position) {
-	vec3 viewVector = -normalize(position[0]);
+vec3 ComputeAmbientDiffuseLight(vec3 diffuseColor, vec3 normal, vec3 viewVector, float skyLightmap, MatData mat) {
+	#if ShaderStage == 1
+		vec3 reflectedSky = integrateDiffuseIBL(viewVector, normal, mat.roughness, mat.f0) * mat.AO;
+	#else
+		vec3 reflectedSky = vec3(1.0);
+	#endif
+
+	diffuseColor *= reflectedSky * skyLightmap;
+	return diffuseColor;
+}
+
+vec3 ComputeDirectShading(vec3 diffuseColor, mat2x3 position, vec3 normal, vec3 vertNormal, vec3 viewVector, float skyLightmap, Mask mask, MatData mat) {
 	vec3 L = SunMRP(normal, viewVector);
 	float illuminance = sunIlluminance * GetLambertianShading(normal, mask);
 
-	vec3 diffuse = diffuseColor * DisneyDiffuse(viewVector, lightVector, normal, roughness) / PI * (1.0 - f0);
-	vec3 specular = BRDF(L, viewVector, normal, pow2(roughness), f0);
+	vec3 diffuse = (diffuseColor * DisneyDiffuse(viewVector, lightVector, normal, mat.roughness) / PI) * (1.0 - mat.f0);
+	vec3 specular = BRDF(L, viewVector, normal, pow2(mat.roughness), mat.f0);
 
 	float shadows = ComputeSunlight(position[1], 1.0, vertNormal);
 
 	return (diffuse + specular) * illuminance * shadows;
 }
 
-vec3 CalculateShadedFragment(vec3 diffuseColor, Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, vec3 vertNormal, float roughness, vec3 f0, mat2x3 position) {
+vec3 CalculateShadedFragment(vec3 diffuseColor, mat2x3 position, vec3 normal, vec3 vertNormal, float torchLightmap, float skyLightmap, vec3 GI, Mask mask, MatData mat) {
 	Shading shading;
 
-	vec3 sunlight = doSunlightShading(diffuseColor, mask, skyLightmap, normal, vertNormal, roughness, f0, position);
+	vec3 viewVector = -normalize(position[0]);
+	vec3 sunlight = ComputeDirectShading(diffuseColor, position, normal, vertNormal, viewVector, skyLightmap, mask, mat);
 
 	shading.sunlight  = ComputeSunlight(position[1], 1.0, vertNormal);
 	
@@ -81,11 +90,6 @@ vec3 CalculateShadedFragment(vec3 diffuseColor, Mask mask, float torchLightmap, 
 	
 	shading.skylight = pow(skyLightmap, 2.0);
 	
-#ifndef GI_ENABLED
-	shading.skylight /= 0.8;
-#endif
-	
-	
 	shading.ambient = 1.0 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 1.7;
 	
 	
@@ -93,11 +97,11 @@ vec3 CalculateShadedFragment(vec3 diffuseColor, Mask mask, float torchLightmap, 
 	
 	lightmap.sunlight = sunlight * sunlightColor;
 	
-	lightmap.skylight = shading.skylight * pow(skylightColor, vec3(0.5)) * skyIlluminance;
+	lightmap.skylight = ComputeAmbientDiffuseLight(diffuseColor, normal, viewVector, skyLightmap, mat);
 	
 	
 	
-	lightmap.GI = GI * sunlightColor;
+	lightmap.GI = GI * sunlightColor * sunIlluminance * diffuseColor * 0.15;
 	
 	lightmap.ambient = vec3(shading.ambient);
 	
@@ -106,8 +110,8 @@ vec3 CalculateShadedFragment(vec3 diffuseColor, Mask mask, float torchLightmap, 
 	
 	return vec3(
 	    lightmap.sunlight
-	//+   lightmap.skylight
-	//+   lightmap.GI         * 1.0
+	+   lightmap.skylight
+	//+   lightmap.GI 
 	//+   lightmap.ambient    * 0.015 * AMBIENT_LIGHT_LEVEL
 	//+   lightmap.torchlight * 6.0   * TORCH_LIGHT_LEVEL
 	    );
