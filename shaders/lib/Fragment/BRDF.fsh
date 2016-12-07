@@ -7,6 +7,10 @@ vec3 fresnel(vec3 f0, float f90, float LoH) {
     return f0 + (f90 - f0) * pow(1.0 - LoH, 5.0);
 }
 
+float computeSpecularOcclusion(float AO, float NoV, float roughness) {
+    return clamp01(pow(NoV + AO, exp2(-16.0f * roughness - 1.0f)) - 1.0f + AO);
+}
+
 float Vis_SmithJointApprox(float roughness, float NoV, float NoL) {
     float  alpha2 = roughness * roughness;
 
@@ -118,8 +122,8 @@ vec3 importanceSampleGGX(vec2 Xi, float roughness, vec3 N) {
 }
 
 #if ShaderStage == 2
-vec3 integrateSpecularIBL(vec3 V, vec3 N, float roughness, vec3 f0) {
-    float NoV = clamp01(dot(V, N));
+vec3 integrateSpecularIBL(vec3 V, vec3 N, float roughness, vec3 f0, out float NoV) {
+    NoV = clamp01(dot(V, N));
     vec3 accum = vec3(0.0);
     uint samples = 64u;
 

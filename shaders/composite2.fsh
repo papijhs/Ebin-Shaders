@@ -154,7 +154,7 @@ void ComputeAmbientDiffuseLight(vec3 diffuse, io vec3 color, mat2x3 position, ve
 	unpackMatData(texture4, roughness, AO, f0);
 	show(AO);
 	vec3 reflectedSky = integrateDiffuseIBL(-normalize(position[0]), normal, roughness, f0) * AO;
-	diffuse *= reflectedSky;
+	diffuse *= reflectedSky * skyLightmap;
 
 	color += diffuse;
 }
@@ -174,12 +174,13 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	vec3  reflectedCoord;
 	vec3  reflectedViewSpacePosition;
 	vec3  reflection;
+	float NoV;
 	
 	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap, vec3(0.0));
 	vec3 brdf = BRDF(normalize(refRay[0]), -normalize(position[0]), normal, roughness, f0);
 
-	vec3 reflectedSky = integrateSpecularIBL(-normalize(position[0]), normal, roughness, f0);
-	vec3 offscreen = reflectedSky * skyLightmap;
+	vec3 reflectedSky = integrateSpecularIBL(-normalize(position[0]), normal, roughness, f0, NoV);
+	vec3 offscreen = reflectedSky * skyLightmap * computeSpecularOcclusion(AO, NoV, roughness);
 	
 	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.4, 30, 2, reflectedCoord, reflectedViewSpacePosition))
 		reflection = offscreen;
