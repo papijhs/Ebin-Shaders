@@ -4,7 +4,7 @@
 #define ShaderStage 0
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:5 */
+/* DRAWBUFFERS:56 */
 
 const bool shadowtex1Mipmap    = true;
 const bool shadowcolor0Mipmap  = true;
@@ -34,6 +34,7 @@ uniform float near;
 uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform float frameTimeCounter;
 
 uniform int isEyeInWater;
 
@@ -46,6 +47,7 @@ varying vec2 texcoord;
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Masks.fsh"
+#include "/lib/Misc/Calculate_Fogfactor.glsl"
 
 float GetDepth(vec2 coord) {
 	return textureRaw(gdepthtex, coord).x;
@@ -59,6 +61,21 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	screenPos = screenPos * 2.0 - 1.0;
 	
 	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
+}
+
+vec3 ProjectEquirectangularImage(vec2 coord) {
+	cvec2 coordToLongLat = vec2(2.0 * PI, PI);
+	      coord.y -= 0.5;
+	vec2 longLat = coord * coordToLongLat;
+	float longitude = longLat.x;
+	float latitude = longLat.y - (2.0 * PI);
+
+	float cos_lat = cos(latitude);
+	float cos_long = cos(longitude);
+	float sin_lat = sin(latitude);
+	float sin_long = sin(longitude);
+
+	return normalize(vec3(cos_lat * sin_long, sin_lat, cos_lat * cos_long));
 }
 
 vec3 GetNormal(vec2 coord) {
@@ -75,6 +92,7 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight_Shading.fsh"
+#include "/lib/Fragment/Sky.fsh"
 
 #ifndef GI_ENABLED
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
@@ -149,11 +167,17 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 }
 #endif
 
+vec3 CalculateSkyDome(vec2 coord, float depth) {
+	vec3 equirectangle = ProjectEquirectangularImage(coord);
+	return calculateSkyIBL(equirectangle, vec3(0.0), 1.0, 0.0, false, 1.0);
+}
+
 void main() {
 	float depth0 = GetDepth(texcoord);
+	gl_FragData[1] = vec4(CalculateSkyDome(texcoord, depth0), 1.0);
 	
-	if (depth0 >= 1.0) { discard; }
-	
+	if (depth0 >= 1.0) { return; }
+
 	
 #ifdef COMPOSITE0_NOISE
 	vec2 noise2D = GetDitherred2DNoise(texcoord * COMPOSITE0_SCALE, 4.0) * 2.0 - 1.0;

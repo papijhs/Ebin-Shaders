@@ -59,7 +59,7 @@ vec3 doSunlightShading(vec3 diffuseColor, Mask mask, float skyLightmap, vec3 nor
 	vec3 L = SunMRP(normal, viewVector);
 	float illuminance = sunIlluminance * GetLambertianShading(normal, mask);
 
-	vec3 diffuse = diffuseColor * DisneyDiffuse(viewVector, lightVector, normal, roughness) * (1.0 - f0);
+	vec3 diffuse = diffuseColor * DisneyDiffuse(viewVector, lightVector, normal, roughness) / PI * (1.0 - f0);
 	vec3 specular = BRDF(L, viewVector, normal, pow2(roughness), f0);
 
 	float shadows = ComputeSunlight(position[1], 1.0, vertNormal);

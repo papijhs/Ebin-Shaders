@@ -9,17 +9,17 @@ const float drynessHalflife          = 40.0;
 
 /*
 ** Transparent Gbuffers **
-const int colortex0Format = RG32F;
-const int colortex3Format = R11F_G11F_B10F;
+const int colortex0Format = RGBA32F;
+const int colortex3Format = RGBA32F;
 const int colortex2Format = R8;
 
 ** Flat Gbuffers **
-const int colortex1Format = R11F_G11F_B10F;
+const int colortex1Format = RGBA32F;
 const int colortex4Format = RGB32F;
 
 ** composite0 Buffer **
 const int colortex5Format = RGB8;
-const int colortex6Format = RG32F;
+const int colortex6Format = RGBA32F;
 
 
 const float eyeBrightnessHalflife = 1.5;
@@ -124,7 +124,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #ifdef DEFAULT_TEXTURE_PACK
 	#define TEXTURE_PACK_RESOLUTION 16
 #else
-	#define TEXTURE_PACK_RESOLUTION_SETTING 128 // [16 32 64 128 256 512]
+	#define TEXTURE_PACK_RESOLUTION_SETTING 2048 // [16 32 64 128 256 512]
 	
 	#define TEXTURE_PACK_RESOLUTION TEXTURE_PACK_RESOLUTION_SETTING
 	

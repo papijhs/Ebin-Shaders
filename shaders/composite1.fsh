@@ -4,7 +4,7 @@
 #define ShaderStage 1
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:14 */
+/* DRAWBUFFERS:140 */
 
 const bool colortex5MipmapEnabled = true;
 
@@ -116,7 +116,7 @@ vec3 AerialPerspective(float dist, float skyLightmap) {
 }
 
 void unpackMatData(in vec3 compressedData, out float roughness, out float AO, out vec3 f0) {
-	float smoothness = Decode4x8F(compressedData.r).b;
+	float smoothness = Decode4x8F(compressedData.r).g;
 	vec4 unpackedf0AO = Decode4x8F(compressedData.b);
 
 	roughness = 1.0 - smoothness;
@@ -126,9 +126,6 @@ void unpackMatData(in vec3 compressedData, out float roughness, out float AO, ou
 
 void main() {
 	vec3 texure4 = ScreenTex(colortex4).rgb;
-	
-	float roughness, AO; vec3 f0;
-	unpackMatData(texure4, roughness, AO, f0);
 	
 	vec4  decode4       = Decode4x8F(texure4.r);
 	Mask  mask          = CalculateMasks(decode4.r);
@@ -143,34 +140,40 @@ void main() {
 	float depth1 = mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord);
 	
 	if (depth0 != depth1) {
-		vec3 texure0 = texture2D(colortex0, texcoord).rgb;
+		vec4 texure0 = texture2D(colortex0, texcoord);
 		
 		vec4 decode0 = Decode4x8F(texure0.r);
+
+		float roughness, AO; vec3 f0;
+		unpackMatData(texure4, roughness, AO, f0);
 		
 		mask.transparent = 1.0;
-		mask.water       = float(decode0.r >= 1.0);
+		mask.water       = float(decode0.b <= 0.6);
 		mask.bits.xy     = vec2(1.0, mask.water);
 		mask.materialIDs = EncodeMaterialIDs(1.0, mask.bits);
 		
-		texure4.rg = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.gb);
+		texure4.rgb = vec3(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.g, texure0.b);
 	} else texure4.g = ReEncodeNormal(texure4.g, 11.0);
 	
-	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
+	gl_FragData[1] = vec4(texure4.rgb, 1.0);
+
+	float roughness, AO; vec3 f0;
+	unpackMatData(texure4, roughness, AO, f0);
+
 	
 	if (depth1 - mask.hand >= 1.0) return;
-	
 	
 	vec3 GI;
 	BilateralUpsample(mat3(gbufferModelViewInverse) * normal, depth1, GI);
 	
-	
 	vec3 diffuse = sRGB2L(GetDiffuse(texcoord));
+	gl_FragData[2] = vec4(diffuse, 1.0);
+	
 	vec3 viewSpacePosition0 = CalculateViewSpacePosition(vec3(texcoord, depth0));
 	
 	mat2x3 backPos;
 	backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
-	
 	
 	vec3 composite = CalculateShadedFragment(diffuse, mask, torchLightmap, skyLightmap, GI, normal, vertNormal, roughness, f0, backPos);
 	

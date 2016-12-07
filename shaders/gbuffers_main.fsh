@@ -85,6 +85,8 @@ void GetMatData(vec2 coord, out float smoothness, out float AO, out vec3 f0) {
 		AO = sampledData.b;
 		f0 = vec3(sampledData.r); //changing when extra specular 
 	}
+
+	if(AO == 0) AO = 1.0 - AO;
 }
 
 vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
@@ -95,7 +97,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 	LOD = textureQueryLod(texture, coord).x;
 	
 	cfloat parallaxDist = 12.0;
-	cfloat distFade     =  4.0;
+	cfloat distFade     =  8.0;
 	cfloat MinQuality   =  0.5;
 	cfloat maxQuality   =  1.5;
 	
@@ -113,7 +115,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 	
 	vec3 sampleRay = vec3(0.0, 0.0, 1.0);
 	
-	vec3 step = tangentRay * vec3(0.01, 0.01, 1.0 / intensity) / quality * 0.03 * sqrt(length(position));
+	vec3 step = tangentRay * vec3(0.05, 0.05, 1.0 / intensity) / quality * 0.03 * sqrt(length(position));
 	
 	float sampleHeight = GetTexture(normals, coord).a;
 	
@@ -145,12 +147,8 @@ void main() {
 	
 	vec3 normal = GetNormal(coord);
 	
-	float specularity = 0.0;
-	float smoothness, AO;
-	vec3 f0;
-
+	float smoothness, AO; vec3 f0;
 	GetMatData(coord, smoothness, AO, f0);
-	
 	
 #if !defined gbuffers_water
 	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0));
@@ -162,14 +160,15 @@ void main() {
 	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, smoothness, vertLightmap.rg)), EncodeNormalU(normal, tbnMatrix[2]), Encode4x8F(vec4(f0, AO)), 1.0);
 #else
 	Mask mask = EmptyMask;
-	
+	float water = 1.0;
 	if (abs(mcID - 8.5) < 0.6) {
 		if (!gl_FrontFacing) discard;
 		
 		diffuse = vec4(0.0215, 0.0356, 0.0533, 0.75);
 		
 		normal = tbnMatrix * GetWaveNormals(position[1] - worldDisplacement, tbnMatrix[2]);
-
+		
+		water = 0.5;
 		f0 = vec3(0.05);
 		smoothness = 0.8;
 		AO = 1.0;
@@ -178,7 +177,7 @@ void main() {
 	vec3 composite = CalculateShadedFragment(vec3(diffuse.rgb), mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], 1.0 - smoothness, f0, position);
 
 	
-	gl_FragData[0] = vec4(Encode4x8F(vec4(smoothness, vertLightmap.g, 0.0, 0.1)), EncodeNormal(normal.xyz, 11), Encode4x8F(vec4(f0, AO)), 1.0);
+	gl_FragData[0] = vec4(Encode4x8F(vec4(smoothness, vertLightmap.g, water, 0.1)), EncodeNormal(normal.xyz, 11), Encode4x8F(vec4(f0, AO)), 1.0);
 	gl_FragData[1] = vec4(0.0);
 	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
 	gl_FragData[3] = vec4(composite, diffuse.a);

@@ -1,4 +1,4 @@
-#define  PI 3.1415926 // Pi
+#define  PI 3.14159265358979323846264338327950288419 // Pi
 #define RAD 0.0174533 // Degrees per radian
 
 #ifdef FREEZE_TIME

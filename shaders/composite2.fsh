@@ -7,7 +7,9 @@
 /* DRAWBUFFERS:3 */
 
 const bool colortex1MipmapEnabled = true;
+const bool colortex6MipmapEnabled = true;
 
+uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
@@ -62,16 +64,13 @@ float GetTransparentDepth(vec2 coord) {
 	return texture2D(depthtex1, coord).x;
 }
 
-void unpackMatData(out float reflectance, out float roughness, out float metal, out float AO, out vec3 f0) {
-	vec2 compressedData = ScreenTex(colortex6).rg;
-	vec4 unpackedBase = Decode4x8F(compressedData.r);
-	vec4 unpackedAlt = Decode4x8F(compressedData.g);
+void unpackMatData(in vec3 compressedData, out float roughness, out float AO, out vec3 f0) {
+	float smoothness = Decode4x8F(compressedData.r).g;
+	vec4 unpackedf0AO = Decode4x8F(compressedData.b);
 
-	reflectance = unpackedBase.r;
-	roughness = 1.0 - unpackedBase.g;
-	metal = unpackedBase.b;
-	AO = unpackedBase.a;
-	f0 = unpackedAlt.rgb;
+	roughness = 1.0 - smoothness;
+	AO = unpackedf0AO.a;
+	f0 = unpackedf0AO.rgb;
 }
 
 vec3 CalculateViewSpacePosition(vec3 screenPos) {
@@ -84,6 +83,14 @@ vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z * 0.5 + 0.5;
 }
 
+vec3 getSkyProjected(in vec3 direction, in float lod) {
+    vec2 sphereCoords;
+
+	sphereCoords.x = atan(-direction.z, -direction.x) * (1.0 / (PI * 2.0)) + 0.5;
+	sphereCoords.y = direction.y * 0.5 + 0.5;
+
+    return texture2DLod(colortex6, sphereCoords * COMPOSITE0_SCALE, lod).rgb;
+}
 
 #include "/lib/Fragment/Sky.fsh"
 
@@ -141,13 +148,24 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 #include "/lib/Fragment/Sunlight_Shading.fsh"
 #include "/lib/Fragment/BRDF.fsh"
 
+void ComputeAmbientDiffuseLight(vec3 diffuse, io vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
+	float roughness, AO; vec3 f0;
+	vec3 texture4 = texture2D(colortex4, texcoord).rgb;
+	unpackMatData(texture4, roughness, AO, f0);
+	show(AO);
+	vec3 reflectedSky = integrateDiffuseIBL(-normalize(position[0]), normal, roughness, f0) * AO;
+	diffuse *= reflectedSky;
+
+	color += diffuse;
+}
+
 void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
 	if (isEyeInWater == 1) return;
 	
-	float reflectance, roughness, metal, AO, NoL; vec3 f0;
-	unpackMatData(reflectance, roughness, metal, AO, f0);
-	if(metal < 0.5) f0 = vec3(reflectance);
-	
+	float roughness, AO; vec3 f0;
+	vec3 texture4 = texture2D(colortex4, texcoord).rgb;
+	unpackMatData(texture4, roughness, AO, f0);
+
 	mat2x3 refRay;
 	refRay[0] = reflect(position[0], normal);
 	refRay[1] = mat3(gbufferModelViewInverse) * refRay[0];
@@ -158,9 +176,9 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	vec3  reflection;
 	
 	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap, vec3(0.0));
-
 	vec3 brdf = BRDF(normalize(refRay[0]), -normalize(position[0]), normal, roughness, f0);
-	vec3 reflectedSky = CalculateSky(refRay[1], position[1], 1.0, 1.0, true, sunlight) * brdf * 0.0;
+
+	vec3 reflectedSky = integrateSpecularIBL(-normalize(position[0]), normal, roughness, f0);
 	vec3 offscreen = reflectedSky * skyLightmap;
 	
 	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.4, 30, 2, reflectedCoord, reflectedViewSpacePosition))
@@ -216,18 +234,21 @@ void main() {
 	
 	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);
 	
+	vec3 diffuse = texture2D(colortex0, texcoord).rgb;
 	vec3 color0 = vec3(0.0);
 	vec3 color1 = vec3(0.0);
 	
-	if (mask.transparent > 0.5)
+	if (mask.transparent > 0.5) {
 		color0 = texture2D(colortex3, texcoord).rgb / alpha;
-
+		diffuse = vec3(0.0);
+	}
+	
 	color1 = texture2D(colortex1, texcoord).rgb;
 	color0 = mix(color1, color0, mask.transparent - mask.water);
 
-	if (mask.hand < 0.5)
-		ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
-	
+	ComputeAmbientDiffuseLight(diffuse, color0, frontPos, normal, smoothness, skyLightmap);
+	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
+
 	if (depth1 >= 1.0)
 		color0 = mix(sky.rgb, color0, mix(alpha, 0.0, isEyeInWater == 1));
 	

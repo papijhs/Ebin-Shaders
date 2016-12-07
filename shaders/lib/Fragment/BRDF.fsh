@@ -1,3 +1,8 @@
+vec2 Hammersley(uint i, uint N)  {
+    float ri = bitfieldReverse(i) * 2.3283064365386963e-10f;
+    return vec2(float(i) / float(N), ri);
+}
+
 vec3 fresnel(vec3 f0, float f90, float LoH) {
     return f0 + (f90 - f0) * pow(1.0 - LoH, 5.0);
 }
@@ -76,5 +81,96 @@ float BSDF(vec3 L, vec3 D, vec3 V, vec3 N, float roughness, float f0) {
     float specular = distribution * fresnel * Vis / PI;
     float diffuse = DisneyDiffuse(V, D, N, pow2(roughness)) / PI;
 
-    return (specular);
+    return diffuse + specular;
 }
+
+vec3 importanceSampleCosDir(vec2 u, vec3 N) {
+    vec3 upVector = abs(N.z) < 0.999 ? vec3(0,0,1) : vec3(1,0,0);
+    vec3 tangentX = normalize(cross(upVector , N));
+    vec3 tangentY = cross(N, tangentX);
+
+    float r = sqrt(u.x);
+    float phi = u.y * PI * 2.0;
+
+    vec3 L = vec3(r * cos(phi), r * sin(phi), sqrt(max(0.0, 1.0 - u.x)));
+         L = normalize(tangentX * L.y + tangentY * L.x + N * L.z);
+
+    return L;
+}
+
+vec3 importanceSampleGGX(vec2 Xi, float roughness, vec3 N) {
+    float alpha = pow2(roughness);
+
+    float Phi = 2.0 * PI * Xi.x;
+    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (pow2(alpha) - 1.0) * Xi.y));
+    float sinTheta = sqrt(1.0 - pow2(cosTheta));
+
+    vec3 H;
+    H.x = sinTheta * cos(Phi);
+    H.y = sinTheta * sin(Phi);
+    H.z = cosTheta;
+
+    vec3 UpVector = abs(N.z) < 0.999 ? vec3(0, 0, 1) : vec3(1, 0, 0);
+    vec3 TangentX = normalize(cross(UpVector, N));
+    vec3 TangentY = cross(N, TangentX);
+
+    return normalize(TangentX * H.x + TangentY * H.y + N * H.z);
+}
+
+#if ShaderStage == 2
+vec3 integrateSpecularIBL(vec3 V, vec3 N, float roughness, vec3 f0) {
+    float NoV = clamp01(dot(V, N));
+    vec3 accum = vec3(0.0);
+    uint samples = 64u;
+
+    for(uint i = 0u; i < samples; i++) {
+        vec2 Xi = Hammersley(i, samples);
+
+        vec3 L, H;
+
+        H = importanceSampleGGX(Xi, roughness, N);
+        L = normalize(2.0 * dot(V, H) * H - V);
+
+        float NoL = clamp01(dot(N, L));
+        float VoH = clamp01(dot(V, H));
+        float NoH = clamp01(dot(N, H));
+
+        if(NoL > 0.0) {
+            float GVis = Vis_SmithJointApprox(roughness, NoV, NoL);
+            float Fc = pow(1.0 - VoH, 5.0);
+            vec3 F = (1.0 - Fc) * f0 + Fc;
+
+            vec3 sky = getSkyProjected(L, 5) * NoL;
+            accum += sky * F * GVis / PI;
+        }
+    }
+
+    return accum / float(samples);
+}
+
+vec3 integrateDiffuseIBL(vec3 V, vec3 N, float roughness, vec3 f0) {
+    float NoV = clamp01(dot(V, N));
+    vec3 accum = vec3(0.0);
+    uint samples = 64u;
+
+    for(uint i = 0u; i < samples; i++) {
+        vec2 Xi = Hammersley(i, samples);
+
+        vec3 L, H;
+
+        H = importanceSampleCosDir(Xi, N);
+        L = normalize(2.0 * dot(V, H) * H - V);
+
+        float NoL = clamp01(dot(N, L));
+        float VoH = clamp01(dot(V, H));
+        float NoH = clamp01(dot(N, H));
+
+        if(NoL > 0.0) {
+            vec3 sky = getSkyProjected(L, 5);
+            accum += sky * DisneyDiffuse(V, L, N, roughness) * NoL / PI;
+        }
+    }
+
+    return accum / float(samples);
+}
+#endif
