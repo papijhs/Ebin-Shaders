@@ -164,7 +164,7 @@ vec3 integrateSpecularIBL(vec3 V, vec3 N, float roughness, vec3 f0, out float No
             float Fc = pow(1.0 - VoH, 5.0);
             vec3 F = (1.0 - Fc) * f0 + Fc;
 
-            vec3 sky = getSkyProjected(L, 5) * NoL;
+            vec3 sky = getSkyProjected(normalize(mat3(gbufferModelViewInverse) * L), 5) * NoL;
             accum += sky * F * GVis / PI;
         }
     }
@@ -190,7 +190,7 @@ vec3 integrateDiffuseIBL(vec3 V, vec3 N, float roughness, vec3 f0) {
         float NoH = clamp01(dot(N, H));
 
         if(NoL > 0.0) {
-            vec3 sky = getSkyProjected(L, 5);
+            vec3 sky = getSkyProjected(normalize(mat3(gbufferModelViewInverse) * L), 5);
             accum += sky * (DisneyDiffuse(V, L, N, roughness) * NoL) / PI;
         }
     }

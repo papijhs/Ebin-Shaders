@@ -4,7 +4,7 @@
 #define ShaderStage 1
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:140 */
+/* DRAWBUFFERS:14 */
 
 const bool colortex5MipmapEnabled = true;
 
@@ -159,7 +159,6 @@ void main() {
 	BilateralUpsample(mat3(gbufferModelViewInverse) * normal, depth1, GI);
 	
 	vec3 diffuse = sRGB2L(GetDiffuse(texcoord));
-	gl_FragData[2] = vec4(diffuse, 1.0);
 	
 	vec3 viewSpacePosition0 = CalculateViewSpacePosition(vec3(texcoord, depth0));
 	

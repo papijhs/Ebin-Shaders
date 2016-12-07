@@ -9,7 +9,6 @@
 const bool colortex1MipmapEnabled = true;
 const bool colortex6MipmapEnabled = true;
 
-uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
@@ -210,13 +209,11 @@ void main() {
 	
 	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);
 	
-	vec3 diffuse = texture2D(colortex0, texcoord).rgb;
 	vec3 color0 = vec3(0.0);
 	vec3 color1 = vec3(0.0);
 	
 	if (mask.transparent > 0.5) {
 		color0 = texture2D(colortex3, texcoord).rgb / alpha;
-		diffuse = vec3(0.0);
 	}
 	
 	color1 = texture2D(colortex1, texcoord).rgb;
