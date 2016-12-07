@@ -128,6 +128,7 @@ void main() {
 	
 	vec4  decode4       = Decode4x8F(texure4.r);
 	Mask  mask          = CalculateMasks(decode4.r);
+	MatData mat         = unpackMatData(texure4);
 	float torchLightmap = decode4.b;
 	float skyLightmap   = decode4.a;
 	
@@ -149,8 +150,6 @@ void main() {
 		
 		texure4.rgb = vec3(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.g, texure0.b);
 	} else texure4.g = ReEncodeNormal(texure4.g, 11.0);
-
-	 MatData mat = unpackMatData(texure4);
 	
 	gl_FragData[1] = vec4(texure4.rgb, 1.0);
 	
