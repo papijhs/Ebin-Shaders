@@ -67,6 +67,12 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
 }
 
+float CalculateViewSpaceZ(float depth) {
+	depth = depth * 2.0 - 1.0;
+	
+	return -1.0 / (depth * projInverseMatrix[2][3] + projInverseMatrix[3][3]);
+}
+
 vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z * 0.5 + 0.5;
 }
@@ -74,7 +80,7 @@ vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 
 #include "/lib/Fragment/Sky.fsh"
 
-bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, float firstStepSize, cfloat rayGrowth, cint maxSteps, cint maxRefinements, out vec3 screenSpacePosition, out vec3 viewSpacePosition) {
+bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, float firstStepSize, cfloat rayGrowth, cint maxSteps, cint maxRefinements, out vec3 screenSpacePosition) {
 	vec3 rayStep = rayDirection * firstStepSize;
 	vec3 ray = startingViewPosition + rayStep;
 	
@@ -93,15 +99,13 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 		
 		float sampleDepth = GetTransparentDepth(screenSpacePosition.st);
 		
-		viewSpacePosition = CalculateViewSpacePosition(vec3(screenSpacePosition.st, sampleDepth));
-		
-		float diff = viewSpacePosition.z - ray.z;
+		float diff = CalculateViewSpaceZ(sampleDepth) - ray.z;
 		
 		if (diff >= 0.0) {
 			if (doRefinements) {
 				float error = firstStepSize * pow(rayGrowth, i) * refinementCoeff;
 				
-				if(diff <= error * 2.0 && refinements <= maxRefinements) {
+				if (diff <= error * 2.0 && refinements <= maxRefinements) {
 					ray -= rayStep * refinementCoeff;
 					refinements += 1.0;
 					refinementCoeff = exp2(-refinements);
@@ -132,7 +136,7 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	
 	float alpha = (pow2(clamp01(1.0 + dot(normalize(position[0]), normal)))) * smoothness;
 	
-	if (length(alpha) < 0.005) return;
+	if (length(alpha) < 0.001) return;
 	
 	mat2x3 refRay;
 	refRay[0] = reflect(position[0], normal);
@@ -140,7 +144,6 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	
 	float firstStepSize = mix(1.0, 30.0, pow2(length(position[1].xz) / 144.0));
 	vec3  reflectedCoord;
-	vec3  reflectedViewSpacePosition;
 	vec3  reflection;
 	
 	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap, vec3(0.0));
@@ -149,12 +152,14 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	
 	vec3 offscreen = reflectedSky * skyLightmap;
 	
-	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.4, 30, 2, reflectedCoord, reflectedViewSpacePosition))
+	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.4, 30, 2, reflectedCoord))
 		reflection = offscreen;
 	else {
 		reflection = GetColor(reflectedCoord.st);
 		
-		reflection = mix(reflection, reflectedSky, CalculateFogFactor(reflectedViewSpacePosition, FOG_POWER));
+		vec3 refViewSpacePosition = CalculateViewSpacePosition(reflectedCoord);
+		
+		reflection = mix(reflection, reflectedSky, CalculateFogFactor(refViewSpacePosition, FOG_POWER));
 		
 		#ifdef REFLECTION_EDGE_FALLOFF
 			float angleCoeff = clamp01(pow(normal.z + 0.15, 0.25) * 2.0) * 0.2 + 0.8;
@@ -221,7 +226,6 @@ void main() {
 	color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER));
 	
 	if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
-	
 	
 	gl_FragData[0] = vec4(EncodeColor(color0), 1.0);
 	

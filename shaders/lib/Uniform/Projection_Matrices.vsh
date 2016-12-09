@@ -23,13 +23,13 @@ varying float FOV;
 		projection[0].x = projection[1].y * gbufferProjection[0].x / gbufferProjection[1].y;
 		
 		
-		vec4 i = 1.0 / vec4(diagonal2(projection), projection[3].z, projection[2].w);
+		vec3 i = 1.0 / vec3(diagonal2(projection), projection[3].z);
 		
 		projectionInverse = mat4(
-			i.x, 0.0, 0.0, 0.0,
-			0.0, i.y, 0.0, 0.0,
-			0.0, 0.0, 0.0, i.z,
-			0.0, 0.0, i.w, -projection[2].z * i.z * i.w);
+			i.x, 0.0,  0.0, 0.0,
+			0.0, i.y,  0.0, 0.0,
+			0.0, 0.0,  0.0, i.z,
+			0.0, 0.0, -1.0, projection[2].z * i.z);
 	}
 	
 	#define projMatrix projection
