@@ -155,7 +155,7 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sk
 	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap, vec3(0.0));
 
 	float illuminance = sunIlluminance * clamp01(dot(normal, L));
-	vec3 sunSpecular = BRDF(L, viewVector, normal, pow2(mat.roughness), mat.f0) * illuminance * sunlight;
+	vec3 sunSpecular = BRDF(L, viewVector, normal, pow2(mat.roughness), mat.f0) * illuminance * sunlightColor * sunlight;
 	
 	vec3 brdf = BRDF(normalize(refRay[0]), -normalize(position[0]), normal, mat.roughness, mat.f0);
 

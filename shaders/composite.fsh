@@ -98,17 +98,6 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
 #elif GI_MODE == 1
 vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLightmap, cfloat radius, vec2 noise, Mask mask) {
-	float lightMult = skyLightmap;
-	
-#ifdef GI_BOOST
-	float sunlight = GetLambertianShading(normal, mask) * skyLightmap;
-	      sunlight = ComputeSunlight(worldSpacePosition, sunlight, vec3(0.0));
-	
-	lightMult = 1.0 - sunlight * 4.0;
-#endif
-	
-	if (lightMult < 0.05) return vec3(0.0);
-	
 	float LodCoeff = clamp01(1.0 - length(worldSpacePosition) / shadowDistance);
 	
 	float depthLOD	= 2.0 * LodCoeff;
@@ -125,45 +114,47 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	
 	cvec3 sampleMax = vec3(0.0, 0.0, radius * radius);
 	
-	cfloat brightness = 8.0 * radius * radius * GI_BRIGHTNESS * SUN_LIGHT_LEVEL;
+	cfloat brightness = radius * radius;
 	cfloat scale      = radius / 256.0;
 	
 	noise *= scale;
 	
 	vec3 GI = vec3(0.0);
+
+	cint loopCount = int((sqrt(GI_SAMPLE_COUNT) - 1.0) * 0.5);
 	
-	#include "/lib/Samples/GI.glsl"
-	
-	for (int i = 0; i < GI_SAMPLE_COUNT; i++) {
-		vec2 offset = samples[i] * scale + noise;
+	for (int i = -loopCount; i < loopCount; i++) {
+		for(int j = -loopCount; j < loopCount; j++) {
+			vec2 offset = vec2(i, j) * scale * (1.0 / loopCount) + noise;
 		
-		vec3 samplePos = vec3(basePos.xy + offset, 0.0);
-		
-		vec2 mapPos = BiasShadowMap(samplePos.xy) * 0.5 + 0.5;
-		
-		samplePos.z = texture2DLod(shadowtex1, mapPos, depthLOD).x;
-		
-		vec3 sampleDiff = samplePos * projMult + projDisp.xyz;
-		
-		float sampleLengthSqrd = length2(sampleDiff);
-		
-		vec3 shadowNormal;
-		     shadowNormal.xy = texture2DLod(shadowcolor1, mapPos, sampleLOD).xy * 2.0 - 1.0;
-		     shadowNormal.z  = sqrt(1.0 - length2(shadowNormal.xy));
-		
-		vec3 lightCoeffs   = vec3(finversesqrt(sampleLengthSqrd) * sampleDiff * mat2x3(normal, shadowNormal), sampleLengthSqrd);
-		     lightCoeffs   = max(lightCoeffs, sampleMax);
-		     lightCoeffs.x = mix(lightCoeffs.x, 1.0, GI_TRANSLUCENCE);
-		     lightCoeffs.y = fsqrt(lightCoeffs.y);
-		
-		vec3 flux = pow(texture2DLod(shadowcolor, mapPos, sampleLOD).rgb, vec3(2.2));
-		
-		GI += flux * lightCoeffs.x * lightCoeffs.y / lightCoeffs.z;
+			vec3 samplePos = vec3(basePos.xy + offset, 0.0);
+			
+			vec2 mapPos = BiasShadowMap(samplePos.xy) * 0.5 + 0.5;
+			
+			samplePos.z = texture2DLod(shadowtex1, mapPos, depthLOD).x;
+			
+			vec3 sampleDiff = samplePos * projMult + projDisp.xyz;
+			
+			float sampleLengthSqrd = length2(sampleDiff);
+			
+			vec3 shadowNormal;
+				shadowNormal.xy = texture2DLod(shadowcolor1, mapPos, sampleLOD).xy * 2.0 - 1.0;
+				shadowNormal.z  = sqrt(1.0 - length2(shadowNormal.xy));
+			
+			vec3 lightCoeffs   = vec3(finversesqrt(sampleLengthSqrd) * sampleDiff * mat2x3(normal, shadowNormal), sampleLengthSqrd);
+				lightCoeffs   = max(lightCoeffs, sampleMax);
+				lightCoeffs.x = mix(lightCoeffs.x, 1.0, GI_TRANSLUCENCE);
+				lightCoeffs.y = fsqrt(lightCoeffs.y);
+			
+			vec3 flux = sRGB2L(texture2DLod(shadowcolor, mapPos, sampleLOD).rgb) * sunIlluminance * sunlightColor;
+			
+			GI += flux * lightCoeffs.x * lightCoeffs.y / lightCoeffs.z;
+		}
 	}
 	
 	GI /= GI_SAMPLE_COUNT;
 	
-	return GI * lightMult * brightness;
+	return GI * brightness;
 }
 #endif
 
@@ -179,12 +170,8 @@ void main() {
 	if (depth0 >= 1.0) { return; }
 
 	
-#ifdef COMPOSITE0_NOISE
+
 	vec2 noise2D = GetDitherred2DNoise(texcoord * COMPOSITE0_SCALE, 4.0) * 2.0 - 1.0;
-#else
-	vec2 noise2D = vec2(0.0);
-#endif
-	
 	
 	vec2 texure4 = textureRaw(colortex4, texcoord).rg;
 	
@@ -213,10 +200,10 @@ void main() {
 	
 	vec3 normal = DecodeNormalU(texure4.g) * mat3(gbufferModelViewInverse);
 	
-	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
+	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS, noise2D, mask);
 	
 	
-	gl_FragData[0] = vec4(pow(GI * 0.2, vec3(1.0 / 2.2)), 1.0);
+	gl_FragData[0] = vec4(GI, 1.0);
 	
 	exit();
 }

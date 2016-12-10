@@ -84,7 +84,7 @@ vec3 CalculateShadedFragment(vec3 diffuseColor, mat2x3 position, vec3 normal, ve
 	
 	
 	
-	lightmap.GI = GI * sunlightColor * sunIlluminance * diffuseColor * 0.15;
+	lightmap.GI = GI * diffuseColor / PI;
 	
 	lightmap.ambient = vec3(shading.ambient);
 	
@@ -94,7 +94,7 @@ vec3 CalculateShadedFragment(vec3 diffuseColor, mat2x3 position, vec3 normal, ve
 	return vec3(
 	    lightmap.sunlight
 	+   lightmap.skylight
-	//+   lightmap.GI 
+	+   lightmap.GI 
 	//+   lightmap.ambient    * 0.015 * AMBIENT_LIGHT_LEVEL
 	//+   lightmap.torchlight * 6.0   * TORCH_LIGHT_LEVEL
 	    );

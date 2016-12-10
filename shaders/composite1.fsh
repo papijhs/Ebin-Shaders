@@ -99,12 +99,12 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
 			vec3  sampleNormal =    DecodeNormalU(texture2D(colortex4, texcoord + offset * 8.0).g);
 			
-			float weight  = 1.0 - abs(depth - sampleDepth);
-			      weight *= dot(normal, sampleNormal);
-			      weight  = pow(weight, 32);
-			      weight  = max(1.0e-6, weight);
+			float weight  = clamp01(1.0 - abs(depth - sampleDepth));
+			      weight *= abs(dot(normal, sampleNormal)) * 0.5 + 0.5;
+				  weight = pow(weight, 40.0);
+			      weight += 0.001;
 			
-			GI += pow(texture2DLod(colortex5, texcoord * COMPOSITE0_SCALE + offset * 2.0, 1).rgb, vec3(2.2)) * weight;
+			GI += texture2DLod(colortex5, texcoord * COMPOSITE0_SCALE + offset * 2.0, 1).rgb * weight;
 			
 			totalGIWeight += weight;
 		}

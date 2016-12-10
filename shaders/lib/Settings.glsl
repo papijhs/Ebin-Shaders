@@ -18,8 +18,8 @@ const int colortex1Format = RGBA32F;
 const int colortex4Format = RGB32F;
 
 ** composite0 Buffer **
-const int colortex5Format = RGB8;
-const int colortex6Format = RGBA32F;
+const int colortex5Format = RGB32F;
+const int colortex6Format = RGB32F;
 
 
 const float eyeBrightnessHalflife = 1.5;
@@ -33,8 +33,8 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 
 
 // GUI Settings
-#define low_profile
-//#define standard_profile
+//#define low_profile
+#define standard_profile
 
 
 //#define DEFAULT_TEXTURE_PACK
@@ -59,10 +59,10 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 
 //#define PLAYER_GI_BOUNCE
 #define GI_MODE         1    // [1]
-#define GI_RADIUS       16   // [4 8 16 24 32]
-#define GI_SAMPLE_COUNT 80   // [20 40 80 128 160 256]
+#define GI_RADIUS       8   // [4 8 16 24 32]
+#define GI_SAMPLE_COUNT 25   // [9 25 49 81]
 #define GI_BOOST
-#define GI_TRANSLUCENCE 0.2  // [0.0 0.2 0.4 0.6 0.8 1.0]
+#define GI_TRANSLUCENCE 0.0  // [0.0 0.2 0.4 0.6 0.8 1.0]
 #define GI_BRIGHTNESS   1.00 // [0.25 0.50 0.75 1.00 2.00 4.00]
 
 #define BLOOM_ENABLED
@@ -81,7 +81,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define WAVING_LEAVES
 #define WAVING_WATER
 
-#define COMPOSITE0_SCALE 0.40 // [0.25 0.33 0.40 0.50 0.75 1.00]
+#define COMPOSITE0_SCALE 0.50 // [0.25 0.33 0.40 0.50 0.75 1.00]
 //#define COMPOSITE0_NOISE
 
 //#define FOG_ENABLED
