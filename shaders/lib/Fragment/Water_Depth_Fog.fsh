@@ -1,4 +1,8 @@
 vec3 WaterFog(vec3 color, vec3 viewSpacePosition0, vec3 viewSpacePosition1) {
+#ifdef CLEAR_WATER
+	return color;
+#endif
+	
 	viewSpacePosition1 *= 1 - isEyeInWater;
 	
 	float waterDepth = distance(viewSpacePosition1, viewSpacePosition0); // Depth of the water volume

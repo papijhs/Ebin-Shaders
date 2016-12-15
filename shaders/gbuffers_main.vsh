@@ -1,6 +1,8 @@
 attribute vec4 mc_Entity;
 attribute vec4 at_tangent;
 
+uniform sampler2D lightmap;
+
 uniform mat4 gbufferModelViewInverse;
 
 uniform vec3  cameraPosition;
@@ -19,6 +21,7 @@ varying vec2 vertLightmap;
 
 varying float mcID;
 varying float materialIDs;
+varying float nightVision;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
@@ -87,6 +90,7 @@ void main() {
 	mcID         = mc_Entity.x;
 	vertLightmap = GetDefaultLightmap(mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st);
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
+	nightVision  = float(texture2D(lightmap, vec2(0.0)).r > 0.2);
 	
 	vec3 worldSpacePosition = GetWorldSpacePosition();
 	

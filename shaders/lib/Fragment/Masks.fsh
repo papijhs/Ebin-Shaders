@@ -9,9 +9,10 @@ struct Mask {
 	
 	float transparent;
 	float water;
+	float nightVision;
 };
 
-#define EmptyMask Mask(0.0, 0.0, vec4(0.0), 0.0, 0.0, 0.0, 0.0)
+#define EmptyMask Mask(0.0, 0.0, vec4(0.0), 0.0, 0.0, 0.0, 0.0, 0.0)
 
 float EncodeMaterialIDs(float materialIDs, vec4 bits) {
 	materialIDs += dot(vec4(greaterThan(bits, vec4(0.5))), vec4(128.0, 64.0, 32.0, 16.0));
@@ -49,6 +50,7 @@ Mask CalculateMasks(float materialIDs) {
 	
 	mask.transparent = mask.bits.x;
 	mask.water       = mask.bits.y;
+	mask.nightVision = mask.bits.z;
 	
 	return mask;
 }

@@ -55,7 +55,8 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	shading.skylight *= 1.5;
 #endif
 	
-	shading.ambient = 1.0 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 1.7;
+	shading.ambient  = 1.0 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 1.7;
+	shading.ambient += mask.nightVision * 50.0;
 	
 	
 	Lightmap lightmap;

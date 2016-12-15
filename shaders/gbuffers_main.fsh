@@ -23,6 +23,7 @@ varying vec2 vertLightmap;
 
 varying float mcID;
 varying float materialIDs;
+varying float nightVision;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Debug.glsl"
@@ -141,7 +142,7 @@ void main() {
 	
 	
 #if !defined gbuffers_water
-	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0));
+	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0, 0.0, nightVision, 0.0));
 	
 	gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);

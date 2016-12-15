@@ -117,6 +117,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 //#define FREEZE_TIME
 
 //#define WATER_SHADOW
+//#define CLEAR_WATER
 
 
 #ifdef DEFAULT_TEXTURE_PACK
