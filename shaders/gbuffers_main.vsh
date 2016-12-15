@@ -90,7 +90,13 @@ void main() {
 	mcID         = mc_Entity.x;
 	vertLightmap = GetDefaultLightmap(mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st);
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
-	nightVision  = float(texture2D(lightmap, vec2(0.0)).r > 0.2);
+	
+#ifdef NIGHTVISION
+	nightVision = float(texture2D(lightmap, vec2(0.0)).r > 0.2);
+#else
+	nightVision = 0.0;
+#endif
+	
 	
 	vec3 worldSpacePosition = GetWorldSpacePosition();
 	

@@ -4,5 +4,6 @@
 #ifdef standard_profile
 
 #ifdef PLAYER_GI_BOUNCE
+#ifdef WEATHER
 
 */

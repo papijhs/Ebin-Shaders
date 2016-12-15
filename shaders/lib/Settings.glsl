@@ -102,6 +102,9 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]
 #define REFLECTION_EDGE_FALLOFF
 //#define HIDE_ENTITIES
+//#define CLEAR_WATER
+#define NIGHTVISION
+//#define WEATHER
 
 //#define TIME_OVERRIDE
 #define TIME_OVERRIDE_MODE 1 // [1 2 3]
@@ -117,7 +120,6 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 //#define FREEZE_TIME
 
 //#define WATER_SHADOW
-//#define CLEAR_WATER
 
 
 #ifdef DEFAULT_TEXTURE_PACK

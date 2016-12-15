@@ -212,6 +212,17 @@ option.HIDE_ENTITIES=Hide Entities
 option.REFLECTION_EDGE_FALLOFF=Reflection Edge Falloff
 option.REFLECTION_EDGE_FALLOFF.comment=Whether or not screen-space-reflections "fade out" on the edges of the screen
 
+option.CLEAR_WATER=Clear Water
+
+option.NIGHTVISION=Night Vision
+option.NIGHTVISION.comment=Allow night vision
+
+option.WEATHER=Weather
+option.WEATHER.comment=Weather is not really set up yet.
+
+
+option.WATER_SHADOW=Water Shadow
+
 
 
 screen.Debug=Devlopment

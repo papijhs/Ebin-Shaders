@@ -87,9 +87,9 @@ void main() {
 	color.rgb *= pow(max0(vertNormal.z), 1.0 / 2.2);
 	
 	if (   mc_Entity.x == 0 // If the vertex is an entity
-		&& abs(position.x) < 1.0
-		&& position.y > -0.1 &&  position.y < 2.0 // Check if the vertex is A bounding box around the player, so that at least non-near entities still cast shadows
-		&& abs(position.z) < 1.0
+		&& abs(position.x) < 1.2
+		&& position.y > -0.1 &&  position.y < 2.2 // Check if the vertex is A bounding box around the player, so that at least non-near entities still cast shadows
+		&& abs(position.z) < 1.2
 	) {
 	#ifndef PLAYER_SHADOW
 		color.a = 0.0;

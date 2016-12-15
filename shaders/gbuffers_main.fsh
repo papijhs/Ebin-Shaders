@@ -134,11 +134,13 @@ void main() {
 	vec4 diffuse = GetDiffuse(coord);
 	if (diffuse.a < 0.1000003) discard;
 	
-	float wet = wetness;
-	
 	vec3 normal = GetNormal(coord);
 	
-	float specularity = GetSpecularity(coord) + wet;
+	float specularity = GetSpecularity(coord);
+	
+#if defined WEATHER && defined NORMAL_MAPS
+	specularity = min(specularity + wetness, 0.99);
+#endif
 	
 	
 #if !defined gbuffers_water
