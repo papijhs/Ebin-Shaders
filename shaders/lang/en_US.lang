@@ -134,7 +134,7 @@ option.FOG_POWER=Fog Power
 option.FOG_POWER.comment=Higher values make fog more subtle nearby, but more intense farther away
 
 option.AERIAL_PERSPECTIVE_AMOUNT=Aerial Perspective Amount
-option.AERIAL_PERSPECTIVE_AMOUNT.comment=Blue-Purple "haze" effect. Independant of fog setting
+option.AERIAL_PERSPECTIVE_AMOUNT.comment=Blue-Purple "haze" effect. Independent of fog setting
 
 
 screen.Global_Illumination=Global Illumination
@@ -225,7 +225,7 @@ option.WATER_SHADOW=Water Shadow
 
 
 
-screen.Debug=Devlopment
+screen.Debug=Development
 
 option.DEBUG=Debug Mode
 
