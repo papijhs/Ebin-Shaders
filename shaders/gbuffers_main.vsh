@@ -1,5 +1,8 @@
 attribute vec4 mc_Entity;
 attribute vec4 at_tangent;
+#if defined gbuffers_terrain || defined gbuffers_water
+attribute vec4 mc_midTexCoord;
+#endif
 
 uniform sampler2D lightmap;
 

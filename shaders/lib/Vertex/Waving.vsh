@@ -18,6 +18,32 @@ vec3 GetWavingGrass(vec3 position, float magnitude) {
 	return wave * magnitude;
 }
 
+vec3 GetWavingDoubleplants(vec3 position, float magnitude, float topv) {
+	vec3 wave = vec3(0.0);
+
+	#ifdef WAVING_DOUBLE_PLANTS
+	cfloat speed = 1.0;
+
+	bool toph = mc_Entity.z > 8.0;
+
+	magnitude *= mix(mix(0.0, 0.5, toph), mix(0.5, 1.5, toph), topv);
+
+	float adjTime = TIME;
+		
+	float intensity = sin((adjTime * 20.0 * PI / (28.0)) + position.x + position.z) * 0.1 + 0.1;
+		
+	float d0 = sin(adjTime * 20.0 * PI / (122.0 * speed)) * 3.0 - 1.5 + position.z;
+	float d1 = sin(adjTime * 20.0 * PI / (152.0 * speed)) * 3.0 - 1.5 + position.x;
+	float d2 = sin(adjTime * 20.0 * PI / (122.0 * speed)) * 3.0 - 1.5 + position.x;
+	float d3 = sin(adjTime * 20.0 * PI / (152.0 * speed)) * 3.0 - 1.5 + position.z;
+		
+	wave.x += sin((adjTime * 20.0 * PI / (28.0 * speed)) + (position.x + d0) * 0.1 + (position.z + d1) * 0.1) * intensity;
+	wave.z += sin((adjTime * 20.0 * PI / (28.0 * speed)) + (position.z + d2) * 0.1 + (position.x + d3) * 0.1) * intensity;
+	#endif
+
+	return wave * magnitude;
+}
+
 vec3 GetWavingLeaves(vec3 position, float magnitude) {
 	vec3 wave = vec3(0.0);
 	
