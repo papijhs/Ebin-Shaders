@@ -12,6 +12,7 @@ vec3 CalculateVertexDisplacements(vec3 worldSpacePosition, float skyLightmap) {
 		case 38:
 		case 59:
 		case 142: wave += GetWavingGrass(worldPosition, skyLightmap * grassWeight); break;
+		case 175: wave += GetWavingDoubleplants(worldPosition, skyLightmap, grassWeight); break;
 		case 18:
 		case 161: wave += GetWavingLeaves(worldPosition, skyLightmap); break;
 		case 8:

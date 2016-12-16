@@ -75,6 +75,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define MOTION_BLUR_INTENSITY                   1.0   // [0.5 1.0 2.0]
 #define MAX_MOTION_BLUR_AMOUNT                  1.0   // [0.5 1.0 2.0]
 
+#define WAVING_DOUBLE_PLANTS
 #define WAVING_GRASS
 #define WAVING_LEAVES
 #define WAVING_WATER
