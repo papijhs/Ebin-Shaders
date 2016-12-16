@@ -6,6 +6,7 @@
 
 
 attribute vec4 mc_Entity;
+attribute vec4 mc_midTexCoord;
 attribute vec4 at_tangent;
 
 uniform mat4 gbufferModelViewInverse;
