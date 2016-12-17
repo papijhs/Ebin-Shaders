@@ -121,7 +121,6 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 		sampleHeight = GetTexture(normals, fract(sampleRay.xy * tileScale + tileCoord) / tileScale + atlasCorner).a;
 	}
 	
-	
 	return fract(sampleRay.xy * tileScale + tileCoord) / tileScale + atlasCorner;
 }
 
@@ -129,7 +128,6 @@ void main() {
 	if (CalculateFogFactor(position[0], FOG_POWER) >= 1.0) discard;
 	
 	vec2 coord = ComputeParallaxCoordinate(texcoord, position[1]);
-	
 	
 	vec4 diffuse = GetDiffuse(coord);
 	if (diffuse.a < 0.1000003) discard;

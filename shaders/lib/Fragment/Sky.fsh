@@ -47,7 +47,7 @@ vec3 CalculateAtmosphericSky(vec3 worldSpacePosition) {
 }
 
 vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, float alpha, cbool reflection, float sunlight) {
-	float visibility = CalculateFogFactor(worldSpacePosition, FOG_POWER, skyMask);
+	float visibility = (reflection ? 1.0 : CalculateFogFactor(worldSpacePosition, FOG_POWER, skyMask));
 	if (!reflection && visibility < 0.001) return vec3(0.0);
 	
 	vec3 worldSpaceVector = normalize(worldSpacePosition);

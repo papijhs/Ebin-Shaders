@@ -212,10 +212,12 @@ void main() {
 	
 	if (mask.transparent > 0.5)
 		color0 = texture2D(colortex3, texcoord).rgb / alpha;
-
+	
 	color1 = texture2D(colortex1, texcoord).rgb;
+	color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER, float(depth1 >= 1.0))) ;// * (1.0 - float(mask.water > 0.5 && isEyeInWater == 0)));
+	
 	color0 = mix(color1, color0, mask.transparent - mask.water);
-
+	
 	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
 	
 	if (depth1 >= 1.0)
@@ -223,9 +225,9 @@ void main() {
 	
 	
 	color0 = mix(color0, sky.rgb, CalculateFogFactor(frontPos[0], FOG_POWER));
-	color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER));
 	
 	if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
+	if (depth1 >= 1.0 && mask.water > 0.5 && isEyeInWater == 1) color0 = color1;
 	
 	gl_FragData[0] = vec4(EncodeColor(color0), 1.0);
 	

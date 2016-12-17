@@ -106,7 +106,8 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 #endif
 }
 
-#include "lib/Fragment/Water_Depth_Fog.fsh"
+#include "/lib/Misc/Calculate_Fogfactor.glsl"
+#include "/lib/Fragment/Water_Depth_Fog.fsh"
 
 vec3 AerialPerspective(float dist, float skyLightmap) {
 	float factor  = pow(dist, 1.4) * 0.00023 * (1.0 - isEyeInWater) * AERIAL_PERSPECTIVE_AMOUNT;
@@ -124,7 +125,7 @@ void main() {
 	float torchLightmap = decode4.b;
 	float skyLightmap   = decode4.a;
 	
-	float depth0 = (mask.hand > 0.5 ? 0.55 : GetDepth(texcoord));
+	float depth0 = (mask.hand > 0.5 ? 0.9 : GetDepth(texcoord));
 	
 	vec3 vertNormal;
 	vec3 normal = DecodeNormalU(texure4.g, vertNormal) * mat3(gbufferModelViewInverse);
@@ -167,7 +168,7 @@ void main() {
 	if (mask.water > 0.5 || isEyeInWater == 1)
 		composite = WaterFog(composite, viewSpacePosition0, backPos[0]);
 	
-	composite += AerialPerspective(length(backPos[0]), skyLightmap);
+	composite += AerialPerspective(length(backPos[0]), skyLightmap) * (1.0 - mask.water);
 	
 	gl_FragData[0] = vec4(max0(composite), 1.0);
 	

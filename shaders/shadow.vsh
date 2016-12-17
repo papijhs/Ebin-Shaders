@@ -49,9 +49,10 @@ vec4 ProjectShadowMap(vec4 position) {
 	
 	position.xy /= biasCoeff;
 	
-	position.z += 0.001 * sin(max0(vertNormal.z));
-	position.z += 0.000005 / (abs(position.x) + 1.0);
-	position.z += 0.006 * pow2(biasCoeff) * 2048.0 / shadowMapResolution;
+	float acne  = 25.0 * pow(max0(1.0 - vertNormal.z), 4.0) * float(mc_Entity.x > 0.0);
+	      acne += 0.3 + pow2(biasCoeff) * 6.0;
+	
+	position.z += acne / shadowMapResolution;
 	
 	position.z /= 4.0; // Shrink the domain of the z-buffer. This counteracts the noticable issue where far terrain would not have shadows cast, especially when the sun was near the horizon
 	

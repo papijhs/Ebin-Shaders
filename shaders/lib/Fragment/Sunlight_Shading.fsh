@@ -40,5 +40,5 @@ float ComputeSunlight(vec3 viewSpacePosition, float sunlightCoeff, vec3 vertNorm
 	
 	float sunlight = ComputeShadows(shadowPosition, biasCoeff);
 	
-	return sunlightCoeff * pow2(sunlight);
+	return sunlightCoeff * pow(sunlight, mix(2.0, 1.0, clamp01(length(viewSpacePosition) * 0.1)));
 }
