@@ -4,7 +4,7 @@
 #define ShaderStage 2
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:3 */
+/* DRAWBUFFERS:32 */
 
 const bool colortex1MipmapEnabled = true;
 
@@ -182,6 +182,8 @@ void main() {
 	float smoothness    = decode4.g;
 	float skyLightmap   = decode4.a;
 	
+	gl_FragData[1] = vec4(decode4.r, 0.0, 0.0, 1.0);
+	
 	float depth0 = (mask.hand > 0.5 ? 0.55 : GetDepth(texcoord));
 	
 	mat2x3 frontPos;
@@ -202,7 +204,10 @@ void main() {
 	}
 	
 	vec3 sky = CalculateSky(backPos[1], vec3(0.0), float(depth1 >= 1.0), 1.0 - alpha, false, 1.0);
+	
 	if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
+	else if (mask.water > 0.5) sky = mix(WaterFog(sky, frontPos[0], backPos[0]), sky, CalculateFogFactor(frontPos[0], FOG_POWER));
+	
 	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }
 	
 	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);

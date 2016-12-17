@@ -5,6 +5,7 @@
 #include "/lib/Syntax.glsl"
 
 uniform sampler2D colortex1;
+uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D gdepthtex;
 
@@ -13,6 +14,9 @@ uniform mat4 gbufferPreviousModelView;
 
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
+
+uniform float viewWidth;
+uniform float viewHeight;
 
 varying vec2 texcoord;
 varying vec2 pixelSize;
@@ -32,9 +36,9 @@ float GetDepth(vec2 coord) {
 }
 
 
-void MotionBlur(io vec3 color, float depth) {
+void MotionBlur(io vec3 color, float depth, float handMask) {
 #ifdef MOTION_BLUR
-//	if (mask.hand > 0.5) return;
+	if (handMask > 0.5) return;
 	
 	vec4 position = vec4(vec3(texcoord, depth) * 2.0 - 1.0, 1.0); // Signed [-1.0 to 1.0] screen space position
 	
@@ -118,9 +122,9 @@ void Tonemap(io vec3 color) {
 void main() {
 	float depth = GetDepth(texcoord);
 	vec3  color = GetColor(texcoord);
-	
-	
-	MotionBlur(color, depth);
+	Mask  mask  = CalculateMasks(texture2D(colortex2, texcoord).r);
+	show(mask.water)
+	MotionBlur(color, depth, mask.hand);
 	
 	vec3[8] bloom = GetBloom();
 	
@@ -129,7 +133,7 @@ void main() {
 	Vignette(color);
 	Tonemap(color);
 	
-	gl_FragData[0] = vec4(color, 1.0);
+	gl_FragColor = vec4(color, 1.0);
 	
 	exit();
 }
