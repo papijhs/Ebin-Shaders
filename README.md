@@ -2,7 +2,7 @@
 
 This is a Minecraft shaderpack for use with [Optifine](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1272953). Ebin is aiming to provide maximum performance, configurability, and visual quality. Whether you want to create easy scenic screenshots to post on reddit, film a complex Minecraft cinematic, or play on a competitive multiplayer server, Ebin is intended to accommodate all these situations, and more.
 
-[Talk to use on Discord.](https://discord.gg/9YTc4Q4)
+[Talk to us on Discord.](https://discord.gg/9YTc4Q4)
 
 ## Features
 - Shadows / Shading - the basics
