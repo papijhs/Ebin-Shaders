@@ -71,9 +71,10 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 
 vec3 calculateSkyIBL(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, float alpha, cbool reflection, float sunlight) {
 	vec3 worldSpaceVector = normalize(worldSpacePosition);
-	float sunglow = CalculateSunglow(worldSpaceVector);
 
-	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow) * skyIlluminance;
+	vec3 gradient = CalculateSkyGradient(worldSpacePosition, 0.5) * skyIlluminance;
+
+	Compute2DCloudPlane(gradient, worldSpaceVector, rayPosition, 0.5, 1.0);
 
 	return gradient;
 }

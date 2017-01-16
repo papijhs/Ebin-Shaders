@@ -7,6 +7,7 @@
 /* DRAWBUFFERS:14 */
 
 const bool colortex5MipmapEnabled = true;
+const bool colortex6MipmapEnabled = true;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;

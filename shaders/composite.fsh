@@ -169,8 +169,6 @@ void main() {
 	
 	if (depth0 >= 1.0) { return; }
 
-	
-
 	vec2 noise2D = GetDitherred2DNoise(texcoord * COMPOSITE0_SCALE, 4.0) * 2.0 - 1.0;
 	
 	vec2 texure4 = textureRaw(colortex4, texcoord).rg;
@@ -192,7 +190,6 @@ void main() {
 		
 		mask.water = float(decode0.g >= 1.0);
 	}
-	
 	
 	if (depth1 >= 1.0 || isEyeInWater != mask.water)
 		{ gl_FragData[0] = vec4(vec3(0.0), 1.0); exit(); return; }

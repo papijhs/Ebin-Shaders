@@ -45,7 +45,7 @@ vec3 ComputeAmbientDiffuseLight(vec3 diffuseColor, vec3 normal, vec3 viewVector,
 		vec3 reflectedSky = vec3(1.0);
 	#endif
 
-	diffuseColor *= reflectedSky * skyLightmap;
+	diffuseColor *= reflectedSky * pow(skyLightmap, 6);
 	return diffuseColor;
 }
 
@@ -71,9 +71,7 @@ vec3 CalculateShadedFragment(vec3 diffuseColor, mat2x3 position, vec3 normal, ve
 	shading.torchlight  = 1.0 / pow(shading.torchlight, 2.0) - 1.0;
 	shading.torchlight += GetHeldLight(position[0], normal, mask.hand);
 	
-	shading.skylight = pow(skyLightmap, 2.0);
-	
-	shading.ambient = 1.0 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 1.7;
+	shading.ambient = 0.5 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 0.00005;
 	
 	
 	Lightmap lightmap;
@@ -86,16 +84,16 @@ vec3 CalculateShadedFragment(vec3 diffuseColor, mat2x3 position, vec3 normal, ve
 	
 	lightmap.GI = GI * diffuseColor / PI;
 	
-	lightmap.ambient = vec3(shading.ambient);
+	lightmap.ambient = vec3(shading.ambient) * diffuseColor;
 	
-	lightmap.torchlight = shading.torchlight * vec3(0.7, 0.3, 0.1);
+	lightmap.torchlight = shading.torchlight * vec3(0.7, 0.3, 0.1) * 50 * diffuseColor / PI;
 	
 	
 	return vec3(
 	    lightmap.sunlight
 	+   lightmap.skylight
 	+   lightmap.GI 
-	//+   lightmap.ambient    * 0.015 * AMBIENT_LIGHT_LEVEL
-	//+   lightmap.torchlight * 6.0   * TORCH_LIGHT_LEVEL
+	+   lightmap.ambient
+	+   lightmap.torchlight
 	    );
 }

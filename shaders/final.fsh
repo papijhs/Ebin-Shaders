@@ -4,6 +4,8 @@
 #define ShaderStage 7
 #include "/lib/Syntax.glsl"
 
+const bool colortex3MipmapEnabled = true;
+
 uniform sampler2D colortex1;
 uniform sampler2D colortex3;
 uniform sampler2D gdepthtex;
@@ -13,6 +15,8 @@ uniform mat4 gbufferPreviousModelView;
 
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
+
+uniform ivec2 eyeBrightnessSmooth;
 
 varying vec2 texcoord;
 varying vec2 pixelSize;
@@ -25,7 +29,7 @@ varying vec2 pixelSize;
 #include "/lib/Fragment/Camera.fsh"
 
 vec3 GetColor(vec2 coord) {
-	return DecodeColor(texture2D(colortex3, coord).rgb);
+	return texture2D(colortex3, coord).rgb;
 }
 
 float GetDepth(vec2 coord) {
@@ -77,7 +81,7 @@ vec3 GetBloomTile(cint scale, vec2 offset) {
 	     coord /= scale;
 	     coord += offset + pixelSize;
 	
-	return DecodeColor(texture2D(colortex1, coord).rgb);
+	return texture2D(colortex1, coord).rgb;
 }
 
 vec3[8] GetBloom() {
@@ -104,31 +108,25 @@ vec3[8] GetBloom() {
 	return bloom;
 }
 
-void Vignette(io vec3 color) {
-	float edge = distance(texcoord, vec2(0.5));
-	
-	color *= 1.0 - pow(edge * 1.3, 1.5);
-}
-
 void Tonemap(io vec3 color) {
-	color *= EXPOSURE;
 	color  = color / (color + 1.0);
-	color  = pow(color, vec3(1.15 / 2.2));
+	color  = L2sRGB(color);
 }
 
 void main() {
 	float depth = GetDepth(texcoord);
 	vec3  color = GetColor(texcoord);
-	color = convertLuminance2Color(color);
-	
+	float  averageColor = length(texture2DLod(colortex3, texcoord, 10).rgb) / 1000;
+	       averageColor = max(mix((2500 + averageColor), 1.0 + averageColor, 1.0 - pow(float(eyeBrightnessSmooth.g) / 240.0, 2)), 4);
+
+	float EV = computeEV(averageColor);
 	
 	//MotionBlur(color, depth);
 	
-	//vec3[8] bloom = GetBloom();
+	vec3[8] bloom = GetBloom();
+	color += bloom[0] * exp2(EV - 3) * 0.25;
 	
-	//color  = mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
-	
-	Vignette(color);
+	color = EV * color;
 	Tonemap(color);
 	
 	gl_FragData[0] = vec4(color, 1.0);

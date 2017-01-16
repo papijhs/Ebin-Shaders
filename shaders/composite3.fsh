@@ -47,7 +47,7 @@ vec3 ComputeBloomTile(cfloat scale, vec2 offset) { // Computes a single bloom ti
 			
 			vec2 offset = vec2(i, j) * pixelSize;
 			
-			bloom       += pow(texture2DLod(colortex3, coord + offset, Lod).rgb, vec3(2.2)) * weight;
+			bloom       += texture2DLod(colortex3, coord + offset, Lod).rgb * weight;
 			totalWeight += weight;
 		}
 	}
@@ -69,7 +69,7 @@ vec3 ComputeBloom() {
 
 
 void main() {
-	gl_FragData[0] = vec4(pow(ComputeBloom(), vec3(1.0 / 2.2)), 1.0);
+	gl_FragData[0] = vec4(ComputeBloom(), 1.0);
 	
 	exit();
 }

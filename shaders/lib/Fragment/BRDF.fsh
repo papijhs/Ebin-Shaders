@@ -125,14 +125,14 @@ float BSDF(vec3 L, vec3 D, vec3 V, vec3 N, float roughness, float f0) {
 
 vec3 importanceSampleCosDir(vec2 u, vec3 N) {
     vec3 upVector = abs(N.z) < 0.999 ? vec3(0,0,1) : vec3(1,0,0);
-    vec3 tangentX = normalize(cross(upVector , N));
+    vec3 tangentX = normalize(cross(upVector, N));
     vec3 tangentY = cross(N, tangentX);
 
     float r = sqrt(u.x);
     float phi = u.y * PI * 2.0;
 
     vec3 L = vec3(r * cos(phi), r * sin(phi), sqrt(max(0.0, 1.0 - u.x)));
-         L = normalize(tangentX * L.y + tangentY * L.x + N * L.z);
+         L = normalize(tangentX * L.x + tangentY * L.y + N * L.z);
 
     return L;
 }
@@ -168,7 +168,7 @@ vec3 integrateSpecularIBL(vec3 V, vec3 N, float roughness, vec3 f0, out float No
         vec3 L, H;
 
         H = importanceSampleGGX(Xi, roughness, N);
-        L = normalize(2.0 * dot(V, H) * H - V);
+        L = normalize(-reflect(V, H));
 
         float NoL = clamp01(dot(N, L));
         float VoH = clamp01(dot(V, H));
@@ -179,7 +179,7 @@ vec3 integrateSpecularIBL(vec3 V, vec3 N, float roughness, vec3 f0, out float No
             float Fc = pow(1.0 - VoH, 5.0);
             vec3 F = (1.0 - Fc) * f0 + Fc;
 
-            vec3 sky = getSkyProjected(normalize(mat3(gbufferModelViewInverse) * L), 5) * NoL;
+            vec3 sky = getSkyProjected(normalize(mat3(gbufferModelViewInverse) * L), 0) * NoL;
             accum += sky * F * GVis / PI;
         }
     }
@@ -198,18 +198,17 @@ vec3 integrateDiffuseIBL(vec3 V, vec3 N, float roughness, vec3 f0) {
         vec3 L, H;
 
         H = importanceSampleCosDir(Xi, N);
-        L = normalize(2.0 * dot(V, H) * H - V);
+        L = normalize(-reflect(V, H));
 
         float NoL = clamp01(dot(N, L));
         float VoH = clamp01(dot(V, H));
         float NoH = clamp01(dot(N, H));
 
         if(NoL > 0.0) {
-            vec3 sky = getSkyProjected(normalize(mat3(gbufferModelViewInverse) * L), 5);
+            vec3 sky = getSkyProjected(normalize(mat3(gbufferModelViewInverse) * L), 6);
             accum += sky * (DisneyDiffuse(V, L, N, roughness) * NoL) / PI;
         }
     }
-
     return accum / float(samples);
 }
 #endif

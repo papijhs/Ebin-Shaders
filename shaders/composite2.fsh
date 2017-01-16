@@ -211,7 +211,7 @@ void main() {
 	
 	vec3 sky = CalculateSky(backPos[1], vec3(0.0), float(depth1 >= 1.0), 1.0 - alpha, false, 1.0);
 	if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
-	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }
+	if (depth0 >= 1.0) { gl_FragData[0] = vec4(sky, 1.0); exit(); return; }
 	
 	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);
 	
@@ -237,7 +237,7 @@ void main() {
 	if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
 	
 	
-	gl_FragData[0] = vec4(EncodeColor(color0), 1.0);
+	gl_FragData[0] = vec4(color0, 1.0);
 	
 	exit();
 }
