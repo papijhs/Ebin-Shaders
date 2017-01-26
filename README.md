@@ -4,6 +4,8 @@ This is a Minecraft shaderpack for use with [Optifine](http://www.minecraftforum
 
 [Talk to us on Discord.](https://discord.gg/9YTc4Q4)
 
+[Ebin has a website.](https://continuum.graphics/ebin/)
+
 ## Features
 - Shadows / Shading - the basics
 - Global Illumination
