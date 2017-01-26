@@ -1,5 +1,13 @@
 # License
 
+### Informal
+Do not redistribute Ebin, or a derivative of Ebin, without our explicit permission.
+
+We will probably allow you to release an Ebin edit if it contains substantial contributions. Continuum to SEUS is a good example of "substantial contributions" to a shaderpack.
+
+I better not see Ebin re-hosted on a site like 9minecraft.net.
+
+### Formal
 Ebin are the intellectual property of Bruce Z. and Joseph Conover (here and hereafter referred to as 'The Ebin Team') and the copyright belongs to them.
 
 You are granted the right to use and modify Ebin and its source for your own personal use.
