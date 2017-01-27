@@ -4,6 +4,8 @@ This is a Minecraft shaderpack for use with [Optifine](http://www.minecraftforum
 
 [Talk to us on Discord.](https://discord.gg/9YTc4Q4)
 
+[Ebin has a website.](https://continuum.graphics/ebin/)
+
 ## Features
 - Shadows / Shading - the basics
 - Global Illumination
@@ -43,7 +45,13 @@ If you download it from GitHub, it will be:
 2. From the main menu, select the copy of Ebin that is causing a crash
 3. Log in to a singleplayer world
 4. Close the game
-5. The crashlog is located in '/logs/shadersmod.log', Send it to us on [Discord](https://discord.gg/9YTc4Q4)
+5. The crashlog is located in either '/logs/shadersmod.log' OR '/logs/fml-client-latest.log'
+6. Send us the crashlog on [Discord](https://discord.gg/9YTc4Q4)
+
+## Development Status
+Development is currently on a soft hiatus because I haven't been very motivated as of late. I intend to continue working on Ebin at some point in the near future, and there are still a lot of features I would like to implement at some point. In the meantime, I have started working on the Continuum Cleanup, which I hope will deliver twice the performance of Continuum 1.3 when it is complete.
+
+~ BruceKnowsHow
 
 ## History
 
