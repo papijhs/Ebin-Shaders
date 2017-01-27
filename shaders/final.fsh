@@ -123,7 +123,7 @@ void main() {
 	float depth = GetDepth(texcoord);
 	vec3  color = GetColor(texcoord);
 	Mask  mask  = CalculateMasks(texture2D(colortex2, texcoord).r);
-	show(mask.water)
+	
 	MotionBlur(color, depth, mask.hand);
 	
 	vec3[8] bloom = GetBloom();

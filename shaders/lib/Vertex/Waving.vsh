@@ -69,9 +69,9 @@ vec3 GetWavingWater(vec3 position, float magnitude) {
 	vec3 wave = vec3(0.0);
 	
 	#ifdef WAVING_WATER
-		float Distance = length(position.xz - cameraPosition.xz);
+		float dist = distance(position.xz, cameraPos.xz);
 		
-		float waveHeight = max0(0.06 / max(Distance / 10.0, 1.0) - 0.006);
+		float waveHeight = max0(0.06 / max(dist / 10.0, 1.0) - 0.006);
 		
 		wave.y  = waveHeight * sin(PI * (TIME / 2.1 + position.x / 7.0  + position.z / 13.0));
 		wave.y += waveHeight * sin(PI * (TIME / 1.5 + position.x / 11.0 + position.z / 5.0 ));

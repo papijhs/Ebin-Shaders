@@ -227,6 +227,10 @@ option.WATER_SHADOW=Water Shadow
 
 
 
+option.FORCE_COMPATIBILITY=Force Compatibility Mode
+
+
+
 screen.Debug=Development
 
 option.DEBUG=Debug Mode

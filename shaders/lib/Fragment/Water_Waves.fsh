@@ -65,7 +65,7 @@ vec2 GetWaveDifferentials(vec3 position, cfloat scale) { // Get finite wave diff
 
 
 vec3 GetWaveNormals(vec3 worldSpacePosition, vec3 flatWorldNormal) {
-	vec2 diff = GetWaveDifferentials(worldSpacePosition + cameraPosition(), 0.1);
+	vec2 diff = GetWaveDifferentials(worldSpacePosition + cameraPos, 0.1);
 	
 	float viewVectorCoeff  = -dot(flatWorldNormal, normalize(worldSpacePosition.xyz));
 	      viewVectorCoeff /= clamp(length(worldSpacePosition) * 0.05, 1.0, 10.0);
