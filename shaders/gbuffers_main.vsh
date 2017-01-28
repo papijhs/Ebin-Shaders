@@ -72,10 +72,12 @@ mat3 CalculateTBN(vec3 worldPosition) {
 	tangent  += CalculateVertexDisplacements(worldPosition +  tangent) - worldDisplacement;
 	binormal += CalculateVertexDisplacements(worldPosition + binormal) - worldDisplacement;
 	
-	tangent  = mat3(gbufferModelViewInverse) * gl_NormalMatrix * normalize( tangent);
-	binormal = mat3(gbufferModelViewInverse) * gl_NormalMatrix * normalize(binormal);
+	tangent  = normalize(mat3(gbufferModelViewInverse) * gl_NormalMatrix *  tangent);
+	binormal = normalize(mat3(gbufferModelViewInverse) * gl_NormalMatrix * binormal);
 	
 	vec3 normal = normalize(cross(-tangent, binormal));
+	
+	binormal = cross(tangent, normal); // Orthogonalize binormal
 	
 	return mat3(tangent, binormal, normal);
 }

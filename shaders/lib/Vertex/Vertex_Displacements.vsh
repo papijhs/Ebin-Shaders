@@ -3,7 +3,7 @@ vec3 CalculateVertexDisplacements(vec3 worldSpacePosition) {
 	
 	vec3 wave = vec3(0.0);
 	
-#if defined gbuffers_terrain || defined gbuffers_water || defined gbuffers_shadow
+#if !defined gbuffers_hand
 	switch(int(mc_Entity.x)) {
 		case 31:
 		case 37:
@@ -17,9 +17,9 @@ vec3 CalculateVertexDisplacements(vec3 worldSpacePosition) {
 		case 9:
 		case 111: wave += GetWavingWater(worldPosition); break;
 	}
-#endif
 	
 	wave += TerrainDeformation(worldSpacePosition) - worldSpacePosition;
+#endif
 	
 	return wave;
 }
