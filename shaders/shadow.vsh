@@ -18,13 +18,12 @@ uniform mat4 shadowModelViewInverse;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 
-uniform float far;
 uniform float sunAngle;
 uniform float frameTimeCounter;
 
 varying vec4 color;
 varying vec2 texcoord;
-varying vec2 lightmapCoord;
+varying vec2 vertLightmap;
 
 varying vec3 vertNormal;
 
@@ -32,10 +31,15 @@ varying vec3 vertNormal;
 #include "/lib/Utility.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
 
+vec2 GetDefaultLightmap() {
+	vec2 lightmapCoord = mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st;
+	
+	return clamp01((lightmapCoord * pow2(1.031)) - 0.032).rg;
+}
+
 vec3 GetWorldSpacePositionShadow() {
 	return transMAD(shadowModelViewInverse, transMAD(gl_ModelViewMatrix, gl_Vertex.xyz));
 }
-
 
 #include "/lib/Vertex/Waving.vsh"
 #include "/lib/Vertex/Vertex_Displacements.vsh"
@@ -49,7 +53,7 @@ vec4 ProjectShadowMap(vec4 position) {
 	
 	position.xy /= biasCoeff;
 	
-	float acne  = 25.0 * pow(max0(1.0 - vertNormal.z), 4.0) * float(mc_Entity.x > 0.0);
+	float acne  = 25.0 * pow(clamp01(1.0 - vertNormal.z), 4.0) * float(mc_Entity.x > 0.0);
 	      acne += 0.3 + pow2(biasCoeff) * 6.0;
 	
 	position.z += acne / shadowMapResolution;
@@ -73,26 +77,25 @@ void main() {
 	CalculateShadowView();
 #endif
 	
-	color         = gl_Color;
-	texcoord      = gl_MultiTexCoord0.st;
-	lightmapCoord = mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st;
+	color        = gl_Color;
+	texcoord     = gl_MultiTexCoord0.st;
+	vertLightmap = GetDefaultLightmap();
 	
-	vertNormal    = normalize(mat3(shadowViewMatrix) * gl_Normal);
+	vertNormal   = normalize(mat3(shadowViewMatrix) * gl_Normal);
 	
 	
 	vec3 position  = GetWorldSpacePositionShadow();
-	     position += CalculateVertexDisplacements(position, lightmapCoord.g);
+	     position += CalculateVertexDisplacements(position);
 	
 	gl_Position = ProjectShadowMap(position.xyzz);
 	
 	
-	color.rgb *= pow(max0(vertNormal.z), 1.0 / 2.2);
+	color.rgb *= pow(clamp01(vertNormal.z), 1.0 / 2.2);
 	
 	if (   mc_Entity.x == 0 // If the vertex is an entity
 		&& abs(position.x) < 1.2
 		&& position.y > -0.1 &&  position.y < 2.2 // Check if the vertex is A bounding box around the player, so that at least non-near entities still cast shadows
-		&& abs(position.z) < 1.2
-	) {
+		&& abs(position.z) < 1.2) {
 	#ifndef PLAYER_SHADOW
 		color.a = 0.0;
 	#elif !defined PLAYER_GI_BOUNCE

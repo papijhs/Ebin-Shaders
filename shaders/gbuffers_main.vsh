@@ -1,8 +1,6 @@
 attribute vec4 mc_Entity;
 attribute vec4 at_tangent;
-#if defined gbuffers_terrain || defined gbuffers_water
 attribute vec4 mc_midTexCoord;
-#endif
 
 uniform sampler2D lightmap;
 
@@ -13,14 +11,13 @@ uniform float frameTimeCounter;
 
 varying vec3 color;
 varying vec2 texcoord;
+varying vec2 vertLightmap;
 
 varying mat3 tbnMatrix;
 
 varying mat2x3 position;
 
 varying vec3 worldDisplacement;
-
-varying vec2 vertLightmap;
 
 varying float mcID;
 varying float materialIDs;
@@ -37,7 +34,9 @@ varying float nightVision;
 #endif
 
 
-vec2 GetDefaultLightmap(vec2 lightmapCoord) {
+vec2 GetDefaultLightmap() {
+	vec2 lightmapCoord = mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st;
+	
 	return clamp01((lightmapCoord * pow2(1.031)) - 0.032).rg;
 }
 
@@ -70,8 +69,8 @@ mat3 CalculateTBN(vec3 worldPosition) {
 	vec3 tangent  = normalize(at_tangent.xyz);
 	vec3 binormal = normalize(-cross(gl_Normal, at_tangent.xyz));
 	
-	tangent  += CalculateVertexDisplacements(worldPosition +  tangent, vertLightmap.g) - worldDisplacement;
-	binormal += CalculateVertexDisplacements(worldPosition + binormal, vertLightmap.g) - worldDisplacement;
+	tangent  += CalculateVertexDisplacements(worldPosition +  tangent) - worldDisplacement;
+	binormal += CalculateVertexDisplacements(worldPosition + binormal) - worldDisplacement;
 	
 	tangent  = mat3(gbufferModelViewInverse) * gl_NormalMatrix * normalize( tangent);
 	binormal = mat3(gbufferModelViewInverse) * gl_NormalMatrix * normalize(binormal);
@@ -91,7 +90,7 @@ void main() {
 	color        = abs(mc_Entity.x - 10.5) > 0.6 ? gl_Color.rgb : vec3(1.0);
 	texcoord     = gl_MultiTexCoord0.st;
 	mcID         = mc_Entity.x;
-	vertLightmap = GetDefaultLightmap(mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st);
+	vertLightmap = GetDefaultLightmap();
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
 	
 #ifdef NIGHTVISION
@@ -103,7 +102,7 @@ void main() {
 	
 	vec3 worldSpacePosition = GetWorldSpacePosition();
 	
-	worldDisplacement = CalculateVertexDisplacements(worldSpacePosition, vertLightmap.g);
+	worldDisplacement = CalculateVertexDisplacements(worldSpacePosition);
 	
 	position[1] = worldSpacePosition + worldDisplacement;
 	position[0] = position[1] * mat3(gbufferModelViewInverse);
@@ -111,7 +110,7 @@ void main() {
 	gl_Position = ProjectViewSpace(position[0]);
 	
 	
-	tbnMatrix   = CalculateTBN(worldSpacePosition);
+	tbnMatrix = CalculateTBN(worldSpacePosition);
 	
 	
 #if defined gbuffers_water
