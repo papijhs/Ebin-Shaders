@@ -90,7 +90,7 @@ void main() {
 	gl_Position = ProjectShadowMap(position.xyzz);
 	
 	
-	color.rgb *= pow(clamp01(vertNormal.z), 1.0 / 2.2);
+	color.rgb *= clamp01(vertNormal.z);
 	
 	if (   mc_Entity.x == 0 // If the vertex is an entity
 		&& abs(position.x) < 1.2
