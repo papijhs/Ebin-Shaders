@@ -75,6 +75,10 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define MOTION_BLUR_INTENSITY                   1.0   // [0.5 1.0 2.0]
 #define MAX_MOTION_BLUR_AMOUNT                  1.0   // [0.5 1.0 2.0]
 
+#define TERRAIN_PARALLAX_QUALITY     1.0  // [0.5 1.0 2.0]
+#define TERRAIN_PARALLAX_DISTANCE   12.0  // [6.0 12.0 24.0 48.0]
+#define TERRAIN_PARALLAX_INTENSITY   1.00 // [0.25 0.50 0.75 1.00 1.50 2.00]
+
 #define WAVING_DOUBLE_PLANTS
 #define WAVING_GRASS
 #define WAVING_LEAVES

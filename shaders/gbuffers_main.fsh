@@ -87,16 +87,16 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 	
 	LOD = textureQueryLod(texture, coord).x;
 	
-	cfloat parallaxDist = 12.0;
-	cfloat distFade     =  4.0;
-	cfloat MinQuality   =  0.5;
-	cfloat maxQuality   =  1.5;
+	cfloat parallaxDist = TERRAIN_PARALLAX_DISTANCE;
+	cfloat distFade     = parallaxDist / 3.0;
+	cfloat MinQuality   = 0.5;
+	cfloat maxQuality   = 1.5;
 	
-	float intensity = clamp01((parallaxDist - length(position) * FOV / 90.0) / distFade);
+	float intensity = clamp01((parallaxDist - length(position) * FOV / 90.0) / distFade) * 0.85 * TERRAIN_PARALLAX_INTENSITY;
 	
 	if (intensity < 0.01) return coord;
 	
-	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position), 0.25)), MinQuality, maxQuality);
+	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position), 0.25)), MinQuality, maxQuality) * TERRAIN_PARALLAX_QUALITY;
 	
 	vec3 tangentRay = normalize(position * tbnMatrix);
 	
@@ -112,7 +112,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 	
 	if (sampleRay.z <= sampleHeight) return coord;
 	
-	float stepCoeff = -tangentRay.z * 64.0 * clamp01(intensity);
+	float stepCoeff = -tangentRay.z * 100.0 * clamp01(intensity);
 	
 	for (uint i = 0; sampleRay.z > sampleHeight && i < 150; i++) {
 		sampleRay.xy += step.xy * clamp01((sampleRay.z - sampleHeight) * stepCoeff);
