@@ -7,6 +7,7 @@ uniform sampler2D lightmap;
 uniform mat4 gbufferModelViewInverse;
 
 uniform vec3  cameraPosition;
+uniform vec3  previousCameraPosition;
 uniform float frameTimeCounter;
 
 varying vec3 color;
