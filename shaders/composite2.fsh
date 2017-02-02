@@ -165,7 +165,7 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sk
 	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.4, 30, 2, reflectedCoord, reflectedViewSpacePosition))
 		reflection = offscreen + sunSpecular;
 	else {
-		reflection = GetColor(reflectedCoord.st) * brdf;
+		reflection = GetColor(reflectedCoord.st) * brdf / PI;
 		
 		reflection = mix(reflection, reflectedSky, CalculateFogFactor(reflectedViewSpacePosition, FOG_POWER));
 

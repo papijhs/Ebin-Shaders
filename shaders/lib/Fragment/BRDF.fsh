@@ -160,7 +160,7 @@ vec3 importanceSampleGGX(vec2 Xi, float roughness, vec3 N) {
 vec3 integrateSpecularIBL(vec3 V, vec3 N, float roughness, vec3 f0, out float NoV) {
     NoV = clamp01(dot(V, N));
     vec3 accum = vec3(0.0);
-    uint samples = 64u;
+    uint samples = 32u;
 
     for(uint i = 0u; i < samples; i++) {
         vec2 Xi = Hammersley(i, samples);
@@ -190,7 +190,7 @@ vec3 integrateSpecularIBL(vec3 V, vec3 N, float roughness, vec3 f0, out float No
 vec3 integrateDiffuseIBL(vec3 V, vec3 N, float roughness, vec3 f0) {
     float NoV = clamp01(dot(V, N));
     vec3 accum = vec3(0.0);
-    uint samples = 64u;
+    uint samples = 32u;
 
     for(uint i = 0u; i < samples; i++) {
         vec2 Xi = Hammersley(i, samples);
