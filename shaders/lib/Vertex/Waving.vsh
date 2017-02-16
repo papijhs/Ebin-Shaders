@@ -67,7 +67,7 @@ vec3 GetWavingWater(vec3 position) {
 	wave.y -= waveHeight;
 	
 #if !defined gbuffers_shadow
-	wave.y *= float(position.y - floor(position.y) > 0.15 || position.y - floor(position.y) < 0.005);
+//	wave.y *= float(position.y - floor(position.y) > 0.15 || position.y - floor(position.y) < 0.005);
 #endif
 	
 	return wave;
