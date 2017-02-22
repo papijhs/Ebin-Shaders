@@ -159,7 +159,7 @@ void main() {
 		waterMask = 1.0;
 	}
 	
-	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), mat.normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], 1.0, position); //TODO: roughness
+	vec3 composite  = CalculateShadedFragment(mask, mat, vertLightmap.r, vertLightmap.g, vec3(0.0), mat.normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], position);
 	     composite *= pow(mat.albedo.rgb, vec3(2.2));
 	
 	gl_FragData[0] = vec4(Encode4x8F(vec4(waterMask, vertLightmap.g, 0.0, 0.1)), EncodeNormal(mat.normal.xyz, 11), Encode4x8F(vec4(mat.f0, mat.roughness, mat.emmisiveTranslucence, mat.AO)), 1.0);

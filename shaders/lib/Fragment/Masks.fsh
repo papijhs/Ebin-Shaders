@@ -41,6 +41,17 @@ Material CalculateMaterial(vec2 coord, vec4 color, sampler2D texture, sampler2D 
 	return mat;
 }
 
+Material GetMaterial(vec4 decodedMat) {
+	Material mat;
+
+	mat.f0 = decodedMat.r;
+	mat.roughness = decodedMat.g; 
+	mat.emmisiveTranslucence = decodedMat.b; 
+	mat.AO = decodedMat.a;
+
+	return mat;
+}
+
 #define EmptyMask Mask(0.0, 0.0, vec4(0.0), 0.0, 0.0, 0.0, 0.0, 0.0)
 
 float EncodeMaterialIDs(float materialIDs, vec4 bits) {

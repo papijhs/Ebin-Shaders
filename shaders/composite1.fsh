@@ -117,10 +117,12 @@ vec3 AerialPerspective(float dist, float skyLightmap) {
 }
 
 void main() {
-	vec2 texure4 = ScreenTex(colortex4).rg;
+	vec3 texure4 = ScreenTex(colortex4).rgb;
 	
 	vec4  decode4       = Decode4x8F(texure4.r);
+	vec4  decodeMat     = Decode4x8F(texure4.b);
 	Mask  mask          = CalculateMasks(decode4.r);
+	Material mat        = GetMaterial(decodeMat);
 	float smoothness    = decode4.g;
 	float torchLightmap = decode4.b;
 	float skyLightmap   = decode4.a;
@@ -142,10 +144,10 @@ void main() {
 		mask.bits.xy     = vec2(1.0, mask.water);
 		mask.materialIDs = EncodeMaterialIDs(1.0, mask.bits);
 		
-		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.g);
+		texure4.rg = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.g);
 	} else texure4.g = ReEncodeNormal(texure4.g, 11.0);
 	
-	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
+	gl_FragData[1] = vec4(texure4.rgb, 1.0);
 	
 	if (depth1 - mask.hand >= 1.0) return;
 	
@@ -162,7 +164,7 @@ void main() {
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
 	
-	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, vertNormal, smoothness, backPos);
+	vec3 composite  = CalculateShadedFragment(mask, mat, torchLightmap, skyLightmap, GI, normal, vertNormal, backPos);
 	     composite *= pow(diffuse, vec3(2.8));
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
