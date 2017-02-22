@@ -12,6 +12,35 @@ struct Mask {
 	float nightVision;
 };
 
+struct Material {
+	vec4 albedo;
+	vec3 normal;
+	float height;
+	float f0;
+	float pourosity;
+	float roughness;
+	float AO;
+	float emmisiveTranslucence;
+};
+
+Material CalculateMaterial(vec2 coord, vec4 color, sampler2D texture, sampler2D normal, sampler2D specular) {
+	Material mat;
+
+	mat.albedo = texture2D(texture, coord) * color;
+	vec4 normalSample = texture2D(normal, coord);
+	vec4 specularSample = texture2D(specular, coord);
+
+	mat.normal = normalize(normalSample.xyz);
+	mat.height = normalSample.w;
+	mat.f0 = specularSample.x;
+	mat.pourosity = specularSample.y;
+	mat.roughness = pow2(1.0 - specularSample.z);
+	mat.AO = length(normalSample.xyz);
+	mat.emmisiveTranslucence = (1.0 - specularSample.w);
+
+	return mat;
+}
+
 #define EmptyMask Mask(0.0, 0.0, vec4(0.0), 0.0, 0.0, 0.0, 0.0, 0.0)
 
 float EncodeMaterialIDs(float materialIDs, vec4 bits) {

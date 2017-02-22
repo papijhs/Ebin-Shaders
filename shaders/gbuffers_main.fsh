@@ -52,12 +52,8 @@ vec4 GetDiffuse(vec2 coord) {
 	return vec4(color.rgb, 1.0) * GetTexture(texture, coord);
 }
 
-vec3 GetNormal(vec2 coord) {
-#ifdef NORMAL_MAPS
-	vec3 normal = GetTexture(normals, coord).xyz;
-#else
-	vec3 normal = vec3(0.5, 0.5, 1.0);
-#endif
+vec3 GetNormal(vec3 normal) {
+	normal = vec3(0.5, 0.5, 1.0);
 	
 	normal.xyz = tbnMatrix * normalize(normal.xyz * 2.0 - 1.0);
 	
@@ -129,10 +125,11 @@ void main() {
 	
 	vec2 coord = ComputeParallaxCoordinate(texcoord, position[1]);
 	
-	vec4 diffuse = GetDiffuse(coord);
-	if (diffuse.a < 0.1000003) discard;
+	Material mat = CalculateMaterial(coord, vec4(color, 1.0), texture, normals, specular);
+
+	if (mat.albedo.a < 0.1000003) discard;
 	
-	vec3 normal = GetNormal(coord);
+	mat.normal = GetNormal(mat.normal);
 
 	float waterMask = 0.0;
 	
@@ -140,30 +137,35 @@ void main() {
 	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0, 0.0, nightVision, 0.0));
 	
 	gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
-	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
+	gl_FragData[1] = vec4(mat.albedo.rgb, 1.0);
 	gl_FragData[2] = vec4(0.0);
 	gl_FragData[3] = vec4(0.0);
-	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, waterMask, vertLightmap.rg)), EncodeNormalU(normal, tbnMatrix[2]), 0.0, 1.0);
+	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, waterMask, vertLightmap.rg)), EncodeNormalU(mat.normal, tbnMatrix[2]), Encode4x8F(vec4(mat.f0, mat.roughness, mat.emmisiveTranslucence, mat.AO)), 1.0);
 #else
 	Mask mask = EmptyMask;
 	
 	if (abs(mcID - 8.5) < 0.6) {
 		if (!gl_FrontFacing) discard;
 		
-		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
+		mat.albedo = vec4(0.215, 0.356, 0.533, 0.75);
 		
-		normal = tbnMatrix * GetWaveNormals(position[1] - worldDisplacement, tbnMatrix[2]);
+		mat.normal = tbnMatrix * GetWaveNormals(position[1] - worldDisplacement, tbnMatrix[2]);
 		
+		mat.f0 = 0.05;
+		mat.roughness = 0.05;
+		mat.emmisiveTranslucence = 0.0;
+		mat.AO = 1.0;
+
 		waterMask = 1.0;
 	}
 	
-	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], 1.0, position); //TODO: roughness
-	     composite *= pow(diffuse.rgb, vec3(2.2));
+	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), mat.normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], 1.0, position); //TODO: roughness
+	     composite *= pow(mat.albedo.rgb, vec3(2.2));
 	
-	gl_FragData[0] = vec4(Encode4x8F(vec4(waterMask, vertLightmap.g, 0.0, 0.1)), EncodeNormal(normal.xyz, 11), 0.0, 1.0);
+	gl_FragData[0] = vec4(Encode4x8F(vec4(waterMask, vertLightmap.g, 0.0, 0.1)), EncodeNormal(mat.normal.xyz, 11), Encode4x8F(vec4(mat.f0, mat.roughness, mat.emmisiveTranslucence, mat.AO)), 1.0);
 	gl_FragData[1] = vec4(0.0);
-	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
-	gl_FragData[3] = vec4(composite, diffuse.a);
+	gl_FragData[2] = vec4(1.0, 0.0, 0.0, mat.albedo.a);
+	gl_FragData[3] = vec4(composite, mat.albedo.a);
 	gl_FragData[4] = vec4(0.0);
 #endif
 	
