@@ -89,53 +89,32 @@ vec3 DecodeNormal(float enc, cfloat bits) {
 	return normal.xyz;
 }
 
-float EncodeNormalU(vec3 normal, vec3 vertNormal) {
+float EncodeNormalU(vec3 normal) {
 	normal = clamp(normal, -1.0, 1.0);
 	normal.xy = vec2(atan(normal.x, normal.z), acos(normal.y)) / PI;
 	normal.x += 1.0;
 	normal.xy = round(normal.xy * 2048.0);
 	normal.y = min(normal.y, 2047.0);
 	
-	vertNormal = clamp(vertNormal, -1.0, 1.0);
-	vertNormal.xy = vec2(atan(vertNormal.x, vertNormal.z), acos(vertNormal.y)) / PI;
-	vertNormal.x += 1.0;
-	vertNormal.xy = round(vertNormal.xy * vec2(8.0, 16.0));
-//	vertNormal.y = min(vertNormal.y, 15.0);
-	
-	uvec4 enc = uvec4(normal.xy, vertNormal.xy);
+	uvec2 enc = uvec2(normal.xy);
 	enc.x = enc.x & 4095;
-	enc.z = enc.z & 15;
-	enc.yzw = enc.yzw << uvec3(12, 23, 27);
+	enc.y = enc.y << uint(12);
 	
-	return uintBitsToFloat(sum4(enc));
+	return uintBitsToFloat(enc.x + enc.y);
 }
 
-vec3 DecodeNormalU(float enc, out vec3 vertNormal) {
-	cuvec3 shift  = uvec3(12, 23, 27);
-	cuvec3 modulo = uvec3(4095, 2047, 15);
+float EncodeNormalU(vec3 normal, float water) {
+	normal = clamp(normal, -1.0, 1.0);
+	normal.xy = vec2(atan(normal.x, normal.z), acos(normal.y)) / PI;
+	normal.x += 1.0;
+	normal.xy = round(normal.xy * 2048.0);
+	normal.y = min(normal.y, 2047.0);
 	
-	uvec4 e = uvec4(floatBitsToUint(enc));
-	e.yzw = e.yzw >> shift;
-	e.xyz = e.xyz & modulo.xyz;
+	uvec3 enc = uvec3(normal.xy, water);
+	enc.x = enc.x & 4095;
+	enc.yz = enc.yz << uvec2(12, 23);
 	
-	vec4 normal;
-	
-	normal.xy   = e.zw;
-	normal.xy  /= vec2(8.0, 16.0);
-	normal.x   -= 1.0;
-	normal.xy  *= PI;
-	normal.xwzy = vec4(sin(normal.xy), cos(normal.xy));
-	normal.xz  *= normal.w;
-	vertNormal  = normal.xyz;
-	
-	normal.xy   = e.xy;
-	normal.xy  /= 2048.0;
-	normal.x   -= 1.0;
-	normal.xy  *= PI;
-	normal.xwzy = vec4(sin(normal.xy), cos(normal.xy));
-	normal.xz  *= normal.w;
-	
-	return normal.xyz;
+	return uintBitsToFloat(enc.x + enc.y + enc.z);
 }
 
 float ReEncodeNormal(float enc, cfloat bits) {
@@ -150,7 +129,7 @@ float ReEncodeNormal(float enc, cfloat bits) {
 }
 
 vec3 DecodeNormalU(float enc) {
-	uvec2 e = uvec2(floatBitsToUint(enc));
+	uvec3 e = uvec3(floatBitsToUint(enc));
 	e.y = e.y >> 12;
 	e.xy = e.xy & uvec2(4095, 2047);
 	
@@ -164,4 +143,8 @@ vec3 DecodeNormalU(float enc) {
 	normal.xz  *= normal.w;
 	
 	return normal.xyz;
+}
+
+float DecodeWater(float enc) {
+	return float(floatBitsToUint(enc) >> 23);
 }

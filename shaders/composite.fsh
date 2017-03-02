@@ -84,7 +84,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	
 #ifdef GI_BOOST
 	float sunlight = GetLambertianShading(normal, mask) * skyLightmap;
-	      sunlight = ComputeSunlight(worldSpacePosition, sunlight, vec3(0.0));
+	      sunlight = ComputeSunlight(worldSpacePosition, sunlight);
 	
 	lightMult = (pow2(skyLightmap) * 0.9 + 0.1) - sunlight * 4.0;
 #endif
@@ -100,7 +100,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	
 	vec2 basePos = shadowViewPosition.xy * diagonal2(shadowProjection) + shadowProjection[3].xy;
 	
-	normal = mat3(shadowViewMatrix) * mat3(gbufferModelViewInverse) * -normal;
+	normal = mat3(shadowViewMatrix) * -normal;
 	
 	vec3 projMult = mat3(shadowProjectionInverse) * -vec3(1.0, 1.0, 8.0);
 	vec3 projDisp = shadowViewPosition.xyz - shadowProjectionInverse[3].xyz - vec3(0.0, 0.0, 0.5 * projMult.z);
@@ -181,9 +181,7 @@ void main() {
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
 	if (depth0 != depth1) {
-		vec2 decode0 = Decode16(texture2D(colortex0, texcoord).b);
-		
-		mask.water = float(decode0.g >= 1.0);
+		mask.water = DecodeWater(texture2D(colortex0, texcoord).g);
 	}
 	
 	
@@ -191,7 +189,7 @@ void main() {
 		{ gl_FragData[0] = vec4(vec3(0.0), 1.0); exit(); return; }
 	
 	
-	vec3 normal = DecodeNormalU(texure4.g) * mat3(gbufferModelViewInverse);
+	vec3 normal = DecodeNormal(texure4.g, 11);
 	
 	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
 	

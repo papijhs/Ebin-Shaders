@@ -146,7 +146,7 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	vec3  reflectedCoord;
 	vec3  reflection;
 	
-	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap, vec3(0.0));
+	float sunlight = ComputeSunlight(position[1], GetLambertianShading(normal) * skyLightmap);
 	
 	vec3 reflectedSky = CalculateSky(refRay[1], position[1], 1.0, 1.0, true, sunlight);
 	
@@ -173,6 +173,7 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 }
 
 #include "lib/Fragment/Water_Depth_Fog.fsh"
+#include "/lib/Fragment/AerialPerspective.fsh"
 
 void main() {
 	vec2 texure4 = ScreenTex(colortex4).rg;
@@ -224,6 +225,10 @@ void main() {
 	color0 = mix(color1, color0, mask.transparent - mask.water);
 	
 	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
+	
+	
+	if (mask.transparent > 0.5)
+		color0 += AerialPerspective(length(frontPos[0]), skyLightmap);
 	
 	if (depth1 >= 1.0)
 		color0 = mix(sky.rgb, color0, mix(alpha, 0.0, isEyeInWater == 1));

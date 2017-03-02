@@ -29,7 +29,7 @@ float GetLambertianShading(vec3 normal, Mask mask) {
 	#define ComputeShadows(shadowPosition, biasCoeff) shadow2D(shadow, shadowPosition).x
 #endif
 
-float ComputeSunlight(vec3 viewSpacePosition, float sunlightCoeff, vec3 vertNormal) {
+float ComputeSunlight(vec3 viewSpacePosition, float sunlightCoeff) {
 	if (sunlightCoeff <= 0.01) return 0.0;
 	
 	float biasCoeff;

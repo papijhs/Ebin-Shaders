@@ -88,7 +88,7 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 			vec2 offset = vec2(x, y) * pixelSize;
 			
 			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
-			vec3  sampleNormal =    DecodeNormalU(texture2D(colortex4, texcoord + offset * 8.0).g);
+			vec3  sampleNormal =     DecodeNormal(texture2D(colortex4, texcoord + offset * 8.0).g, 11);
 			
 			float weight  = clamp01(1.0 - abs(depth - sampleDepth));
 			      weight *= abs(dot(normal, sampleNormal)) * 0.5 + 0.5;
@@ -108,13 +108,7 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 
 #include "/lib/Misc/Calculate_Fogfactor.glsl"
 #include "/lib/Fragment/Water_Depth_Fog.fsh"
-
-vec3 AerialPerspective(float dist, float skyLightmap) {
-	float factor  = pow(dist, 1.4) * 0.00023 * (1.0 - isEyeInWater) * AERIAL_PERSPECTIVE_AMOUNT;
-	      factor *= mix(skyLightmap * 0.7 + 0.3, 1.0, eyeBrightnessSmooth.g / 240.0);
-	
-	return pow(skylightColor, vec3(1.3 - clamp01(factor) * 0.4)) * factor;
-}
+#include "/lib/Fragment/AerialPerspective.fsh"
 
 void main() {
 	vec2 texure4 = ScreenTex(colortex4).rg;
@@ -127,22 +121,21 @@ void main() {
 	
 	float depth0 = (mask.hand > 0.5 ? 0.9 : GetDepth(texcoord));
 	
-	vec3 vertNormal;
-	vec3 normal = DecodeNormalU(texure4.g, vertNormal) * mat3(gbufferModelViewInverse);
+	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);
 	
 	float depth1 = mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord);
 	
 	if (depth0 != depth1) {
-		vec3 texure0 = texture2D(colortex0, texcoord).rgb;
+		vec2 texure0 = texture2D(colortex0, texcoord).rg;
 		
 		vec4 decode0 = Decode4x8F(texure0.r);
 		
 		mask.transparent = 1.0;
-		mask.water       = float(decode0.r >= 1.0);
+		mask.water       = DecodeWater(texure0.g);
 		mask.bits.xy     = vec2(1.0, mask.water);
 		mask.materialIDs = EncodeMaterialIDs(1.0, mask.bits);
 		
-		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.g);
+		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), ReEncodeNormal(texure0.g, 11.0));
 	} else texure4.g = ReEncodeNormal(texure4.g, 11.0);
 	
 	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
@@ -162,7 +155,7 @@ void main() {
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
 	
-	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, vertNormal, smoothness, backPos);
+	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, smoothness, backPos);
 	     composite *= pow(diffuse, vec3(2.8));
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)

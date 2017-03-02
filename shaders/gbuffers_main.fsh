@@ -137,7 +137,7 @@ void main() {
 	float specularity = GetSpecularity(coord);
 	
 #if defined WEATHER && defined NORMAL_MAPS
-	specularity = min(specularity + wetness, 0.99);
+	specularity = clamp01(specularity + wetness);
 #endif
 	
 	
@@ -148,7 +148,7 @@ void main() {
 	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
 	gl_FragData[2] = vec4(0.0);
 	gl_FragData[3] = vec4(0.0);
-	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), EncodeNormalU(normal, tbnMatrix[2]), 0.0, 1.0);
+	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), EncodeNormal(normal, 11.0), 0.0, 1.0);
 #else
 	specularity = clamp(specularity, 0.0, 1.0 - 1.0 / 255.0);
 	
@@ -162,12 +162,13 @@ void main() {
 		normal = tbnMatrix * GetWaveNormals(position[1] - worldDisplacement, tbnMatrix[2]);
 		
 		specularity = 1.0;
+		mask.water = 1.0;
 	}
 	
-	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz * mat3(gbufferModelViewInverse), tbnMatrix[2], specularity, position);
+	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec3(0.0), normal.xyz * mat3(gbufferModelViewInverse), specularity, position);
 	     composite *= pow(diffuse.rgb, vec3(2.2));
 	
-	gl_FragData[0] = vec4(Encode4x8F(vec4(specularity, vertLightmap.g, 0.0, 0.1)), EncodeNormal(normal.xyz, 11), 0.0, 1.0);
+	gl_FragData[0] = vec4(Encode4x8F(vec4(specularity, vertLightmap.g, 0.0, 0.1)), EncodeNormalU(normal.xyz, mask.water), 0.0, 1.0);
 	gl_FragData[1] = vec4(0.0);
 	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
 	gl_FragData[3] = vec4(composite, diffuse.a);
