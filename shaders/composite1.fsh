@@ -122,6 +122,7 @@ void main() {
 	float depth0 = (mask.hand > 0.5 ? 0.9 : GetDepth(texcoord));
 	
 	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);
+	vec3 waterNormal;
 	
 	float depth1 = mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord);
 	
@@ -129,12 +130,13 @@ void main() {
 		vec2 texure0 = texture2D(colortex0, texcoord).rg;
 		
 		vec4 decode0 = Decode4x8F(texure0.r);
+		waterNormal = DecodeNormalU(texure0.g) * mat3(gbufferModelViewInverse);
 		
 		mask.transparent = 1.0;
 		mask.water       = DecodeWater(texure0.g);
 		mask.bits.xy     = vec2(1.0, mask.water);
 		mask.materialIDs = EncodeMaterialIDs(1.0, mask.bits);
-		
+
 		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), ReEncodeNormal(texure0.g, 11.0));
 	} else texure4.g = ReEncodeNormal(texure4.g, 11.0);
 	
@@ -159,7 +161,7 @@ void main() {
 	     composite *= pow(diffuse, vec3(2.8));
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
-		composite = WaterFog(composite, viewSpacePosition0, backPos[0]);
+		composite = WaterFog(composite, waterNormal, viewSpacePosition0, backPos[0]);
 	
 	composite += AerialPerspective(length(backPos[0]), skyLightmap) * (1.0 - mask.water);
 	
