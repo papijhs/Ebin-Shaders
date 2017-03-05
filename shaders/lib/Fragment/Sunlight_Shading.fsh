@@ -2,7 +2,7 @@ float GetLambertianShading(vec3 normal) {
 	return clamp01(dot(normal, lightVector));
 }
 
-float GetLambertianShading(vec3 normal, Mask mask) {
+float GetLambertianShading(vec3 normal, vec3 lightVector, Mask mask) {
 	float shading = clamp01(dot(normal, lightVector));
 	      shading = mix(shading, 1.0, mask.translucent);
 	
@@ -32,6 +32,10 @@ float GetLambertianShading(vec3 normal, Mask mask) {
 float ComputeSunlight(vec3 worldSpacePosition, float sunlightCoeff) {
 	if (sunlightCoeff <= 0.01) return 0.0;
 	
+	float distCoeff = GetDistanceCoeff(worldSpacePosition);
+	
+	if (distCoeff >= 0.99) return sunlightCoeff;
+	
 	float biasCoeff;
 	
 	vec3 shadowPosition = BiasShadowProjection(projMAD(shadowProjection, transMAD(shadowViewMatrix, worldSpacePosition + gbufferModelViewInverse[3].xyz)), biasCoeff) * 0.5 + 0.5;
@@ -39,6 +43,7 @@ float ComputeSunlight(vec3 worldSpacePosition, float sunlightCoeff) {
 	if (any(greaterThan(abs(shadowPosition.xyz - 0.5), vec3(0.5)))) return 1.0;
 	
 	float sunlight = ComputeShadows(shadowPosition, biasCoeff);
+	      sunlight = mix(sunlight, 1.0, distCoeff);
 	
 	return sunlightCoeff * pow(sunlight, mix(2.0, 1.0, clamp01(length(worldSpacePosition) * 0.1)));
 }

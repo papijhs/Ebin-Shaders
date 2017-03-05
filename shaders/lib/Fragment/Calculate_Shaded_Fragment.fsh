@@ -41,7 +41,7 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, mat2x3 position) {
 	Shading shading;
 	
-	shading.sunlight  = GetLambertianShading(normal, mask) * skyLightmap;
+	shading.sunlight  = GetLambertianShading(normal, lightVector, mask) * skyLightmap;
 	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight);
 	
 	

@@ -103,6 +103,9 @@ option.sunPathRotation=Sun Path Rotation
 
 option.shadowMapResolution=Shadow Map Resolution
 
+option.LIMIT_SHADOW_DISTANCE=Limit Shadow Distance
+option.shadowDistance=Limited Shadow Distance
+
 option.SHADOW_MAP_BIAS=Shadow Map Bias
 option.SHADOW_MAP_BIAS.comment=Higher values make nearby shadows look better, at the cost of making farther off shadows look worse
 

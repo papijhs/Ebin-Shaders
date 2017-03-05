@@ -1,6 +1,6 @@
 const int   shadowMapResolution      = 2048;  // [1024 2048 3072 4096 8192]
 const float sunPathRotation          = -40.0; // [-60.0 -50.0 -40.0 -30.0 -20.0 -10.0 0.0 10.0 20.0 30.0 40.0 50.0 60.0]
-const float shadowDistance           = 140.0;
+const float shadowDistance           = 140;   // [70 140 280]
 const float shadowIntervalSize       = 4.0;
 const bool  shadowHardwareFiltering0 = true;
 
@@ -51,6 +51,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define SHADOW_MAP_BIAS 0.80     // [0.00 0.60 0.70 0.80 0.85 0.90]
 #define SHADOW_TYPE 2 // [1 2]
 #define PLAYER_SHADOW
+//#define LIMIT_SHADOW_DISTANCE
 
 #if !defined low_profile
 	#define GI_ENABLED

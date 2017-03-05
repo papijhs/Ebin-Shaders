@@ -80,13 +80,15 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
 #else
 vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLightmap, cfloat radius, vec2 noise, Mask mask) {
-	float lightMult = skyLightmap;
+	float distCoeff = GetDistanceCoeff(worldSpacePosition);
+	
+	float lightMult = skyLightmap * (1.0 - distCoeff);
 	
 #ifdef GI_BOOST
-	float sunlight = GetLambertianShading(normal, mask) * skyLightmap;
+	float sunlight = GetLambertianShading(normal, worldLightVector, mask) * skyLightmap;
 	      sunlight = ComputeSunlight(worldSpacePosition, sunlight);
 	
-	lightMult = (pow2(skyLightmap) * 0.9 + 0.1) - sunlight * 4.0;
+	lightMult = (pow2(skyLightmap) * 0.9 + 0.1) * (1.0 - distCoeff) - sunlight * 4.0;
 #endif
 	
 	if (lightMult < 0.05) return vec3(0.0);

@@ -1,7 +1,7 @@
 #define time frameTimeCounter
 #define dayCycle sunAngle
 
-#ifdef shadow_vsh
+#ifdef gbuffers_shadow
 	#define position cameraPosition
 #else
 	#define position previousCameraPosition

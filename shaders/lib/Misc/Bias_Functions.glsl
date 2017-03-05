@@ -1,5 +1,19 @@
+float GetDistanceCoeff(vec3 position) {
+#ifndef LIMIT_SHADOW_DISTANCE
+	return 0.0;
+#endif
+	
+	return pow2(clamp01(length(position) / shadowDistance * 10.0 - 9.0));
+}
+
 float GetShadowBias(vec2 shadowProjection) {
-	return mix(1.0, length(shadowProjection) * 1.165, SHADOW_MAP_BIAS);
+	float dist = length(shadowProjection);
+	
+#ifndef LIMIT_SHADOW_DISTANCE
+	dist *= 1.165;
+#endif
+	
+	return mix(1.0, dist, SHADOW_MAP_BIAS);
 }
 
 vec2 BiasShadowMap(vec2 shadowProjection, out float biasCoeff) {
