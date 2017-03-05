@@ -16,7 +16,7 @@ vec3 WaterFog(vec3 color, vec3 normal, vec3 viewSpacePosition0, vec3 viewSpacePo
 	float BouguerLambert = (1.0 / NoV + 1.0 / NoL);
 	if (isEyeInWater > 0.0) BouguerLambert = 1.0;
 
-	vec3 fogAccum = exp(-vec3(0.65, 0.94, 1.0) * waterDepth * BouguerLambert * 0.1); // Beer's Law
+	vec3 fogAccum = exp(-vec3(0.065, 0.094, 0.1) * waterDepth * BouguerLambert); // Beer's Law
 
 	vec3 waterDepthColors = sunlightColor * skylightColor * mix(0.2, 1.0, eyeBrightnessSmooth.g / 240.0);
 	
