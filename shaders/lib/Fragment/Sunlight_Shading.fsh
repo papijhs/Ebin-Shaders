@@ -29,16 +29,16 @@ float GetLambertianShading(vec3 normal, Mask mask) {
 	#define ComputeShadows(shadowPosition, biasCoeff) shadow2D(shadow, shadowPosition).x
 #endif
 
-float ComputeSunlight(vec3 viewSpacePosition, float sunlightCoeff) {
+float ComputeSunlight(vec3 worldSpacePosition, float sunlightCoeff) {
 	if (sunlightCoeff <= 0.01) return 0.0;
 	
 	float biasCoeff;
 	
-	vec3 shadowPosition = BiasShadowProjection(projMAD(shadowProjection, transMAD(shadowViewMatrix, viewSpacePosition + gbufferModelViewInverse[3].xyz)), biasCoeff) * 0.5 + 0.5;
+	vec3 shadowPosition = BiasShadowProjection(projMAD(shadowProjection, transMAD(shadowViewMatrix, worldSpacePosition + gbufferModelViewInverse[3].xyz)), biasCoeff) * 0.5 + 0.5;
 	
 	if (any(greaterThan(abs(shadowPosition.xyz - 0.5), vec3(0.5)))) return 1.0;
 	
 	float sunlight = ComputeShadows(shadowPosition, biasCoeff);
 	
-	return sunlightCoeff * pow(sunlight, mix(2.0, 1.0, clamp01(length(viewSpacePosition) * 0.1)));
+	return sunlightCoeff * pow(sunlight, mix(2.0, 1.0, clamp01(length(worldSpacePosition) * 0.1)));
 }

@@ -140,7 +140,7 @@ void main() {
 	
 	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
 	
-	if (depth1 - mask.hand >= 1.0) return;
+	if (depth1 - mask.hand >= 1.0) { exit(); return; }
 	
 	
 	vec3 GI;
