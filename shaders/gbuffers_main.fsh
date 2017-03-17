@@ -140,7 +140,6 @@ void main() {
 	specularity = clamp01(specularity + wetness);
 #endif
 	
-	
 #if !defined gbuffers_water
 	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0, 0.0, nightVision, 0.0));
 	

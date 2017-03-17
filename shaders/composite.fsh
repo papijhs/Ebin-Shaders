@@ -155,27 +155,45 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 }
 #endif
 
-float ComputeVolumetricLight(vec3 position, vec2 noise) {
-	vec3 ray = normalize(position) + 0*0.02 * inverse(mat3(shadowViewMatrix)) * vec3(noise.x, 0.0, noise.y);
+vec2 ComputeVolumetricLight(vec3 position, vec3 frontPos, vec2 noise, float waterMask) {
+#ifndef VOLUMETRIC_LIGHT
+	return vec2(0.0);
+#endif
+	
+	vec3 ray = normalize(position);
+	
+	vec3 shadowStep = diagonal3(shadowProjection) * (mat3(shadowViewMatrix) * ray);
+	
 	ray = projMAD(shadowProjection, transMAD(shadowViewMatrix, ray + gbufferModelViewInverse[3].xyz));
 	
-	vec3 shadowStep = diagonal3(shadowProjection) * (mat3(shadowViewMatrix) * normalize(position));
+#ifdef LIMIT_SHADOW_DISTANCE
+	cfloat maxSteps = min(200.0, shadowDistance);
+#else
+	cfloat maxSteps = 200.0;
+#endif
 	
-	float count = 0.0;
-	float result = 0.0;
+	float end    = min(length(position), maxSteps);
+	float count  = 1.0;
+	vec2  result = vec2(0.0);
 	
-	while (count < length(position) && count++ < 200.0) {
-		result += shadow2D(shadow, BiasShadowProjection(ray) * 0.5 + 0.5).x;
+	float frontLength = length(frontPos);
+	
+	while (count < end) {
+		result += shadow2D(shadow, BiasShadowProjection(ray) * 0.5 + 0.5).x * mix(vec2(1.0, 0.0), clamp01(vec2(1.0, -1.0) * (frontLength - count++)), waterMask);
 		ray += shadowStep;
 	}
 	
-	return result / 200.0;
+	result = (isEyeInWater == 0 ? result.xy : result.yx);
+	
+	return result / maxSteps;
 }
 
 void main() {
 	float depth0 = GetDepth(texcoord);
 	
+#ifndef VOLUMETRIC_LIGHT
 	if (depth0 >= 1.0) { discard; }
+#endif
 	
 	
 #ifdef COMPOSITE0_NOISE
@@ -199,22 +217,27 @@ void main() {
 	backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
-//	float VL = ComputeVolumetricLight(backPos[1], noise2D); show(VL)
+	mat2x3 frontPos;
+	frontPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth0));
+	frontPos[1] = mat3(gbufferModelViewInverse) * frontPos[0];
 	
-	if (depth0 != depth1) {
-		mask.water = DecodeWater(texture2D(colortex0, texcoord).g);
-	}
+	if (depth0 != depth1)
+		mask.water = DecodeWater(textureRaw(colortex0, texcoord).g);
+	
+	vec2 VL = ComputeVolumetricLight(backPos[1], frontPos[1], noise2D, mask.water);
+	
+	if (depth0 >= 1.0) { gl_FragData[0] = vec4(0.0, 0.0, VL.yx); exit(); return; }
 	
 	
 	if (depth1 >= 1.0 || isEyeInWater != mask.water)
-		{ gl_FragData[0] = vec4(vec3(0.0), 1.0); exit(); return; }
+		{ gl_FragData[0] = vec4(0.0, 0.0, VL.yx); exit(); return; }
 	
 	
 	vec3 normal = DecodeNormal(texure4.g, 11);
 	
 	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
 	
-	gl_FragData[0] = vec4(sqrt(GI * 0.2), 1.0);
+	gl_FragData[0] = vec4(sqrt(GI * 0.2), VL.x);
 	
 	exit();
 }

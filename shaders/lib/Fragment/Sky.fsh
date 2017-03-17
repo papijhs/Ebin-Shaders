@@ -1,5 +1,5 @@
 float CalculateSunglow(vec3 worldSpaceVector) {
-	float sunglow = max0(dot(worldSpaceVector, worldLightVector) - 0.01);
+	float sunglow = clamp01(dot(worldSpaceVector, worldLightVector) - 0.01);
 	      sunglow = pow(sunglow, 8.0);
 	
 	return sunglow;
@@ -29,7 +29,7 @@ vec3 CalculateSkyGradient(vec3 worldSpacePosition, float sunglow) {
 }
 
 vec3 CalculateSunspot(vec3 worldSpaceVector) {
-	float sunspot  = max0(dot(worldSpaceVector, worldLightVector) - 0.01);
+	float sunspot  = clamp01(dot(worldSpaceVector, worldLightVector) - 0.01);
 	      sunspot  = pow(sunspot, 375.0);
 	      sunspot  = pow(sunspot + 1.0, 400.0) - 1.0;
 	      sunspot  = min(sunspot, 20.0) * 6.0;

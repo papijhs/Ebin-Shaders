@@ -70,8 +70,9 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
 
-void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
+void BilateralUpsample(vec3 normal, float depth, float waterMask, out vec3 GI, out float VL) {
 	GI = vec3(0.0);
+	VL = 1.0;
 	
 #if defined GI_ENABLED
 	vec2 scaledCoord = texcoord * COMPOSITE0_SCALE;
@@ -81,7 +82,9 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 	cfloat kernal = 2.0;
 	cfloat range = kernal * 0.5 - 0.5;
 	
-	float totalGIWeight = 0.0;
+	vec2 totalWeight = vec2(0.0);
+	
+	vec4 samples = vec4(0.0);
 	
 	for(float y = -range; y <= range; y++) {
 		for(float x = -range; x <= range; x++) {
@@ -90,25 +93,38 @@ void BilateralUpsample(vec3 normal, float depth, out vec3 GI) {
 			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
 			vec3  sampleNormal =     DecodeNormal(texture2D(colortex4, texcoord + offset * 8.0).g, 11);
 			
-			float weight  = clamp01(1.0 - abs(depth - sampleDepth));
-			      weight *= abs(dot(normal, sampleNormal)) * 0.5 + 0.5;
-			      weight += 0.001;
+			vec2 weight    = vec2(clamp01(1.0 - abs(depth - sampleDepth)));
+			     weight.x *= abs(dot(normal, sampleNormal)) * 0.5 + 0.5;
+			     weight   += 0.001;
 			
-			GI += pow2(texture2DLod(colortex5, scaledCoord + offset * 2.0, 1).rgb) * weight;
+			vec4 Sample      = texture2DLod(colortex5, scaledCoord + offset * 2.0, 1);
+			     Sample.rgb *= Sample.rgb;
 			
-			totalGIWeight += weight;
+			samples += Sample * weight.xxxy;
+			
+			totalWeight += weight;
 		}
 	}
 	
-	GI /= totalGIWeight;
+	samples /= totalWeight.xxxy;
 	
-	GI *= 5.0;
+	GI  = samples.rgb * 5.0;
+	GI *= 1.0 - waterMask;
+	
+	VL  = samples.a;
 #endif
 }
 
 #include "/lib/Misc/Calculate_Fogfactor.glsl"
 #include "/lib/Fragment/Water_Depth_Fog.fsh"
 #include "/lib/Fragment/AerialPerspective.fsh"
+
+float CalculateSunglow(vec3 worldSpaceVector) {
+	float sunglow = max0(dot(worldSpaceVector, worldLightVector) - 0.01);
+	      sunglow = pow(sunglow, 8.0);
+	
+	return sunglow;
+}
 
 void main() {
 	vec2 texure4 = ScreenTex(colortex4).rg;
@@ -138,15 +154,15 @@ void main() {
 		mask.materialIDs = EncodeMaterialIDs(1.0, mask.bits);
 
 		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), ReEncodeNormal(texure0.g, 11.0));
-	} else texure4.g = ReEncodeNormal(texure4.g, 11.0);
+	}
 	
 	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
 	
 	if (depth1 - mask.hand >= 1.0) { exit(); return; }
 	
 	
-	vec3 GI;
-	BilateralUpsample(mat3(gbufferModelViewInverse) * normal, depth1, GI);
+	vec3 GI; float VL;
+	BilateralUpsample(mat3(gbufferModelViewInverse) * normal, depth1, mask.water, GI, VL);
 	
 	
 	vec3 diffuse = GetDiffuse(texcoord);
