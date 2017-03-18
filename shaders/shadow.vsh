@@ -78,7 +78,7 @@ void main() {
 	if (mc_Entity.x < 0.5) { gl_Position = vec4(-1.0); return; }
 #endif
 	
-#ifdef TIME_OVERRIDE
+#if defined TIME_OVERRIDE || defined TELEFOCAL_SHADOWS
 	CalculateShadowView();
 #endif
 	
