@@ -1,5 +1,5 @@
-//#define centerDepthSmooth 0.9992
-uniform float centerDepthSmooth;
+#define centerDepthSmooth 0.9992
+//uniform float centerDepthSmooth;
 
 
 // Enable the above lines by removing the double-slashes "//"
