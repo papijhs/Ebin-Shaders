@@ -45,6 +45,8 @@ varying vec2 pixelSize;
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Masks.fsh"
 
+#include "/UserProgram/centerDepthSmooth.glsl" // Doesn't seem to be enabled unless it's initialized in a fragment.
+
 vec3 GetDiffuse(vec2 coord) {
 	return texture2D(colortex1, coord).rgb;
 }

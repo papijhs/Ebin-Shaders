@@ -24,6 +24,7 @@ varying vec2 pixelSize;
 #include "/lib/Utility.glsl"
 #include "/lib/Uniform/Projection_Matrices.vsh"
 #include "/lib/Uniform/Shading_Variables.glsl"
+#include "/UserProgram/centerDepthSmooth.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
 
 void main() {

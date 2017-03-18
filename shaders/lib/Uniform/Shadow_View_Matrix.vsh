@@ -1,4 +1,4 @@
-#ifdef TIME_OVERRIDE	
+#if defined TIME_OVERRIDE || defined TELEFOCAL_SHADOWS
 	varying mat4 shadowView;
 	
 	#define shadowViewMatrix shadowView
@@ -20,7 +20,9 @@
 		twistAngle = 0.0;
 		
 		
+	#ifdef TIME_OVERRIDE
 		TimeOverride();
+	#endif
 		
 		
 		isNight = float(mod(timeAngle, 360.0) > 180.0 != mod(abs(pathRotationAngle) + 90.0, 360.0) > 180.0); // When they're not both above or below the horizon
@@ -45,6 +47,30 @@
 				-C*A,    -D,         -C*B,  shadowModelView[1].w,
 		 D*A*E + B*F,  -C*E,  D*B*E - A*F,  shadowModelView[2].w,
 		 shadowModelView[3]);
+		
+	#ifdef TELEFOCAL_SHADOWS
+		#ifdef SHADOWS_FOCUS_CENTER
+			vec3 position = vec3(0.0, 0.0, centerDepthSmooth * 2.0 - 1.0);
+			     position = projMAD(projInverseMatrix, position) / (position.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
+			     position = mat3(gbufferModelViewInverse) * position;
+		#else
+			#include "/UserProgram/ShadowFocus.vsh"
+			
+			#if !defined gbuffers_shadow
+				vec3 camPos = previousCameraPosition;
+			#else
+				vec3 camPos = cameraPosition;
+			#endif
+			
+			vec3 position = vec3(Shadow_Focus_X, Shadow_Focus_Y, Shadow_Focus_Z) - camPos;
+			
+			#undef X
+			#undef Y
+			#undef Z
+		#endif
+		
+		shadowView[3].xyz -= mat3(shadowView) * position;
+	#endif
 		
 		worldLightVector = vec3(F*D*B + E*A,  -C*B,  E*D*B - F*A);
 	}

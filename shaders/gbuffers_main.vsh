@@ -31,6 +31,7 @@ varying float nightVision;
 
 #if defined gbuffers_water
 #include "/lib/Uniform/Shading_Variables.glsl"
+#include "/UserProgram/centerDepthSmooth.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
 #endif
 

@@ -7,6 +7,8 @@ const bool  shadowHardwareFiltering0 = true;
 const float wetnessHalflife          = 40.0;
 const float drynessHalflife          = 40.0;
 
+const float centerDepthHalflife = 0.5;
+
 /*
 ** Transparent Gbuffers **
 const int colortex0Format = RG32F;
@@ -117,6 +119,9 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define CONSTANT_TIME_HOUR 3 // [0 3 6 9 12 15 18 21]
 #define CUSTOM_DAY_NIGHT   1 // [1 2]
 #define CUSTOM_TIME_MISC   1 // [1 2]
+
+//#define TELEFOCAL_SHADOWS
+//#define SHADOWS_FOCUS_CENTER
 
 
 #define DEBUG_VIEW 1 // [-1 0 1 2 3 7]

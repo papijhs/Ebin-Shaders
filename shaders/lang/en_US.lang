@@ -218,6 +218,23 @@ option.WEATHER=Weather
 option.WEATHER.comment=Weather is not really set up yet.
 
 
+screen.Telefocal=Telefocal Shadows
+screen.Telefocal.comment=Focus the shadow quality-center to a coordinate, or the center of your screen
+
+option.TELEFOCAL_SHADOWS=Telefocal Shadows
+option.TELEFOCAL_SHADOWS.comment=Focus the shadow quality-center to a coordinate, or the center of your screen
+
+option.SHADOWS_FOCUS_CENTER=Focus Center
+option.SHADOWS_FOCUS_CENTER.comment=Focus shadow quality to the center of your screen. "centerDepthSmooth" must be enabled for this feature! It can be enabled in: /UserProgram/centerDepthSmooth.glsl
+
+option.Shadow_Focus_X=Shadow Focus X
+option.Shadow_Focus_X.comment=The X coordinate of the shadow map's highest quality zone. This coordinate can be set in: /UserProgram/Shadow_Focus.glsl. These coordinates are overwritten by the "Focus Center" option
+option.Shadow_Focus_Y=Shadow Focus Y
+option.Shadow_Focus_Y.comment=The Y coordinate of the shadow map's highest quality zone. This coordinate can be set in: /UserProgram/Shadow_Focus.glsl. These coordinates are overwritten by the "Focus Center" option
+option.Shadow_Focus_Z=Shadow Focus Z
+option.Shadow_Focus_Z.comment=The Z coordinate of the shadow map's highest quality zone. This coordinate can be set in: /UserProgram/Shadow_Focus.glsl. These coordinates are overwritten by the "Focus Center" option
+
+
 option.WATER_SHADOW=Water Shadow
 
 
