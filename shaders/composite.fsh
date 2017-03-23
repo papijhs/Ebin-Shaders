@@ -183,7 +183,7 @@ vec2 ComputeVolumetricLight(vec3 position, vec3 frontPos, vec2 noise, float wate
 		ray += shadowStep;
 	}
 	
-	result = (isEyeInWater == 0 ? result.xy : result.yx);
+	result = isEyeInWater == 0 ? result.xy : result.yx;
 	
 	return result / maxSteps;
 }

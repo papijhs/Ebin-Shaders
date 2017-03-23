@@ -57,6 +57,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 
 #if !defined low_profile
 	#define GI_ENABLED
+	//#define VOLUMETRIC_LIGHT
 #endif
 
 //#define PLAYER_GI_BOUNCE

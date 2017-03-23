@@ -4,7 +4,7 @@
 #define ShaderStage 1
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:14 */
+/* DRAWBUFFERS:145 */
 
 const bool colortex5MipmapEnabled = true;
 
@@ -72,48 +72,62 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
 
-void BilateralUpsample(vec3 normal, float depth, float waterMask, out vec3 GI, out float VL) {
+void BilateralUpsample(vec3 normal, float depth, float waterMask, out vec3 GI, out vec2 VL) {
 	GI = vec3(0.0);
-	VL = 1.0;
+	VL = vec2(1.0);
 	
-#if defined GI_ENABLED
+#if defined GI_ENABLED || defined VOLUMETRIC_LIGHT
 	vec2 scaledCoord = texcoord * COMPOSITE0_SCALE;
 	
-	depth = ExpToLinearDepth(depth);
+	float expDepth = ExpToLinearDepth(depth);
 	
 	cfloat kernal = 2.0;
 	cfloat range = kernal * 0.5 - 0.5;
 	
-	vec2 totalWeight = vec2(0.0);
+	float totalWeight = 0.0;
 	
-	vec4 samples = vec4(0.0);
+	vec3 samples = vec3(0.0);
 	
+	#ifdef GI_ENABLED
+	if (mix(waterMask, 1.0 - waterMask * float(depth < 1.0), isEyeInWater) + float(depth >= 1.0) < 0.5) {
+		for(float y = -range; y <= range; y++) {
+			for(float x = -range; x <= range; x++) {
+				vec2 offset = vec2(x, y) * pixelSize;
+				
+				float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
+				vec3  sampleNormal =     DecodeNormal(texture2D(colortex4, texcoord + offset * 8.0).g, 11);
+				
+				float weight  = clamp01(1.0 - abs(expDepth - sampleDepth));
+					  weight *= abs(dot(normal, sampleNormal)) * 0.5 + 0.5;
+					  weight += 0.001;
+				
+				samples += pow2(texture2DLod(colortex5, scaledCoord + offset * 2.0, 1).rgb) * weight;
+				
+				totalWeight += weight;
+			}
+		} GI = samples * 5.0 / totalWeight;
+		
+		samples = vec3(0.0);
+		totalWeight = 0.0;
+	}
+	#endif
+	
+	#ifdef VOLUMETRIC_LIGHT
 	for(float y = -range; y <= range; y++) {
 		for(float x = -range; x <= range; x++) {
 			vec2 offset = vec2(x, y) * pixelSize;
 			
-			float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
-			vec3  sampleNormal =     DecodeNormal(texture2D(colortex4, texcoord + offset * 8.0).g, 11);
+			float sampleDepth = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
+			float weight = clamp01(1.0 - abs(expDepth - sampleDepth)) + 0.001;
 			
-			vec2 weight    = vec2(clamp01(1.0 - abs(depth - sampleDepth)));
-			     weight.x *= abs(dot(normal, sampleNormal)) * 0.5 + 0.5;
-			     weight   += 0.001;
-			
-			vec4 Sample      = texture2DLod(colortex5, scaledCoord + offset * 2.0, 1);
-			     Sample.rgb *= Sample.rgb;
-			
-			samples += Sample * weight.xxxy;
+			samples.xy += texture2DLod(colortex5, scaledCoord + offset * 2.0, 1).ab * weight;
 			
 			totalWeight += weight;
 		}
-	}
+	} VL = samples.xy / totalWeight;
 	
-	samples /= totalWeight.xxxy;
-	
-	GI  = samples.rgb * 5.0;
-	GI *= 1.0 - waterMask;
-	
-	VL  = samples.a;
+	VL.y *= mix(waterMask, 1.0 - waterMask, isEyeInWater);
+	#endif
 #endif
 }
 
@@ -158,13 +172,13 @@ void main() {
 		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), ReEncodeNormal(texure0.g, 11.0));
 	}
 	
+	vec3 GI; vec2 VL;
+	BilateralUpsample(mat3(gbufferModelViewInverse) * normal, depth1, mask.water, GI, VL);
+	
 	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
+	gl_FragData[2] = vec4(VL.xy, 0.0, 1.0);
 	
 	if (depth1 - mask.hand >= 1.0) { exit(); return; }
-	
-	
-	vec3 GI; float VL;
-	BilateralUpsample(mat3(gbufferModelViewInverse) * normal, depth1, mask.water, GI, VL);
 	
 	
 	vec3 diffuse = GetDiffuse(texcoord);

@@ -24,7 +24,7 @@ varying vec2 texcoord;
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
 
 void main() {
-#if defined GI_ENABLED
+#if defined GI_ENABLED || defined VOLUMETRIC_LIGHT
 	texcoord    = gl_MultiTexCoord0.st;
 	gl_Position = ftransform();
 	
