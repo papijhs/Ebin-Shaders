@@ -29,6 +29,8 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 #endif
 
 
+#include "/lib/Utility/pow.glsl"
+
 #include "/lib/Utility/fastMath.glsl"
 
 #include "/lib/Utility/smoothing.glsl"
@@ -41,18 +43,6 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 
 #include "/lib/Utility/blending.glsl"
 
-
-float pow2(float f) {
-	return f * f;
-}
-
-vec2 pow2(vec2 v) {
-	return v * v;
-}
-
-vec3 pow2(vec3 v) {
-	return v * v;
-}
 
 vec2 rotate(in vec2 vector, float radians) {
 	return vector *= mat2(

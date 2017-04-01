@@ -9,10 +9,10 @@ float length2(vec3 x) {
 float length8(vec2 x) {
 	x *= x;
 	x *= x;
-	return sqrt(sqrt(sqrt(dot(x, x))));
+	return pow(dot(x, x), 0.125);
 }
 
 float lengthN(vec2 x, float N) {
-	x = pow(x * x, swizzle.aa * N);
-	return pow(dot(x, swizzle.rr), 1.0 / N);
+	x = pow(abs(x), vec2(N));
+	return pow(x.x + x.y, 1.0 / N);
 }
