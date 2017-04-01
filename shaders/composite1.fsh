@@ -110,6 +110,8 @@ void BilateralUpsample(vec3 normal, float depth, float waterMask, out vec3 GI, o
 		samples = vec3(0.0);
 		totalWeight = 0.0;
 	}
+	
+	GI.b *= 1.0 - isEyeInWater;
 	#endif
 	
 	#ifdef VOLUMETRIC_LIGHT
@@ -120,13 +122,13 @@ void BilateralUpsample(vec3 normal, float depth, float waterMask, out vec3 GI, o
 			float sampleDepth = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
 			float weight = clamp01(1.0 - abs(expDepth - sampleDepth)) + 0.001;
 			
-			samples.xy += texture2DLod(colortex5, scaledCoord + offset * 2.0, 1).ab * weight;
+			samples.xy += texture2DLod(colortex5, scaledCoord + offset, 0).ab * weight;
 			
 			totalWeight += weight;
 		}
 	} VL = samples.xy / totalWeight;
 	
-	VL.y *= mix(waterMask, 1.0 - waterMask, isEyeInWater);
+	VL.y *= mix(waterMask, 1.0f, isEyeInWater);
 	#endif
 #endif
 }

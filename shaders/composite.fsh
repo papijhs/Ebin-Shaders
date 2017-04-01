@@ -236,8 +236,11 @@ void main() {
 	vec3 normal = DecodeNormal(texure4.g, 11);
 	
 	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
+	     GI = sqrt(GI * 0.2);
 	
-	gl_FragData[0] = vec4(sqrt(GI * 0.2), VL.x);
+	if (isEyeInWater > 0) GI.b = VL.g;
+	
+	gl_FragData[0] = vec4(GI, VL.x);
 	
 	exit();
 }
