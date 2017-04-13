@@ -98,7 +98,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 	
 	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position), 0.25)), MinQuality, maxQuality) * TERRAIN_PARALLAX_QUALITY;
 	
-	vec3 tangentRay = normalize(position * tbnMatrix);
+	vec3 tangentRay = normalize(position) * tbnMatrix;
 	
 	float tileScale  = atlasSize.x / TEXTURE_PACK_RESOLUTION;
 	vec2  tileCoord  = fract(coord * tileScale);
@@ -136,6 +136,8 @@ void main() {
 	
 	float specularity = GetSpecularity(coord);
 	
+//	gl_FragDepth = projMAD(projMatrix, position[0]).z / -position[0].z * 0.5 + 0.5;
+	
 #if defined WEATHER && defined NORMAL_MAPS
 	specularity = clamp01(specularity + wetness);
 #endif
@@ -158,7 +160,7 @@ void main() {
 		
 		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
 		
-		normal = tbnMatrix * GetWaveNormals(position[1] - worldDisplacement, tbnMatrix[2]);
+		normal = tbnMatrix * GetWaveNormals(position[1], tbnMatrix[2]);
 		
 		specularity = 1.0;
 		mask.water = 1.0;

@@ -8,89 +8,39 @@ float GetWave(vec2 coord) {
 float SharpenWave(float wave) {
 	wave = 1.0 - abs(wave * 2.0 - 1.0);
 	
-	if (wave > 0.78) wave = 5.0 * wave - pow2(wave) * 2.5 - 1.6;
-	
-	return wave;
+	return wave < 0.78 ? wave : (wave * -2.5 + 5.0) * wave - 1.6;
 }
 
-float GetWavesOLD(vec3 position) {
-	float time = TIME * WAVE_SPEED * 0.6;
-	
-	vec2 pos  = position.xz + position.y;
-	     pos += time * vec2(1.0, -1.0);
-	     pos *= 0.065;
-	
-	
-	float weight, waves, weights;
-	
-	
-	pos = pos / 2.1 - vec2(time / 30.0, time * 0.03);
-	
-	weight   = 4.0;
-	waves   += GetWave(vec2(pos.x * 2.0, pos.y * 1.4 + pos.x * -2.1)) * weight;
-	weights += weight;
-	
-	
-	pos = pos / 1.5 + vec2(time / 20.0, 0.0);
-	
-	weight   = 17.0;
-	waves   += GetWave(vec2(pos.x, pos.y * 0.75 + pos.x * 1.1)) * weight;
-	weights += weight;
-	
-	
-	pos = pos / 1.5 - vec2(time / 55.0, 0.0);
-	
-	weight   = 15.0;
-	waves   += GetWave(vec2(pos.x, pos.y * 0.75 + pos.x * -1.7)) * weight;
-	weights += weight;
-	
-	
-	pos = pos / 1.9 + vec2(time * 0.8 / 155.0, 0.0);
-	
-	weight   = 29.0;
-	waves   += SharpenWave(GetWave(vec2(pos.x, pos.y * 0.8 + pos.x * -1.7))) * weight;
-	weights += weight;
-	
-	
-	return waves / weights;
-}
+cfloat wave1 = 29.0 * WAVE_MULT / 65.0;
+cfloat wave2 = 15.0 * WAVE_MULT / 65.0;
+cfloat wave3 = 17.0 * WAVE_MULT / 65.0;
+cfloat wave4 =  4.0 * WAVE_MULT / 65.0;
 
 float GetWaves(vec3 position) {
 	float time = TIME * WAVE_SPEED * 0.6;
 	
-	vec2 pos  = position.xz + position.y;
-	     pos += time * vec2(1.0, -1.0);
-	     pos *= 0.065;
+	vec2 pos = position.xz + position.y;
+	     pos = pos * 0.0065 + time * vec2(0.0065, -0.0065);
 	
+	float waves = 0.0;
 	
-	float weight, waves, weights;
+	pos = pos + vec2(time * 0.007, time * -0.01);
 	
-	pos = pos * 0.1  + vec2(time * 5.0e-3, time * -7.0e-3);
+	waves += SharpenWave(GetWave(vec2(pos.x, pos.y * 0.8 + pos.x * -1.7))) * wave1;
 	
-	weight   = 29.0;
-	waves   += SharpenWave(GetWave(vec2(pos.x, pos.y * 0.8 + pos.x * -1.7))) * weight;
-	weights += weight;
+	pos = pos * 2.0 + vec2(time * -0.01, time * 0.015);
 	
-	pos = pos * 2.0 + vec2(time * -1.0e-4, 0.0);
+	waves += GetWave(vec2(pos.x, pos.y * 0.75 + pos.x * -1.7)) * wave2;
 	
-	weight   = 15.0;
-	waves   += GetWave(vec2(pos.x, pos.y * 0.75 + pos.x * -1.7)) * weight;
-	weights += weight;
+	pos = pos * 1.5 + vec2(time * 0.03, 0.0);
 	
-	pos = pos * 1.5 + vec2(time * 3.0e-2, 0.0);
-	
-	weight   = 17.0;
-	waves   += GetWave(vec2(pos.x, pos.y * 0.75 + pos.x * 1.1)) * weight;
-	weights += weight;
+	waves += GetWave(vec2(pos.x, pos.y * 0.75 + pos.x * 1.1)) * wave3;
 	
 	pos = pos * 1.5 + vec2(time * -0.075, 0.0);
 	
-	weight   = 4.0;
-	waves   += GetWave(vec2(pos.x * 2.0, pos.y * 1.4 + pos.x * -2.1)) * weight;
-	weights += weight;
+	waves += GetWave(vec2(pos.x * 2.0, pos.y * 1.4 + pos.x * -2.1)) * wave4;
 	
-	
-	return waves / weights;
+	return waves;
 }
 
 vec2 GetWaveDifferentials(vec3 position, cfloat scale) { // Get finite wave differentials for the world-space X and Z coordinates
@@ -101,16 +51,55 @@ vec2 GetWaveDifferentials(vec3 position, cfloat scale) { // Get finite wave diff
 	return a - vec2(aX, aY);
 }
 
+vec3 GetParallaxWave(vec3 worldPos, float angleCoeff) {
+#ifndef WATER_PARALLAX
+	return worldPos;
+#endif
+	
+	vec3  tangentRay = normalize(position[1]) * tbnMatrix;
+	vec3  stepSize = 0.5 * vec3(1.0, 1.0, 1.0);
+	float stepCoeff = -tangentRay.z * 5.0 / stepSize.z;
+	
+	vec3  step = tangentRay * stepSize;
+	
+	angleCoeff = clamp01(angleCoeff * 2.0);
+	
+	float rayHeight = angleCoeff;
+	float sampleHeight = GetWaves(worldPos) * angleCoeff;
+	
+	float count = 0.0;
+	
+	while(sampleHeight < rayHeight && count++ < 100.0) {
+		worldPos.xz += step.xy * clamp01((rayHeight - sampleHeight) * stepCoeff);
+		rayHeight   += step.z;
+		
+		sampleHeight = GetWaves(worldPos) * angleCoeff;
+	}
+	
+	return worldPos;
+}
+
+vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
+	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z * 0.5 + 0.5;
+}
 
 vec3 GetWaveNormals(vec3 worldSpacePosition, vec3 flatWorldNormal) {
-	vec2 diff = GetWaveDifferentials(worldSpacePosition + cameraPos, 0.1);
+	float angleCoeff  = -dot(flatWorldNormal, normalize(position[1].xyz));
+	      angleCoeff /= clamp(length(position[1]) * 0.05, 1.0, 10.0);
+	      angleCoeff  = clamp01(angleCoeff * 2.5);
+	      angleCoeff  = sqrt(angleCoeff);
 	
-	float viewVectorCoeff  = -dot(flatWorldNormal, normalize(worldSpacePosition.xyz));
-	      viewVectorCoeff /= clamp(length(worldSpacePosition) * 0.05, 1.0, 10.0);
-	      viewVectorCoeff  = clamp01(viewVectorCoeff * 2.5);
-	      viewVectorCoeff  = sqrt(viewVectorCoeff);
+	vec3 pos = GetParallaxWave(position[1] + cameraPos - worldDisplacement, angleCoeff);
 	
-	diff *= WAVE_MULT * viewVectorCoeff;
+//	vec3 p = pos + worldDisplacement - cameraPos;
+//	p = p * mat3(gbufferModelViewInverse);
+//	p.z = min(-0.0, p.z);
+//	p = ViewSpaceToScreenSpace(p);
+//	gl_FragDepth = p.z;
+	
+	vec2 diff = GetWaveDifferentials(pos, 0.1);
+	
+	diff *= angleCoeff;
 	
 	return vec3(diff, sqrt(1.0 - length2(diff)));
 }

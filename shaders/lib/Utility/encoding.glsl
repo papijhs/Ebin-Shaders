@@ -112,9 +112,9 @@ float EncodeNormalU(vec3 normal, float water) {
 	
 	uvec3 enc = uvec3(normal.xy, water);
 	enc.x = enc.x & 4095;
-	enc.yz = enc.yz << uvec2(12, 23);
+	enc.yz = enc.yz << uvec2(12, 24);
 	
-	return uintBitsToFloat(enc.x + enc.y + enc.z);
+	return uintBitsToFloat(enc.x + enc.y + (1<<23) + enc.z);
 }
 
 float ReEncodeNormal(float enc, cfloat bits) {
@@ -146,5 +146,5 @@ vec3 DecodeNormalU(float enc) {
 }
 
 float DecodeWater(float enc) {
-	return float(floatBitsToUint(enc) >> 23);
+	return float(floatBitsToUint(enc) >> 24);
 }

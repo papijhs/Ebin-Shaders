@@ -1,6 +1,13 @@
 vec3 UserDeformation(vec3 position) {
-	position.xy = rotate(position.xy, position.z * 0.04);
-	
+	position.y -= 20.0;
+#if !defined gbuffers_shadow
+	position.y += 1.6;
+#endif
+	position.xy = rotate(position.xy, position.x * 0.002 + radians(-52.0));
+	position.y += 20.0;
+#if !defined gbuffers_shadow
+	position.y -= 1.6;
+#endif
 	return position;
 }
 

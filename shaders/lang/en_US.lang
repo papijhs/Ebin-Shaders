@@ -168,6 +168,8 @@ option.CLOUD_COVERAGE_2D=Cloud Coverage
 option.CLOUD_SPEED_2D=Cloud Speed
 
 
+option.WATER_PARALLAX=Water Parallax
+
 option.WAVE_MULT=Wave Height
 option.WAVE_SPEED=Wave Speed
 

@@ -133,9 +133,9 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
 	if (isEyeInWater == 1) return;
 	
-	float alpha = (pow2(clamp01(1.0 + dot(normalize(position[0]), normal)))) * smoothness;
+	float alpha = pow2(clamp01(1.0 + dot(normalize(position[0]), normal))) * smoothness;
 	
-	if (length(alpha) < 0.001) return;
+	if (length(alpha) < 0.0005) return;
 	
 	mat2x3 refRay;
 	refRay[0] = reflect(position[0], normal);
