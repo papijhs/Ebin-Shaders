@@ -27,6 +27,10 @@ vec3 TerrainDeformation(vec3 position) {
 	
 #ifdef DEFORM
 	
+	#if !defined gbuffers_shadow
+		position += gbufferModelViewInverse[3].xyz;
+	#endif
+	
 	#if DEFORMATION == 1
 		
 		position = Globe(position, 500.0);
@@ -39,6 +43,10 @@ vec3 TerrainDeformation(vec3 position) {
 		
 		position = UserDeformation(position);
 		
+	#endif
+	
+	#if !defined gbuffers_shadow
+		position -= gbufferModelViewInverse[3].xyz;
 	#endif
 	
 #endif
