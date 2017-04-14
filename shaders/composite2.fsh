@@ -127,6 +127,9 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 	return false;
 }
 
+#include "lib/Fragment/Water_Depth_Fog.fsh"
+#include "/lib/Fragment/AerialPerspective.fsh"
+
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight_Shading.fsh"
 
@@ -158,6 +161,22 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 		
 		vec3 refViewSpacePosition = CalculateViewSpacePosition(reflectedCoord);
 		
+	//	#define DOUBLE_WATER_REFLECTIONS
+		#ifdef DOUBLE_WATER_REFLECTIONS
+			vec2 texture4 = textureRaw(colortex4, reflectedCoord.st).rg;
+			Mask mask     = CalculateMasks(Decode4x8F(texture4.r).r);
+			
+			if (mask.water > 0.5) {
+				vec3 normal2 = DecodeNormal(texture4.g, 11) * mat3(gbufferModelViewInverse);
+				
+				refRay[0] = reflect(refViewSpacePosition, normal2);
+				refRay[1] = mat3(gbufferModelViewInverse) * refRay[0];
+				
+			//	reflection = mix(reflection, CalculateSky(refRay[1], mat3(gbufferModelViewInverse) * refViewSpacePosition, 1.0, 1.0, true, 1.0) + AerialPerspective(length(abs(refViewSpacePosition) + abs(position[0])), 1.0)*1.0, pow2(clamp01(1.0 + dot(normalize(refViewSpacePosition - position[0]), normal2))));
+				reflection = offscreen;
+			}
+		#endif
+		
 		reflection = mix(reflection, reflectedSky, CalculateFogFactor(refViewSpacePosition, FOG_POWER));
 		
 		#ifdef REFLECTION_EDGE_FALLOFF
@@ -171,13 +190,10 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	color = mix(color, reflection, alpha);
 }
 
-#include "lib/Fragment/Water_Depth_Fog.fsh"
-#include "/lib/Fragment/AerialPerspective.fsh"
-
 void main() {
-	vec2 texure4 = ScreenTex(colortex4).rg;
+	vec2 texture4 = ScreenTex(colortex4).rg;
 	
-	vec4  decode4       = Decode4x8F(texure4.r);
+	vec4  decode4       = Decode4x8F(texture4.r);
 	Mask  mask          = CalculateMasks(decode4.r);
 	float smoothness    = decode4.g;
 	float skyLightmap   = decode4.a;
@@ -205,7 +221,7 @@ void main() {
 	
 	vec3 sky = CalculateSky(backPos[1], vec3(0.0), float(depth1 >= 1.0), 1.0 - alpha, false, 1.0);
 	
-	vec3 normal = DecodeNormal(texure4.g, 11) * mat3(gbufferModelViewInverse);
+	vec3 normal = DecodeNormal(texture4.g, 11) * mat3(gbufferModelViewInverse);
 	
 	if (isEyeInWater == 1) sky = WaterFog(sky, normal, frontPos[0], vec3(0.0));
 	else if (mask.water > 0.5) sky = mix(WaterFog(sky, normal, frontPos[0], backPos[0]), sky, CalculateFogFactor(frontPos[0], FOG_POWER));
