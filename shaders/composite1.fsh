@@ -25,6 +25,7 @@ uniform mat4 shadowProjection;
 uniform vec3 cameraPosition;
 uniform vec3 upPosition;
 
+uniform float frameTimeCounter;
 uniform float near;
 uniform float far;
 
@@ -68,7 +69,6 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	
 	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
 }
-
 
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
 

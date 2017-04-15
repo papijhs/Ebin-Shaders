@@ -101,6 +101,7 @@ cfloat noiseResInverse = 1.0 / noiseRes;
 #define CLOUD_SPEED_2D    1.00 // [0.25 0.50 1.00 2.00 4.00]
 
 //#define WATER_PARALLAX
+//#define WATER_CAUSTICS
 #define WAVE_MULT  1.0 // [0.0 0.5 1.0 1.5 2.0]
 #define WAVE_SPEED 1.0 // [0.0 0.5 1.0 2.0]
 

@@ -67,6 +67,15 @@ float GetWaves(vec2 coord) {
 	return waves;
 }
 
+vec2 GetWaveDifferentials(vec2 coord, cfloat scale) { // Get finite wave differentials for the world-space X and Z coordinates
+	float a  = GetWaves(coord                     );
+	float aX = GetWaves(coord + vec2(scale,   0.0));
+	float aY = GetWaves(coord + vec2(  0.0, scale));
+	
+	return a - vec2(aX, aY);
+}
+
+#if defined gbuffers_water
 vec2 GetParallaxWave(vec2 worldPos, float angleCoeff) {
 #ifndef WATER_PARALLAX
 	return worldPos;
@@ -93,14 +102,6 @@ vec2 GetParallaxWave(vec2 worldPos, float angleCoeff) {
 	}
 	
 	return worldPos;
-}
-
-vec2 GetWaveDifferentials(vec2 coord, cfloat scale) { // Get finite wave differentials for the world-space X and Z coordinates
-	float a  = GetWaves(coord                     );
-	float aX = GetWaves(coord + vec2(scale,   0.0));
-	float aY = GetWaves(coord + vec2(  0.0, scale));
-	
-	return a - vec2(aX, aY);
 }
 
 vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
@@ -130,3 +131,4 @@ vec3 GetWaveNormals(vec3 worldSpacePosition, vec3 flatWorldNormal) {
 	
 	return vec3(diff, sqrt(1.0 - length2(diff)));
 }
+#endif
