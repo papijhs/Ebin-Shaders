@@ -1,15 +1,17 @@
-float GetNoise(vec2 position) {
-	vec2 whole = floor(position);
-	vec2 coord = whole + cubesmooth(position - whole) + 0.5;
+float GetNoise(vec2 coord) {
+	cvec2 madd = vec2(0.5 * noiseResInverse);
+	vec2 whole = floor(coord);
+	coord = whole + cubesmooth(coord - whole);
 	
-	return texture2D(noisetex, coord * noiseResInverse).x;
+	return texture2D(noisetex, coord * noiseResInverse + madd).x;
 }
 
-vec2 GetNoise2D(vec2 position) {
-	vec2 whole = floor(position);
-	vec2 coord = whole + cubesmooth(position - whole) + 0.5;
+vec2 GetNoise2D(vec2 coord) {
+	cvec2 madd = vec2(0.5 * noiseResInverse);
+	vec2 whole = floor(coord);
+	coord = whole + cubesmooth(coord - whole);
 	
-	return texture2D(noisetex, coord * noiseResInverse).xy;
+	return texture2D(noisetex, coord * noiseResInverse + madd).xy;
 }
 
 float GetCoverage(float clouds, float coverage) {

@@ -27,9 +27,10 @@ const float eyeBrightnessHalflife = 1.5;
 const float ambientOcclusionLevel = 0.65;
 */
 
-const int noiseTextureResolution = 64;
-cfloat noiseRes = noiseTextureResolution;
+const int noiseTextureResolution = 64; // [16 32 64 128 256 512 1024]
+cfloat noiseRes = float(noiseTextureResolution);
 cfloat noiseResInverse = 1.0 / noiseRes;
+cfloat noiseScale = 64.0 / noiseRes;
 
 
 

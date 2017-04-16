@@ -68,39 +68,45 @@ float CalculateWaterCaustics(vec3 worldPos, float waterMask) {
 	
 	float caustics = 0.0;
 	
-	vec4 e = vec4(0.0);
-	vec3 a;
+	vec3 r; // RIGHT height sample to rollover between columns
+	vec3 a; // .x = center      .y = top      .z = right
+	mat4x3[4] p;
 	
-	for (float y = -1.0; y <= 1.0; y++) {
-		for (float x = -1.0; x <= 1.0; x++) {
+	for (int x = -1; x <= 1; x++) {
+		for (int y = -1; y <= 1; y++) { // 3x3 sample matrix. Starts bottom-left and immediately goes UP
 			vec2 offset = vec2(x, y) * 0.1;
 			
-			if (x == -1.0 && y == -1.0) a.x = GetWaves(coord + offset);
-			else if (y == -1.0)         a.x = a.y;
-			else a.x = e[uint(x)+1];
+			// Generate heights for wave normal differentials. Lots of math & sample reuse happening
+			if (x == -1 && y == -1) a.x = GetWaves(coord + offset, p[0]); // If bottom-left-position, generate the height & save FBM coords
+			else if (x == -1)       a.x = a.y;                            // If left-column, reuse TOP sample from previous iteration
+			else                    a.x = r[y + 1];                       // If not left-column, reuse RIGHT sample from previous column
 			
-			if (x != 1.0 && y != -1.0) a.y = e[uint(x)+2];
-			else a.y = GetWaves(coord + offset + vec2(0.1, 0.0));
+			if (x != -1 && y != 1) a.y = r[y + 2]; // If not left-column and not top-row, reuse RIGHT sample from previous column 1 row up
+			else a.y = GetWaves(p[x + 1], vec2(0.0, offset.y + 0.2)); // If left-column or top-row, reuse previously computed FBM coords
 			
-			a.z = GetWaves(coord + offset + vec2(0.0, 0.1));
+			if (y == -1) a.z = GetWaves(coord + offset + vec2(0.1, 0.0), p[x + 2]); // If bottom-row, generate the height & save FBM coords
+			else a.z = GetWaves(p[x + 2], vec2(0.0, offset.y + 0.1)); // If not bottom-row, reuse FBM coords
 			
-			e[uint(x)+1] = a.z;
+			r[y + 1] = a.z; // Save RIGHT height sample for later
+			
 			
 			vec2 diff = a.x - a.yz;
 			
-			vec3 wavesNormal = vec3(diff, sqrt(1.0 - length2(diff)));
+			vec3 wavesNormal = vec3(diff, sqrt(1.0 - length2(diff))).yzx;
 			
-			vec3 refractVector = refract(-worldLightVector, wavesNormal.xzy, 1.0 / 1.3333);
-			vec2 dist = flatRefractVector.xz - refractVector.xz * (verticalDist / refractVector.y);
+			vec3 refractVector = refract(-worldLightVector, wavesNormal, 1.0 / 1.3333);
+			vec2 dist = refractVector.xz * (-verticalDist / refractVector.y) + (flatRefractVector.xz + offset);
 			
-			caustics += 1.0 - clamp01(length(dist + offset) / distanceThreshold);
+			caustics += clamp01(length(dist) / distanceThreshold);
 		}
 	}
 	
-	caustics *= 0.05 / pow2(distanceThreshold) / 9.0;
+	caustics = 1.0 - caustics / 9.0;
+	caustics *= 0.05 / pow2(distanceThreshold);
 	
 	return pow2(caustics);
 }
+
 
 #else
 #define CalculateWaterCaustics(a, b) 1.0
@@ -108,7 +114,7 @@ float CalculateWaterCaustics(vec3 worldPos, float waterMask) {
 
 vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, mat2x3 position) {
 	Shading shading;
-	
+	skyLightmap = 1.0;
 	shading.sunlight  = GetLambertianShading(normal, lightVector, mask) * skyLightmap;
 	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight);
 	

@@ -1,9 +1,17 @@
-float GetWave(vec2 coord) {
+float GetWaveCoord(float coord) {
+	cfloat madd = 0.5 * noiseResInverse;
+	float whole = floor(coord);
+	coord = whole + cubesmooth(coord - whole);
+	
+	return coord * noiseResInverse + madd;
+}
+
+vec2 GetWaveCoord(vec2 coord) {
+	cvec2 madd = vec2(0.5 * noiseResInverse);
 	vec2 whole = floor(coord);
+	coord = whole + cubesmooth(coord - whole);
 	
-	coord = floor(coord) + cubesmooth(coord - whole) + 0.5;
-	
-	return texture2D(noisetex, coord * noiseResInverse).x;
+	return coord * noiseResInverse + madd;
 }
 
 float SharpenWave(float wave) {
@@ -15,15 +23,20 @@ float SharpenWave(float wave) {
 cvec4 heights = vec4(29.0, 15.0, 17.0, 4.0);
 cvec4 height = heights * WAVE_MULT / sum4(heights);
 
-cvec2 scale1 = vec2(0.0065, 0.0052  ) * noiseRes;
-cvec2 scale2 = vec2(0.013 , 0.00975 ) * noiseRes;
-cvec2 scale3 = vec2(0.0195, 0.014625) * noiseRes;
-cvec2 scale4 = vec2(0.0585, 0.04095 ) * noiseRes;
+cvec2 scale1 = vec2(0.0065, 0.0052  ) * noiseRes * noiseScale;
+cvec2 scale2 = vec2(0.013 , 0.00975 ) * noiseRes * noiseScale;
+cvec2 scale3 = vec2(0.0195, 0.014625) * noiseRes * noiseScale;
+cvec2 scale4 = vec2(0.0585, 0.04095 ) * noiseRes * noiseScale;
 
-cvec2 disp1 = vec2(0.0135 , -0.0165) * noiseRes;
-cvec2 disp2 = vec2(0.017  , -0.018 ) * noiseRes;
-cvec2 disp3 = vec2(0.0555 , -0.027 ) * noiseRes;
-cvec2 disp4 = vec2(0.00825, -0.0405) * noiseRes;
+cvec2 stretch1 = vec2(scale1.x * -1.7 , 0.0);
+cvec2 stretch2 = vec2(scale2.x * -1.7 , 0.0);
+cvec2 stretch3 = vec2(scale3.x *  1.1 , 0.0);
+cvec2 stretch4 = vec2(scale4.x * -1.05, 0.0);
+
+cvec2 disp1 = vec2(0.04155, -0.0165   ) * noiseRes * noiseScale;
+cvec2 disp2 = vec2(0.017  , -0.0469   ) * noiseRes * noiseScale;
+cvec2 disp3 = vec2(0.0555 ,  0.03405  ) * noiseRes * noiseScale;
+cvec2 disp4 = vec2(0.00825, -0.0491625) * noiseRes * noiseScale;
 
 vec2 waveTime1;
 vec2 waveTime2;
@@ -39,38 +52,70 @@ void SetupWaveFBM() {
 	waveTime4 = waveTime * disp4;
 }
 
-float GetWaves(vec2 coord) {
-	vec2 c = coord;
-	
+float GetWaves(vec2 coord, io mat4x3 c) {
 	float waves = 0.0;
 	
-	c = coord * scale1 + waveTime1;
-	c.y += c.x * -1.7;
+	c[0].xy = coord * scale1 + waveTime1;
+	c[0].z  = coord.x * stretch1.x + c[0].y;
+	c[0].xy = GetWaveCoord(c[0].xz);
 	
-	waves += SharpenWave(GetWave(c)) * height.x;
+	waves += SharpenWave(texture2D(noisetex, c[0].xy).x) * height.x;
 	
-	c = coord * scale2 + waveTime2;
-	c.y += c.x * -1.7;
+	c[1].xy = coord * scale2 + waveTime1;
+	c[1].z  = coord.x * stretch2.x + c[1].y;
+	c[1].xy = GetWaveCoord(c[1].xz);
 	
-	waves += GetWave(c) * height.y;
+	waves += texture2D(noisetex, c[1].xy).x * height.y;
 	
-	c = coord * scale3 + waveTime3;
-	c.y += c.x * 1.1;
+	c[2].xy = coord * scale3 + waveTime1;
+	c[2].z  = coord.x * stretch3.x + c[2].y;
+	c[2].xy = GetWaveCoord(c[2].xz);
 	
-	waves += GetWave(c) * height.z;
+	waves += texture2D(noisetex, c[2].xy).x * height.z;
 	
-	c = coord * scale4 + waveTime4;
-	c.y += c.x * -1.05;
+	c[3].xy = coord * scale4 + waveTime1;
+	c[3].z  = coord.x * stretch4.x + c[3].y;
+	c[3].xy = GetWaveCoord(c[3].xz);
 	
-	waves += GetWave(c) * height.w;
+	waves += texture2D(noisetex, c[3].xy).x * height.w;
+	
+	return waves;
+}
+
+float GetWaves(vec2 coord) {
+	mat4x3 c;
+	
+	return GetWaves(coord, c);
+}
+
+float GetWaves(mat4x3 c, vec2 offset) {
+	float waves = 0.0;
+	
+	c[0].y = GetWaveCoord(offset.y * scale1.y + c[0].z);
+	
+	waves += SharpenWave(texture2D(noisetex, c[0].xy).x) * height.x;
+	
+	c[1].y = GetWaveCoord(offset.y * scale2.y + c[1].z);
+	
+	waves += texture2D(noisetex, c[1].xy).x * height.y;
+	
+	c[2].y = GetWaveCoord(offset.y * scale3.y + c[2].z);
+	
+	waves += texture2D(noisetex, c[2].xy).x * height.z;
+	
+	c[3].y = GetWaveCoord(offset.y * scale4.y + c[3].z);
+	
+	waves += texture2D(noisetex, c[3].xy).x * height.w;
 	
 	return waves;
 }
 
 vec2 GetWaveDifferentials(vec2 coord, cfloat scale) { // Get finite wave differentials for the world-space X and Z coordinates
-	float a  = GetWaves(coord                     );
+	mat4x3 c;
+	
+	float a  = GetWaves(coord, c);
 	float aX = GetWaves(coord + vec2(scale,   0.0));
-	float aY = GetWaves(coord + vec2(  0.0, scale));
+	float aY = GetWaves(c,      vec2(  0.0, scale));
 	
 	return a - vec2(aX, aY);
 }
