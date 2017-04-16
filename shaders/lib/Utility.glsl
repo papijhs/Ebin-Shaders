@@ -33,8 +33,6 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 
 #include "/lib/Utility/fastMath.glsl"
 
-#include "/lib/Utility/smoothing.glsl"
-
 #include "/lib/Utility/length.glsl"
 
 #include "/lib/Utility/clamping.glsl"
@@ -43,6 +41,10 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 
 #include "/lib/Utility/blending.glsl"
 
+
+// Applies a subtle S-shaped curve, domain [0 to 1]
+#define cubesmooth_(type) type cubesmooth(type x) { return (x * x) * (3.0 - 2.0 * x); }
+DEFINE_genFType(cubesmooth_)
 
 vec2 rotate(in vec2 vector, float radians) {
 	return vector *= mat2(

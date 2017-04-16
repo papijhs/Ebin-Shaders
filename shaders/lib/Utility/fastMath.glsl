@@ -11,6 +11,15 @@
 		res *= fsqrt(1.0 - ax);
 		return x >= 0 ? res : PI - res;
 	}
+	
+	#define facos_(type) type facos(type x) { \
+		type ax = abs(x); \
+		type res = -0.156583 * ax + PI * 0.5; \
+		res *= fsqrt(1.0 - ax); \
+		return mix(PI - res, res, b##type(greaterThanEqual(x, type(0.0)))); \
+	}
+	DEFINE_genVType(facos_)
+	
 #else
 	#define fsqrt(x) sqrt(x)
 	#define finversesqrt(x) inversesqrt(x)
@@ -18,14 +27,5 @@
 #endif
 
 
-float flength(vec2 x) {
-	return fsqrt(dot(x, x));
-}
-
-float flength(vec3 x) {
-	return fsqrt(dot(x, x));
-}
-
-float flength(vec4 x) {
-	return fsqrt(dot(x, x));
-}
+#define flength_(type) float flength(type x) { return fsqrt(dot(x, x)); }
+DEFINE_genFType(flength_)

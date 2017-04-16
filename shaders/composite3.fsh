@@ -43,7 +43,7 @@ vec3 ComputeBloomTile(cfloat scale, vec2 offset) { // Computes a single bloom ti
 		for (float j = -range; j <= range; j += interval) {
 			float weight  = 1.0 - length(vec2(i, j)) / maxLength;
 			      weight *= weight;
-			      weight  = cosmooth(weight); // Apply a faux-gaussian falloff
+			      weight  = cubesmooth(weight); // Apply a faux-gaussian falloff
 			
 			vec2 offset = vec2(i, j) * pixelSize;
 			

@@ -1,16 +1,12 @@
-float length2(vec2 x) {
-	return dot(x, x);
-}
+#define length2_(type) float length2(type x) { return dot(x, x); }
+DEFINE_genFType(length2_)
 
-float length2(vec3 x) {
-	return dot(x, x);
+#define length8_(type) float length8(type x) { \
+	x *= x; \
+	x *= x; \
+	return pow(dot(x, x), 0.125); \
 }
-
-float length8(vec2 x) {
-	x *= x;
-	x *= x;
-	return pow(dot(x, x), 0.125);
-}
+DEFINE_genFType(length8_)
 
 float lengthN(vec2 x, float N) {
 	x = pow(abs(x), vec2(N));

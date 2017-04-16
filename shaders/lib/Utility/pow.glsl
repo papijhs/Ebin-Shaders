@@ -1,23 +1,15 @@
-float pow2(float f) { return f * f; }
-float pow3(float f) { return f * f * f; }
-float pow4(float f) { f *= f; return f * f; }
-float pow5(float f) { float f2 = f * f; return f2 * f2 * f; }
-float pow6(float f) { float f2 = f * f; return f2 * f2 * f2; }
-float pow7(float f) { float f2 = f * f; return f2 * f2 * f2 * f; }
-float pow8(float f) { f *= f; f *= f; return f * f; }
+#define pow2_(type) type pow2(type x) { return x * x; }
+#define pow3_(type) type pow3(type x) { return x * x * x; }
+#define pow4_(type) type pow4(type x) { x *= x; return x * x; }
+#define pow5_(type) type pow5(type x) { type x2 = x * x; return x2 * x2 * x; }
+#define pow6_(type) type pow6(type x) { type x2 = x * x; return x2 * x2 * x2; }
+#define pow7_(type) type pow7(type x) { type x2 = x * x; return x2 * x2 * x2 * x; }
+#define pow8_(type) type pow8(type x) { x *= x; x *= x; return x * x; }
 
-vec2 pow2(vec2 f) { return f * f; }
-vec2 pow3(vec2 f) { return f * f * f; }
-vec2 pow4(vec2 f) { f *= f; return f * f; }
-vec2 pow5(vec2 f) { vec2 f2 = f * f; return f2 * f2 * f; }
-vec2 pow6(vec2 f) { vec2 f2 = f * f; return f2 * f2 * f2; }
-vec2 pow7(vec2 f) { vec2 f2 = f * f; return f2 * f2 * f2 * f; }
-vec2 pow8(vec2 f) { f *= f; f *= f; return f * f; }
-
-vec3 pow2(vec3 f) { return f * f; }
-vec3 pow3(vec3 f) { return f * f * f; }
-vec3 pow4(vec3 f) { f *= f; return f * f; }
-vec3 pow5(vec3 f) { vec3 f2 = f * f; return f2 * f2 * f; }
-vec3 pow6(vec3 f) { vec3 f2 = f * f; return f2 * f2 * f2; }
-vec3 pow7(vec3 f) { vec3 f2 = f * f; return f2 * f2 * f2 * f; }
-vec3 pow8(vec3 f) { f *= f; f *= f; return f * f; }
+DEFINE_genFType(pow2_)
+DEFINE_genFType(pow3_)
+DEFINE_genFType(pow4_)
+DEFINE_genFType(pow5_)
+DEFINE_genFType(pow6_)
+DEFINE_genFType(pow7_)
+DEFINE_genFType(pow8_)

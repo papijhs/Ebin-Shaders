@@ -15,7 +15,7 @@
 	#define COMPATIBILITY
 #endif
 
-#ifndef COMPATIBILITY
+#if !defined COMPATIBILITY
 	#define ENABLE_CONST
 #endif
 
@@ -60,3 +60,10 @@
 	#define cvec3  vec3
 	#define cvec4  vec4
 #endif
+
+#define DEFINE_genFType(func) func(float) func(vec2) func(vec3) func(vec4)
+#define DEFINE_genVType(func) func(vec2) func(vec3) func(vec4)
+#define DEFINE_genDType(func) func(double) func(dvec2) func(dvec3) func(dvec4)
+#define DEFINE_genIType(func) func(int) func(ivec2) func(ivec3) func(ivec4)
+#define DEFINE_genUType(func) func(uint) func(uvec2) func(uvec3) func(uvec4)
+#define DEFINE_genBType(func) func(bool) func(bvec2) func(bvec3) func(bvec4)
