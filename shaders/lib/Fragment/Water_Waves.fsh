@@ -28,10 +28,10 @@ cvec2 scale2 = vec2(0.013 , 0.00975 ) * noiseRes * noiseScale;
 cvec2 scale3 = vec2(0.0195, 0.014625) * noiseRes * noiseScale;
 cvec2 scale4 = vec2(0.0585, 0.04095 ) * noiseRes * noiseScale;
 
-cvec2 stretch1 = vec2(scale1.x * -1.7 , 0.0);
-cvec2 stretch2 = vec2(scale2.x * -1.7 , 0.0);
-cvec2 stretch3 = vec2(scale3.x *  1.1 , 0.0);
-cvec2 stretch4 = vec2(scale4.x * -1.05, 0.0);
+float stretch1 = scale1.x * -1.7 ;
+float stretch2 = scale2.x * -1.7 ;
+float stretch3 = scale3.x *  1.1 ;
+float stretch4 = scale4.x * -1.05;
 
 cvec2 disp1 = vec2(0.04155, -0.0165   ) * noiseRes * noiseScale;
 cvec2 disp2 = vec2(0.017  , -0.0469   ) * noiseRes * noiseScale;
@@ -52,58 +52,63 @@ void SetupWaveFBM() {
 	waveTime4 = waveTime * disp4;
 }
 
-float GetWaves(vec2 coord, io mat4x3 c) {
+float GetWaves(vec2 coord, io mat4x2 c) {
 	float waves = 0.0;
+	vec2 ebin;
 	
 	c[0].xy = coord * scale1 + waveTime1;
-	c[0].z  = coord.x * stretch1.x + c[0].y;
-	c[0].xy = GetWaveCoord(c[0].xz);
+	c[0].y = coord.x * stretch1 + c[0].y;
+	ebin = GetWaveCoord(c[0].xy);
+	c[0].x = ebin.x;
 	
-	waves += SharpenWave(texture2D(noisetex, c[0].xy).x) * height.x;
+	waves += SharpenWave(texture2D(noisetex, ebin).x) * height.x;
 	
-	c[1].xy = coord * scale2 + waveTime1;
-	c[1].z  = coord.x * stretch2.x + c[1].y;
-	c[1].xy = GetWaveCoord(c[1].xz);
+	c[1].xy = coord * scale2 + waveTime2;
+	c[1].y = coord.x * stretch2 + c[1].y;
+	ebin = GetWaveCoord(c[1].xy);
+	c[1].x = ebin.x;
 	
-	waves += texture2D(noisetex, c[1].xy).x * height.y;
+	waves += texture2D(noisetex, ebin).x * height.y;
 	
-	c[2].xy = coord * scale3 + waveTime1;
-	c[2].z  = coord.x * stretch3.x + c[2].y;
-	c[2].xy = GetWaveCoord(c[2].xz);
+	c[2].xy = coord * scale3 + waveTime3;
+	c[2].y = coord.x * stretch3 + c[2].y;
+	ebin = GetWaveCoord(c[2].xy);
+	c[2].x = ebin.x;
 	
-	waves += texture2D(noisetex, c[2].xy).x * height.z;
+	waves += texture2D(noisetex, ebin).x * height.z;
 	
-	c[3].xy = coord * scale4 + waveTime1;
-	c[3].z  = coord.x * stretch4.x + c[3].y;
-	c[3].xy = GetWaveCoord(c[3].xz);
+	c[3].xy = coord * scale4 + waveTime4;
+	c[3].y = coord.x * stretch4 + c[3].y;
+	ebin = GetWaveCoord(c[3].xy);
+	c[3].x = ebin.x;
 	
-	waves += texture2D(noisetex, c[3].xy).x * height.w;
+	waves += texture2D(noisetex, ebin).x * height.w;
 	
 	return waves;
 }
 
 float GetWaves(vec2 coord) {
-	mat4x3 c;
+	mat4x2 c;
 	
 	return GetWaves(coord, c);
 }
 
-float GetWaves(mat4x3 c, vec2 offset) {
+float GetWaves(mat4x2 c, float offset) {
 	float waves = 0.0;
 	
-	c[0].y = GetWaveCoord(offset.y * scale1.y + c[0].z);
+	c[0].y = GetWaveCoord(offset * scale1.y + c[0].y);
 	
 	waves += SharpenWave(texture2D(noisetex, c[0].xy).x) * height.x;
 	
-	c[1].y = GetWaveCoord(offset.y * scale2.y + c[1].z);
+	c[1].y = GetWaveCoord(offset * scale2.y + c[1].y);
 	
 	waves += texture2D(noisetex, c[1].xy).x * height.y;
 	
-	c[2].y = GetWaveCoord(offset.y * scale3.y + c[2].z);
+	c[2].y = GetWaveCoord(offset * scale3.y + c[2].y);
 	
 	waves += texture2D(noisetex, c[2].xy).x * height.z;
 	
-	c[3].y = GetWaveCoord(offset.y * scale4.y + c[3].z);
+	c[3].y = GetWaveCoord(offset * scale4.y + c[3].y);
 	
 	waves += texture2D(noisetex, c[3].xy).x * height.w;
 	
@@ -111,11 +116,11 @@ float GetWaves(mat4x3 c, vec2 offset) {
 }
 
 vec2 GetWaveDifferentials(vec2 coord, cfloat scale) { // Get finite wave differentials for the world-space X and Z coordinates
-	mat4x3 c;
+	mat4x2 c;
 	
 	float a  = GetWaves(coord, c);
 	float aX = GetWaves(coord + vec2(scale,   0.0));
-	float aY = GetWaves(c,      vec2(  0.0, scale));
+	float aY = GetWaves(c, scale);
 	
 	return a - vec2(aX, aY);
 }
@@ -132,7 +137,8 @@ vec2 GetParallaxWave(vec2 worldPos, float angleCoeff) {
 	
 	vec3  step = tangentRay * stepSize;
 	
-	angleCoeff = clamp01(angleCoeff * 2.0);
+	angleCoeff = clamp01(angleCoeff * 2.0) * stepCoeff;
+	step.z = tangentRay.z * -tangentRay.z * 5.0;
 	
 	float rayHeight = angleCoeff;
 	float sampleHeight = GetWaves(worldPos) * angleCoeff;
@@ -140,7 +146,7 @@ vec2 GetParallaxWave(vec2 worldPos, float angleCoeff) {
 	float count = 0.0;
 	
 	while(sampleHeight < rayHeight && count++ < 150.0) {
-		worldPos  += step.xy * clamp01((rayHeight - sampleHeight) * stepCoeff);
+		worldPos  += step.xy * clamp01(rayHeight - sampleHeight);
 		rayHeight += step.z;
 		
 		sampleHeight = GetWaves(worldPos) * angleCoeff;

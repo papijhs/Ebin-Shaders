@@ -70,7 +70,7 @@ float CalculateWaterCaustics(vec3 worldPos, float waterMask) {
 	
 	vec3 r; // RIGHT height sample to rollover between columns
 	vec3 a; // .x = center      .y = top      .z = right
-	mat4x3[4] p;
+	mat4x2[4] p;
 	
 	for (int x = -1; x <= 1; x++) {
 		for (int y = -1; y <= 1; y++) { // 3x3 sample matrix. Starts bottom-left and immediately goes UP
@@ -82,10 +82,10 @@ float CalculateWaterCaustics(vec3 worldPos, float waterMask) {
 			else                    a.x = r[y + 1];                       // If not left-column, reuse RIGHT sample from previous column
 			
 			if (x != -1 && y != 1) a.y = r[y + 2]; // If not left-column and not top-row, reuse RIGHT sample from previous column 1 row up
-			else a.y = GetWaves(p[x + 1], vec2(0.0, offset.y + 0.2)); // If left-column or top-row, reuse previously computed FBM coords
+			else a.y = GetWaves(p[x + 1], offset.y + 0.2); // If left-column or top-row, reuse previously computed FBM coords
 			
 			if (y == -1) a.z = GetWaves(coord + offset + vec2(0.1, 0.0), p[x + 2]); // If bottom-row, generate the height & save FBM coords
-			else a.z = GetWaves(p[x + 2], vec2(0.0, offset.y + 0.1)); // If not bottom-row, reuse FBM coords
+			else a.z = GetWaves(p[x + 2], offset.y + 0.2); // If not bottom-row, reuse FBM coords
 			
 			r[y + 1] = a.z; // Save RIGHT height sample for later
 			
@@ -102,9 +102,9 @@ float CalculateWaterCaustics(vec3 worldPos, float waterMask) {
 	}
 	
 	caustics = 1.0 - caustics / 9.0;
-	caustics *= 0.05 / pow2(distanceThreshold);
+	caustics *= 0.07 / pow2(distanceThreshold);
 	
-	return pow2(caustics);
+	return pow3(caustics);
 }
 
 

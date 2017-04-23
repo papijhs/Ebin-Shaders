@@ -46,6 +46,9 @@ cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 #define cubesmooth_(type) type cubesmooth(type x) { return (x * x) * (3.0 - 2.0 * x); }
 DEFINE_genFType(cubesmooth_)
 
+#define cosmooth_(type) type cosmooth(type x) { return 0.5 - cos(x * PI) * 0.5; }
+DEFINE_genFType(cosmooth_)
+
 vec2 rotate(in vec2 vector, float radians) {
 	return vector *= mat2(
 		cos(radians), -sin(radians),

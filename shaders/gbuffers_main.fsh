@@ -100,28 +100,28 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 	
 	vec3 tangentRay = normalize(position) * tbnMatrix;
 	
-	float tileScale  = atlasSize.x / TEXTURE_PACK_RESOLUTION;
-	vec2  tileCoord  = fract(coord * tileScale);
-	vec2 atlasCorner = floor(coord * tileScale) / tileScale;
-	
-	vec3 sampleRay = vec3(0.0, 0.0, 1.0);
-	
-	vec3 step = tangentRay * vec3(0.01, 0.01, 1.0 / intensity) / quality * 0.03 * sqrt(length(position));
-	
-	float sampleHeight = GetTexture(normals, coord).a;
-	
-	if (sampleRay.z <= sampleHeight) return coord;
+	vec2 tileScale   = vec2(atlasSize.x / TEXTURE_PACK_RESOLUTION, float(TEXTURE_PACK_RESOLUTION) / atlasSize.x);
+	vec2 tileCoord   = fract(coord * tileScale.x);
+	vec2 atlasCorner = floor(coord * tileScale.x) * tileScale.y;
 	
 	float stepCoeff = -tangentRay.z * 100.0 * clamp01(intensity);
 	
+	vec3 step    = tangentRay * vec3(0.01, 0.01, 1.0 / intensity) / quality * 0.03 * sqrt(length(position));
+	     step.z *= stepCoeff;
+	
+	vec3  sampleRay    = vec3(0.0, 0.0, stepCoeff);
+	float sampleHeight = GetTexture(normals, coord).a * stepCoeff;
+	
+	if (sampleRay.z <= sampleHeight) return coord;
+	
 	for (uint i = 0; sampleRay.z > sampleHeight && i < 150; i++) {
-		sampleRay.xy += step.xy * clamp01((sampleRay.z - sampleHeight) * stepCoeff);
+		sampleRay.xy += step.xy * clamp01(sampleRay.z - sampleHeight);
 		sampleRay.z += step.z;
 		
-		sampleHeight = GetTexture(normals, fract(sampleRay.xy * tileScale + tileCoord) / tileScale + atlasCorner).a;
+		sampleHeight = GetTexture(normals, fract(sampleRay.xy * tileScale.x + tileCoord) * tileScale.y + atlasCorner).a * stepCoeff;
 	}
 	
-	return fract(sampleRay.xy * tileScale + tileCoord) / tileScale + atlasCorner;
+	return fract(sampleRay.xy * tileScale.x + tileCoord) * tileScale.y + atlasCorner;
 }
 
 void main() {
