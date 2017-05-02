@@ -146,7 +146,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 		
 		vec3 flux = texture2DLod(shadowcolor, mapPos, sampleLOD).rgb;
 		
-		GI += flux * lightCoeffs.x * lightCoeffs.y / lightCoeffs.z;
+		GI += flux * (lightCoeffs.x * lightCoeffs.y * rcp(lightCoeffs.z));
 	}
 	
 	GI /= GI_SAMPLE_COUNT;

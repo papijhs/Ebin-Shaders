@@ -28,9 +28,9 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 	    viewSpacePosition - lightPos[0],
 	    viewSpacePosition - lightPos[1]);
 	
-	vec2 falloff = vec2(inversesqrt(length2(lightRay[0])), inversesqrt(length2(lightRay[1])));
+	vec2 falloff = inversesqrt(vec2(length2(lightRay[0]), length2(lightRay[1])));
 	
-	falloff *= clamp01(vec2(dot(normal, lightPos[0] * falloff[0]), dot(normal, lightPos[1] * falloff[1]))) * 0.35 + 0.65;
+	falloff *= clamp01(vec2(dot(normal, lightPos[0]), dot(normal, lightPos[1])) * falloff) * 0.35 + 0.65;
 	
 	vec2 hand  = max0(falloff - 0.0625);
 	     hand  = mix(hand, vec2(2.0), handMask * vec2(greaterThan(viewSpacePosition.x * vec2(1.0, -1.0), vec2(0.0))));
@@ -47,7 +47,7 @@ float CalculateWaterCaustics(vec3 worldPos, float waterMask) {
 	return 1.0;
 #endif
 	
-	if (abs(isEyeInWater - waterMask) < 0.5) return 1.0;
+	if (WAVE_MULT == 0.0 || abs(isEyeInWater - waterMask) < 0.5) return 1.0;
 	
 	SetupWaveFBM();
 	

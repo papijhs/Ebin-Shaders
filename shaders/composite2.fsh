@@ -66,21 +66,44 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
 }
 
-float CalculateViewSpaceZ(float depth) {
-	depth = depth * 2.0 - 1.0;
-	
-	return -1.0 / (depth * projInverseMatrix[2][3] + projInverseMatrix[3][3]);
+float CalculateViewSpaceZ(float depth, vec2 mad) {
+	return 1.0 / (depth * mad.x + mad.y);
 }
 
 vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z * 0.5 + 0.5;
 }
 
-
 #include "/lib/Fragment/Sky.fsh"
 
-bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, float firstStepSize, cfloat rayGrowth, cint maxSteps, cint maxRefinements, out vec3 screenSpacePosition) {
-	vec3 rayStep = rayDirection * firstStepSize;
+bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, out vec3 screenSpacePosition) {
+	/*
+	//	vec3 pos = startingViewPosition + rayStep; // rayStep * ??
+	
+	vec3 p = startingViewPosition;
+	vec3 r = rayDirection;
+	
+	// pos = (p + r)
+	
+	vec3 x;
+	
+	x.z = -(p.z*(1.0 - projMatrix[2].z) - projMatrix[3].z) / (r.z*(1.0 - projMatrix[2].z));
+	x.xy = (p.z - diagonal2(projMatrix)*p.xy - projMatrix[3].xy - r.z*x.z) / (diagonal2(projMatrix)*r.xy);
+	x = abs(x);
+	
+	show(texture2D(colortex1, ViewSpaceToScreenSpace(startingViewPosition + rayDirection * minVec2(x)).xy).rgb)
+	
+//	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z * 0.5 + 0.5;
+	
+//	any(greaterThanEqual(abs(pos), vec3(1.0)))
+	*/
+	
+	cfloat rayGrowth = 1.25;
+	cfloat rayGrowthL2 = log2(rayGrowth);
+	int maxSteps = 30;
+	cint maxRefinements = -(2);
+	
+	vec3 rayStep = rayDirection;
 	vec3 ray = startingViewPosition + rayStep;
 	
 	screenSpacePosition = ViewSpaceToScreenSpace(ray);
@@ -88,33 +111,33 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 	float refinements = 0.0;
 	float refinementCoeff = 1.0;
 	
-	cbool doRefinements = (maxRefinements > 0);
+	cbool doRefinements = (maxRefinements != 0);
 	
 	float maxRayDepth = -far * 1.875;
+	
+	vec2 zMAD = -vec2(projInverseMatrix[2][3] * 2.0, projInverseMatrix[3][3] - projInverseMatrix[2][3]);
 	
 	for (int i = 0; i < maxSteps; i++) {
 		if (any(greaterThan(abs(screenSpacePosition.xyz - 0.5), vec3(0.5))) || ray.z < maxRayDepth)
 			return false;
 		
-		float sampleDepth = GetTransparentDepth(screenSpacePosition.st);
+		float sampleDepth = texture2D(depthtex1, screenSpacePosition.st).x;
 		
-		float diff = CalculateViewSpaceZ(sampleDepth) - ray.z;
+		float diff = CalculateViewSpaceZ(sampleDepth, zMAD) - ray.z;
 		
 		if (diff >= 0.0) {
 			if (doRefinements) {
-				float error = firstStepSize * pow(rayGrowth, i) * refinementCoeff;
+				float error = exp2(i * rayGrowthL2 + refinements); // length(rayStep) * refinementCoeff
 				
-				if (diff <= error * 2.0 && refinements <= maxRefinements) {
+				if (diff <= error * 2.0 && refinements >= maxRefinements) {
 					ray -= rayStep * refinementCoeff;
-					refinements += 1.0;
-					refinementCoeff = exp2(-refinements);
-				} else if (diff <= error * 4.0 && refinements > maxRefinements) {
+					refinements--;
+					refinementCoeff = exp2(refinements);
+				} else if (diff <= error * 4.0 && refinements < maxRefinements) {
 					screenSpacePosition.z = sampleDepth;
 					return true;
 				}
-			}
-			
-			else return true;
+			} else return true;
 		}
 		
 		ray += rayStep * refinementCoeff;
@@ -144,7 +167,6 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	refRay[0] = reflect(position[0], normal);
 	refRay[1] = mat3(gbufferModelViewInverse) * refRay[0];
 	
-	float firstStepSize = mix(1.0, 30.0, pow2(length(position[1].xz) / 144.0));
 	vec3  reflectedCoord;
 	vec3  reflection;
 	
@@ -154,7 +176,7 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	
 	vec3 offscreen = reflectedSky * skyLightmap;
 	
-	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), firstStepSize, 1.4, 30, 2, reflectedCoord))
+	if (!ComputeRaytracedIntersection(position[0], normalize(refRay[0]), reflectedCoord))
 		reflection = offscreen;
 	else {
 		reflection = GetColor(reflectedCoord.st);
@@ -235,7 +257,9 @@ void main() {
 		color0 = texture2D(colortex3, texcoord).rgb / alpha;
 	
 	color1 = texture2D(colortex1, texcoord).rgb;
-	color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER, float(depth1 >= 1.0))) ;// * (1.0 - float(mask.water > 0.5 && isEyeInWater == 0)));
+	
+	if (mask.transparent > 0.5) 
+		color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER, float(depth1 >= 1.0))) ;// * (1.0 - float(mask.water > 0.5 && isEyeInWater == 0)));
 	
 	color0 = mix(color1, color0, mask.transparent - mask.water);
 	

@@ -131,13 +131,24 @@ vec2 GetParallaxWave(vec2 worldPos, float angleCoeff) {
 	return worldPos;
 #endif
 	
+	cfloat parallaxDist = TERRAIN_PARALLAX_DISTANCE * 5.0;
+	cfloat distFade     = parallaxDist / 3.0;
+	cfloat MinQuality   = 0.5;
+	cfloat maxQuality   = 1.5;
+	
+	float intensity = clamp01((parallaxDist - length(position[1]) * FOV / 90.0) / distFade) * 0.85 * TERRAIN_PARALLAX_INTENSITY;
+	
+//	if (intensity < 0.01) return worldPos;
+	
+	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position[1]), 0.25)), MinQuality, maxQuality) * TERRAIN_PARALLAX_QUALITY;
+	
 	vec3  tangentRay = normalize(position[1]) * tbnMatrix;
 	vec3  stepSize = 0.1 * vec3(1.0, 1.0, 1.0);
 	float stepCoeff = -tangentRay.z * 5.0 / stepSize.z;
 	
 	vec3  step = tangentRay * stepSize;
 	
-	angleCoeff = clamp01(angleCoeff * 2.0) * stepCoeff;
+	angleCoeff = clamp01(angleCoeff * 2.0) * stepCoeff ;// * (sin(cameraPosition.x) * 0.5 + 0.5);
 	step.z = tangentRay.z * -tangentRay.z * 5.0;
 	
 	float rayHeight = angleCoeff;
@@ -160,9 +171,11 @@ vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 }
 
 vec3 GetWaveNormals(vec3 worldSpacePosition, vec3 flatWorldNormal) {
+	if (WAVE_MULT == 0.0) return vec3(0.0, 0.0, 1.0);
+	
 	SetupWaveFBM();
 	
-	float angleCoeff  = -dot(flatWorldNormal, normalize(position[1].xyz));
+	float angleCoeff  = -dotNorm(position[1].xyz, flatWorldNormal);
 	      angleCoeff /= clamp(length(position[1]) * 0.05, 1.0, 10.0);
 	      angleCoeff  = clamp01(angleCoeff * 2.5);
 	      angleCoeff  = sqrt(angleCoeff);

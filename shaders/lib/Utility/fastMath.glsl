@@ -7,14 +7,14 @@
 	
 	float facos(float x) { // Under 3% error
 		float ax = abs(x);
-		float res = -0.156583 * ax + PI * 0.5;
+		float res = -0.156583 * ax + HPI;
 		res *= fsqrt(1.0 - ax);
 		return x >= 0 ? res : PI - res;
 	}
 	
 	#define facos_(type) type facos(type x) { \
 		type ax = abs(x); \
-		type res = -0.156583 * ax + PI * 0.5; \
+		type res = (-0.156583 * ax + HPI); \
 		res *= fsqrt(1.0 - ax); \
 		return mix(PI - res, res, b##type(greaterThanEqual(x, type(0.0)))); \
 	}
