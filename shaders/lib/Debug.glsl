@@ -32,8 +32,10 @@ void exit() {
 		#if ShaderStage == DEBUG_VIEW
 			#if ShaderStage == -1
 				gl_FragData[3] = vec4(Debug, 1.0);
-			#else
+			#elif ShaderStage < 7
 				gl_FragData[0] = vec4(Debug, 1.0);
+			#else
+				gl_FragColor = vec4(Debug, 1.0);
 			#endif
 			
 		#elif ShaderStage > DEBUG_VIEW

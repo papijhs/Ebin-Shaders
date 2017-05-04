@@ -35,23 +35,30 @@ float GetDepth(vec2 coord) {
 	return texture2D(gdepthtex, coord).x;
 }
 
+vec3 CalculateViewSpacePosition(vec3 screenPos) {
+	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
+}
+
+vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
+	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z;
+}
 
 void MotionBlur(io vec3 color, float depth, float handMask) {
 #ifdef MOTION_BLUR
 	if (handMask > 0.5) return;
 	
-	vec4 position = vec4(vec3(texcoord, depth) * 2.0 - 1.0, 1.0); // Signed [-1.0 to 1.0] screen space position
+	vec3 position = vec3(texcoord, depth) * 2.0 - 1.0; // Signed [-1.0 to 1.0] screen space position
 	
-	vec4 previousPosition      = gbufferModelViewInverse * projInverseMatrix * position; // Un-project and un-rotate
-	     previousPosition     /= previousPosition.w; // Linearize
-	     previousPosition.xyz += cameraPosition - previousCameraPosition; // Add the world-space difference from the previous frame
-	     previousPosition      = projMatrix * gbufferPreviousModelView * previousPosition; // Re-rotate and re-project using the previous frame matrices
-	     previousPosition.st  /= previousPosition.w; // Un-linearize, swizzle to avoid correcting irrelivant components
+	vec3 previousPos    = CalculateViewSpacePosition(position);
+	     previousPos    = transMAD(gbufferModelViewInverse, previousPos);
+	     previousPos   += cameraPosition - previousCameraPosition;
+	     previousPos    = transMAD(gbufferPreviousModelView, previousPos);
+	     previousPos.xy = projMAD(projMatrix, previousPos).xy / -previousPos.z;
 	
 	cfloat intensity = MOTION_BLUR_INTENSITY * 0.5;
 	cfloat maxVelocity = MAX_MOTION_BLUR_AMOUNT * 0.1;
 	
-	vec2 velocity = (position.st - previousPosition.st) * intensity; // Screen-space motion vector
+	vec2 velocity = (position.st - previousPos.st) * intensity; // Screen-space motion vector
 	     velocity = clamp(velocity, vec2(-maxVelocity), vec2(maxVelocity));
 	
 	#ifdef VARIABLE_MOTION_BLUR_SAMPLES
@@ -68,7 +75,7 @@ void MotionBlur(io vec3 color, float depth, float handMask) {
 	for(float i = 1.0; i <= sampleCount; i++) {
 		vec2 coord = texcoord - sampleStep * i;
 		
-		color += pow(texture2D(colortex3, clampScreen(coord, pixelSize)).rgb, vec3(2.2));
+		color += pow2(texture2D(colortex3, clampScreen(coord, pixelSize)).rgb);
 	}
 	
 	color *= 1000.0 / max(sampleCount + 1.0, 1.0);
@@ -128,7 +135,7 @@ void main() {
 	
 	vec3[8] bloom = GetBloom();
 	
-	color  = mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
+	color = mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
 	
 	Vignette(color);
 	Tonemap(color);

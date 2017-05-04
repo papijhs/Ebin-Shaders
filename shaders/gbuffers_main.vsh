@@ -48,9 +48,9 @@ vec3 GetWorldSpacePosition() {
 	vec3 position = transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
 	
 #if  defined gbuffers_water
-	position -= gl_NormalMatrix * normalize(gl_Normal) * 0.00005 * float(abs(mc_Entity.x - 8.5) > 0.6);
+	position -= gl_NormalMatrix * gl_Normal * (norm(gl_Normal) * 0.00005 * float(abs(mc_Entity.x - 8.5) > 0.6));
 #elif defined gbuffers_spidereyes
-	position += gl_NormalMatrix * normalize(gl_Normal) * 0.0002;
+	position += gl_NormalMatrix * gl_Normal * (norm(gl_Normal) * 0.0002);
 #endif
 	
 	return mat3(gbufferModelViewInverse) * position;
@@ -75,7 +75,7 @@ mat3 CalculateTBN(vec3 worldPosition) {
 	binormal += CalculateVertexDisplacements(worldPosition + binormal) - worldDisplacement;
 	
 	tangent  = normalize(mat3(gbufferModelViewInverse) * gl_NormalMatrix *  tangent);
-	binormal = normalize(mat3(gbufferModelViewInverse) * gl_NormalMatrix * binormal);
+	binormal =           mat3(gbufferModelViewInverse) * gl_NormalMatrix * binormal ;
 	
 	vec3 normal = normalize(cross(-tangent, binormal));
 	

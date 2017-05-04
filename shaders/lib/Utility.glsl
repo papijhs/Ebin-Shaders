@@ -31,11 +31,6 @@ cvec4 swizzle = vec4(1.0, 0.0, -1.0, 0.5);
 
 #define rcp(x) (1.0 / (x))
 
-float dot4(vec4 v1, vec4 v2) { // Generally faster than dot() unless the output is operating on a vector, in which case dot() seems to be faster. dot4() still seems to be faster when being ASSIGNED to a vector however.
-	v1 *= v2;
-	return (v1.x + v1.y) + (v1.z + v1.w);
-}
-
 
 #include "/lib/Utility/pow.glsl"
 

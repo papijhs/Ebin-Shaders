@@ -40,3 +40,8 @@ float lengthN(vec2 x, float N) {
 	x = pow(abs(x), vec2(N));
 	return pow(x.x + x.y, 1.0 / N);
 }
+
+float dot4(vec4 v1, vec4 v2) { // Generally faster than dot() unless the output is operating on a vector, in which case dot() seems to be faster. dot4() still seems to be faster when being ASSIGNED to a vector however.
+	v1 *= v2;
+	return (v1.x + v1.y) + (v1.z + v1.w);
+}

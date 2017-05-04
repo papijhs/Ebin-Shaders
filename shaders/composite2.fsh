@@ -70,46 +70,60 @@ float CalculateViewSpaceZ(float depth, vec2 mad) {
 	return 1.0 / (depth * mad.x + mad.y);
 }
 
-vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
-	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z * 0.5 + 0.5;
+vec2 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
+	return (diagonal2(projMatrix) * viewSpacePosition.xy + projMatrix[3].xy) / -viewSpacePosition.z * 0.5 + 0.5;
 }
 
 #include "/lib/Fragment/Sky.fsh"
 
-bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, out vec3 screenSpacePosition) {
+float ebin(vec3 p, vec3 r) {
+	vec4 c = vec4(diagonal2(projMatrix)*p.xy + projMatrix[3].xy, diagonal2(projMatrix)*r.xy);
+	
+	c = -vec4((c.xy - p.z) / (c.zw - r.z), (c.xy + p.z) / (c.zw + r.z));
+	
+	c    = mix(c, vec4(1000000.0), lessThan(c, vec4(0.0)));
+	c.xy = mix(c.zw, c.xy, lessThan(c.xy, c.zw));
+	
+	
+	return min(c.x, c.y);
+	
 	/*
-	//	vec3 pos = startingViewPosition + rayStep; // rayStep * ??
+	vec2 a = -(diagonal2(projMatrix)*p.xy + projMatrix[3].xy - p.z) / (diagonal2(projMatrix)*r.xy - r.z);
+	vec2 b = -(diagonal2(projMatrix)*p.xy + projMatrix[3].xy + p.z) / (diagonal2(projMatrix)*r.xy + r.z);
 	
-	vec3 p = startingViewPosition;
-	vec3 r = rayDirection;
+	a = mix(a, vec2(1000000.0), lessThan(a, vec2(0.0)));
+	b = mix(b, vec2(1000000.0), lessThan(b, vec2(0.0)));
 	
-	// pos = (p + r)
-	
-	vec3 x;
-	
-	x.z = -(p.z*(1.0 - projMatrix[2].z) - projMatrix[3].z) / (r.z*(1.0 - projMatrix[2].z));
-	x.xy = (p.z - diagonal2(projMatrix)*p.xy - projMatrix[3].xy - r.z*x.z) / (diagonal2(projMatrix)*r.xy);
-	x = abs(x);
-	
-	show(texture2D(colortex1, ViewSpaceToScreenSpace(startingViewPosition + rayDirection * minVec2(x)).xy).rgb)
-	
-//	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z * 0.5 + 0.5;
-	
-//	any(greaterThanEqual(abs(pos), vec3(1.0)))
+	return mix(b, a, lessThan(a, b));
 	*/
-	
+}
+
+bool ComputeRaytracedIntersection(vec3 vPos, vec3 dir, out vec3 screenSpacePosition) {
 	cfloat rayGrowth = 1.25;
 	cfloat rayGrowthL2 = log2(rayGrowth);
+	cint maxRefinements = 0;
 	int maxSteps = 30;
-	cint maxRefinements = -(2);
 	
-	vec3 rayStep = rayDirection;
-	vec3 ray = startingViewPosition + rayStep;
 	
-	screenSpacePosition = ViewSpaceToScreenSpace(ray);
+	float x = ebin(vPos, dir);
+	
+	if (dir.z < 0.0) {
+		float maxRayDepth = far * 1.875;
+		
+		float f = (far * 1.875 - abs(vPos.z)) / abs(dir.z);
+		
+		x = min(x, f);
+	}
+	
+	x = floor((log2(1.0 - x*(1.0 - rayGrowth))) / log2(rayGrowth));
+	
+	maxSteps = min(maxSteps, int(x));
+	
+	
+	vec3 rayStep = dir;
+	vec3 ray = vPos + rayStep;
 	
 	float refinements = 0.0;
-	float refinementCoeff = 1.0;
 	
 	cbool doRefinements = (maxRefinements != 0);
 	
@@ -118,33 +132,34 @@ bool ComputeRaytracedIntersection(vec3 startingViewPosition, vec3 rayDirection, 
 	vec2 zMAD = -vec2(projInverseMatrix[2][3] * 2.0, projInverseMatrix[3][3] - projInverseMatrix[2][3]);
 	
 	for (int i = 0; i < maxSteps; i++) {
-		if (any(greaterThan(abs(screenSpacePosition.xyz - 0.5), vec3(0.5))) || ray.z < maxRayDepth)
-			return false;
+		screenSpacePosition.xy = ViewSpaceToScreenSpace(ray);
 		
-		float sampleDepth = texture2D(depthtex1, screenSpacePosition.st).x;
+	//	if (any(greaterThan(abs(screenSpacePosition.xy - 0.5), vec2(0.5))) || ray.z < maxRayDepth) return false;
 		
-		float diff = CalculateViewSpaceZ(sampleDepth, zMAD) - ray.z;
+		screenSpacePosition.z = texture2D(depthtex1, screenSpacePosition.st).x;
 		
-		if (diff >= 0.0) {
+		float adjDepth = screenSpacePosition.z * zMAD.x + zMAD.y;
+		
+		if (ray.z * adjDepth >= 1.0) { // if (1.0 / (depth * a + b) >= ray.z)
+			float diff = (1.0 / adjDepth) - ray.z;
+			
 			if (doRefinements) {
-				float error = exp2(i * rayGrowthL2 + refinements); // length(rayStep) * refinementCoeff
+				float error = exp2(i * rayGrowthL2 + refinements); // length(rayStep) * exp2(refinements)
 				
-				if (diff <= error * 2.0 && refinements >= maxRefinements) {
-					ray -= rayStep * refinementCoeff;
-					refinements--;
-					refinementCoeff = exp2(refinements);
-				} else if (diff <= error * 4.0 && refinements < maxRefinements) {
-					screenSpacePosition.z = sampleDepth;
+				if (refinements <= maxRefinements && diff <= error * 2.0) {
+					rayStep *= 0.5;
+					ray -= rayStep;
+					refinements++;
+					continue;
+				} else if (refinements > maxRefinements && diff <= error * 4.0) {
 					return true;
 				}
-			} else return true;
+			} else return (diff <= exp2(i * rayGrowthL2 + 1.0));
 		}
 		
-		ray += rayStep * refinementCoeff;
+		ray += rayStep;
 		
 		rayStep *= rayGrowth;
-		
-		screenSpacePosition = ViewSpaceToScreenSpace(ray);
 	}
 	
 	return false;
