@@ -144,7 +144,9 @@ cfloat noiseScale = 64.0 / noiseRes;
 	
 	#define TEXTURE_PACK_RESOLUTION TEXTURE_PACK_RESOLUTION_SETTING
 	
-	#define NORMAL_MAPS
+	#if !defined gbuffers_entities
+		#define NORMAL_MAPS
+	#endif
 	
 	#ifdef NORMAL_MAPS
 		//#define TERRAIN_PARALLAX
