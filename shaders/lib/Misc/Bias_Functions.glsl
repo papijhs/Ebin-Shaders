@@ -27,9 +27,9 @@ vec2 BiasShadowMap(vec2 shadowProjection) {
 
 vec3 BiasShadowProjection(vec3 position, out float biasCoeff) {
 	biasCoeff = GetShadowBias(position.xy);
-	return position / vec3(vec2(biasCoeff), 4.0); // Apply bias to position.xy, shrink z-buffer
+	return position / vec3(vec2(biasCoeff), zShrink); // Apply bias to position.xy, shrink z-buffer
 }
 
 vec3 BiasShadowProjection(vec3 position) {
-	return position / vec3(vec2(GetShadowBias(position.xy)), 4.0);
+	return position / vec3(vec2(GetShadowBias(position.xy)), zShrink);
 }

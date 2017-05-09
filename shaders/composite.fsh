@@ -104,7 +104,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	
 	normal = mat3(shadowViewMatrix) * -normal;
 	
-	vec3 projMult = mat3(shadowProjectionInverse) * -vec3(1.0, 1.0, 8.0);
+	vec3 projMult = mat3(shadowProjectionInverse) * -vec3(1.0, 1.0, zShrink * 2.0);
 	vec3 projDisp = shadowViewPosition.xyz - shadowProjectionInverse[3].xyz - vec3(0.0, 0.0, 0.5 * projMult.z);
 	
 	cvec3 sampleMax = vec3(0.0, 0.0, radius * radius);
@@ -142,7 +142,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 		vec3 lightCoeffs   = vec3(finversesqrt(sampleLengthSqrd) * sampleDiff * mat2x3(normal, shadowNormal), sampleLengthSqrd);
 		     lightCoeffs   = max(lightCoeffs, sampleMax);
 		     lightCoeffs.x = mix(lightCoeffs.x, 1.0, translucent);
-		     lightCoeffs.y = fsqrt(lightCoeffs.y);
+		     lightCoeffs.y = sqrt(lightCoeffs.y);
 		
 		vec3 flux = texture2DLod(shadowcolor, mapPos, sampleLOD).rgb;
 		

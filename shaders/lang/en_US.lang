@@ -251,7 +251,8 @@ option.DEBUG_VIEW=Debug Shader View
 option.DEBUG_VIEW.comment=The shader stage you're debugging. -1: gbuffers_main. 0: composite.fsh. 1: composite1.fsh. 2: composite2.fsh. 3: composite3.fsh. 7: final.fsh
 
 option.PHYSICAL_ATMOSPHERE=Physical Atmosphere
-option.ENABLE_CLOUDS=Enable Clouds
+option.PHYSICAL_ATMOSPHERE.comment=Full settings in /lib/Fragment/Atmosphere.fsh
+
 option.CUSTOM_TIME_CYCLE=Custom Time Cycle
 
 option.FREEZE_TIME=Freeze Time

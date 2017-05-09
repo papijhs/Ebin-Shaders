@@ -63,7 +63,7 @@ vec4 ProjectShadowMap(vec4 position) {
 	
 	position.z += acne / shadowMapResolution;
 	
-	position.z /= 4.0; // Shrink the domain of the z-buffer. This counteracts the noticable issue where far terrain would not have shadows cast, especially when the sun was near the horizon
+	position.z /= zShrink; // Shrink the domain of the z-buffer. This counteracts the noticable issue where far terrain would not have shadows cast, especially when the sun was near the horizon
 	
 	return position;
 }

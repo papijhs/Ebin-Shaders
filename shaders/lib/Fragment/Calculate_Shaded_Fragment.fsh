@@ -114,7 +114,7 @@ float CalculateWaterCaustics(vec3 worldPos, float waterMask) {
 
 vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, mat2x3 position) {
 	Shading shading;
-	skyLightmap = 1.0;
+	
 	shading.sunlight  = GetLambertianShading(normal, lightVector, mask) * skyLightmap;
 	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight);
 	

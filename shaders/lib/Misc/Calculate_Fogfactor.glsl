@@ -1,4 +1,4 @@
-float CalculateFogFactor(vec3 position, float power) {
+float CalculateFogFactor(vec3 position, const float power) {
 #ifndef FOG_ENABLED
 	return 0.0;
 #endif
@@ -12,7 +12,7 @@ float CalculateFogFactor(vec3 position, float power) {
 	return fogFactor;
 }
 
-float CalculateFogFactor(vec3 position, float power, float skyMask) {
+float CalculateFogFactor(vec3 position, const float power, float skyMask) {
 #ifndef FOG_ENABLED
 	return skyMask;
 #endif

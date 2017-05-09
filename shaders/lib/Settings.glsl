@@ -32,6 +32,8 @@ cfloat noiseRes = float(noiseTextureResolution);
 cfloat noiseResInverse = 1.0 / noiseRes;
 cfloat noiseScale = 64.0 / noiseRes;
 
+const float zShrink = 4.0;
+
 
 
 // GUI Settings
