@@ -9,7 +9,9 @@ cfloat atmosphereHeight = atmosphereRadius - planetRadius;
 
 cvec2 radiiSquared = pow(vec2(planetRadius, atmosphereRadius), vec2(2.0));
 
-cvec3  rayleighCoeff = vec3(5.8e-6, 1.35e-5, 3.31e-5) * -expCoeff;
+cvec3  OZoneCoeff    = vec3(3.426, 8.298, 0.356) * 6e-7;
+cvec3  rayleighCoeff = vec3(0.58, 1.35, 3.31) * 1e-5 * -expCoeff;
+cvec3  rayleighOZone = (vec3(0.58, 1.35, 3.31) * 1e-5 + OZoneCoeff) * -expCoeff;
 cfloat      mieCoeff = 7e-6 * -expCoeff;
 
 cfloat rayleighHeight = 8.0e3 * 0.25;
@@ -83,7 +85,7 @@ vec3 ComputeAtmosphericSky(vec3 playerSpacePosition, vec3 worldPosition, vec3 pS
 		opticalDepth += opticalStep.rg; // Accumulate optical depth
 		opticalStep.ba = opticalStep.ba * jStepSize + opticalDepth;
 		
-		vec3 attn = exp2(rayleighCoeff * opticalStep.b + (mieCoeff * opticalStep.a));
+		vec3 attn = exp2(rayleighOZone * opticalStep.b + (mieCoeff * opticalStep.a));
 		
 		rayleigh += opticalStep.r * attn;
 		mie      += opticalStep.g * attn;
