@@ -66,74 +66,47 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
 }
 
-float CalculateViewSpaceZ(float depth, vec2 mad) {
-	return 1.0 / (depth * mad.x + mad.y);
-}
-
 vec2 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 	return (diagonal2(projMatrix) * viewSpacePosition.xy + projMatrix[3].xy) / -viewSpacePosition.z * 0.5 + 0.5;
 }
 
 #include "/lib/Fragment/Sky.fsh"
 
-float ebin(vec3 p, vec3 r) {
-	vec4 c = vec4(diagonal2(projMatrix)*p.xy + projMatrix[3].xy, diagonal2(projMatrix)*r.xy);
+int GetMaxSteps(vec3 pos, vec3 ray, float maxRayDepth, float rayGrowth) { // Returns the number of steps until the ray goes offscreen, or past maxRayDepth
+	vec4 c =  vec4(diagonal2(projMatrix) * pos.xy + projMatrix[3].xy, diagonal2(projMatrix) * ray.xy);
+	     c = -vec4((c.xy - pos.z) / (c.zw - ray.z), (c.xy + pos.z) / (c.zw + ray.z)); // Solve for (M*(pos + ray*x) + A) / (pos.z + ray.z*x) = +-1.0
 	
-	c = -vec4((c.xy - p.z) / (c.zw - r.z), (c.xy + p.z) / (c.zw + r.z));
+	c = mix(c, vec4(1000000.0), lessThan(c, vec4(0.0))); // Remove negative coefficients from consideration by making them B I G
 	
-	c    = mix(c, vec4(1000000.0), lessThan(c, vec4(0.0)));
-	c.xy = mix(c.zw, c.xy, lessThan(c.xy, c.zw));
+	float x = minVec4(c); // Nearest ray length to reach screen edge
 	
+	if (ray.z < 0.0) // If stepping away from player
+		x = min(x, (maxRayDepth + pos.z) / -ray.z); // Clip against maxRayDepth
 	
-	return min(c.x, c.y);
+	x = (log2(1.0 - x*(1.0 - rayGrowth))) / log2(rayGrowth); // Solve geometric sequence with  a = 1.0  and  r = rayGrowth
 	
-	/*
-	vec2 a = -(diagonal2(projMatrix)*p.xy + projMatrix[3].xy - p.z) / (diagonal2(projMatrix)*r.xy - r.z);
-	vec2 b = -(diagonal2(projMatrix)*p.xy + projMatrix[3].xy + p.z) / (diagonal2(projMatrix)*r.xy + r.z);
-	
-	a = mix(a, vec2(1000000.0), lessThan(a, vec2(0.0)));
-	b = mix(b, vec2(1000000.0), lessThan(b, vec2(0.0)));
-	
-	return mix(b, a, lessThan(a, b));
-	*/
+	return min(30, int(x));
 }
 
 bool ComputeRaytracedIntersection(vec3 vPos, vec3 dir, out vec3 screenPos) {
-	cfloat rayGrowth = 1.25;
-	cfloat rayGrowthL2 = log2(rayGrowth);
-	cint maxRefinements = 0;
-	
-	
-	float x = ebin(vPos, dir);
-	
-	if (dir.z < 0.0) {
-		float maxRayDepth = far * 1.875;
-		
-		float f = (far * 1.875 - abs(vPos.z)) / abs(dir.z);
-		
-		x = min(x, f);
-	}
-	
-	x = floor((log2(1.0 - x*(1.0 - rayGrowth))) / log2(rayGrowth));
-	
-	int maxSteps = min(30, int(x));
-	
+	cfloat rayGrowth      = 1.25;
+	cfloat rayGrowthL2    = log2(rayGrowth);
+	cint   maxRefinements = 0;
+	cbool  doRefinements  = maxRefinements != 0;
+	float  maxRayDepth    = far * 1.875;
+	int    maxSteps       = GetMaxSteps(vPos, dir, maxRayDepth, rayGrowth);
 	
 	vec3 rayStep = dir;
 	vec3 ray = vPos + rayStep;
 	
 	float refinements = 0.0;
 	
-	cbool doRefinements = (maxRefinements != 0);
-	
-	float maxRayDepth = -far * 1.875;
-	
 	vec2 zMAD = -vec2(projInverseMatrix[2][3] * 2.0, projInverseMatrix[3][3] - projInverseMatrix[2][3]);
 	
 	for (int i = 0; i < maxSteps; i++) {
 		screenPos.st = ViewSpaceToScreenSpace(ray);
 		
-	//	if (any(greaterThan(abs(screenPos.st - 0.5), vec2(0.5))) || ray.z < maxRayDepth) return false;
+	//	if (any(greaterThan(abs(screenPos.st - 0.5), vec2(0.5))) || -ray.z > maxRayDepth) return false;
 		
 		screenPos.z = texture2D(depthtex1, screenPos.st).x;
 		

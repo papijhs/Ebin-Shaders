@@ -6,15 +6,15 @@
 #define min1(x) min(x, 1.0)
 
 #define min3(x, y, z)    min(x, min(y, z))
-#define min4(x, y, z, w) min(x, min(y, min(z, w)))
+#define min4(x, y, z, w) min(min(x, y), min(z, w))
 
-#define minVec2(x) min(x.x, x.y)
-#define minVec3(x) min(x.x, min(x.y, x.z))
-#define minVec4(x) min(x.x, min(x.y, min(x.z, x.w)))
+#define minVec2(v) min(v.x, v.y)
+#define minVec3(v) min(v.x, min(v.y, v.z))
+#define minVec4(v) min(min(v.x, v.y), min(v.z, v.w))
 
 #define max3(x, y, z)    max(x, max(y, z))
-#define max4(x, y, z, w) max(x, max(y, max(z, w)))
+#define max4(x, y, z, w) max(max(x, y), max(z, w))
 
-#define maxVec2(x) max(x.x, x.y)
-#define maxVec3(x) max(x.x, max(x.y, x.z))
-#define maxVec4(x) max(x.x, max(x.y, max(x.z, x.w)))
+#define maxVec2(v) max(v.x, v.y)
+#define maxVec3(v) max(v.x, max(v.y, v.z))
+#define maxVec4(v) max(max(v.x, v.y), max(v.z, v.w))

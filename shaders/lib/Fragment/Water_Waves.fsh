@@ -146,10 +146,10 @@ vec2 GetParallaxWave(vec2 worldPos, float angleCoeff) {
 	vec3  stepSize = 0.1 * vec3(1.0, 1.0, 1.0);
 	float stepCoeff = -tangentRay.z * 5.0 / stepSize.z;
 	
-	vec3  step = tangentRay * stepSize;
+	angleCoeff = clamp01(angleCoeff * 2.0) * stepCoeff;
 	
-	angleCoeff = clamp01(angleCoeff * 2.0) * stepCoeff ;// * (sin(cameraPosition.x) * 0.5 + 0.5);
-	step.z = tangentRay.z * -tangentRay.z * 5.0;
+	vec3 step   = tangentRay   * stepSize;
+	     step.z = tangentRay.z * -tangentRay.z * 5.0;
 	
 	float rayHeight = angleCoeff;
 	float sampleHeight = GetWaves(worldPos) * angleCoeff;
@@ -175,7 +175,7 @@ vec3 GetWaveNormals(vec3 worldSpacePosition, vec3 flatWorldNormal) {
 	
 	SetupWaveFBM();
 	
-	float angleCoeff  = -dotNorm(position[1].xyz, flatWorldNormal);
+	float angleCoeff  = dotNorm(-position[1].xyz, flatWorldNormal);
 	      angleCoeff /= clamp(length(position[1]) * 0.05, 1.0, 10.0);
 	      angleCoeff  = clamp01(angleCoeff * 2.5);
 	      angleCoeff  = sqrt(angleCoeff);
