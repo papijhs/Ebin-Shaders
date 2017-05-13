@@ -253,6 +253,9 @@ option.DEBUG_VIEW.comment=The shader stage you're debugging. -1: gbuffers_main. 
 option.PHYSICAL_ATMOSPHERE=Physical Atmosphere
 option.PHYSICAL_ATMOSPHERE.comment=Full settings in /lib/Fragment/Atmosphere.fsh
 
+option.BLEND_PHYSICAL_ATMOSPHERE=Blend Physical Atmosphere
+option.BLEND_PHYSICAL_ATMOSPHERE.commment=Blend the physical atmosphere with fog if both are enabled
+
 option.CUSTOM_TIME_CYCLE=Custom Time Cycle
 
 option.FREEZE_TIME=Freeze Time

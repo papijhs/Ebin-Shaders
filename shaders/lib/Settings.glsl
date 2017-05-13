@@ -134,6 +134,7 @@ const float zShrink = 4.0;
 
 
 //#define PHYSICAL_ATMOSPHERE
+#define BLEND_PHYSICAL_ATMOSPHERE
 //#define FREEZE_TIME
 
 //#define WATER_SHADOW
