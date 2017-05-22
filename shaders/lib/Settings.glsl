@@ -25,6 +25,13 @@ const int colortex5Format = RGBA8;
 
 const float eyeBrightnessHalflife = 1.5;
 const float ambientOcclusionLevel = 0.65;
+
+const bool colortex0Clear = false;
+const bool colortex1Clear = false;
+const bool colortex2Clear = false;
+const bool colortex3Clear = false;
+const bool colortex4Clear = false;
+const bool colortex5Clear = false;
 */
 
 const int noiseTextureResolution = 64; // [16 32 64 128 256 512 1024]
