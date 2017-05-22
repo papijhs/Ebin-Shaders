@@ -66,7 +66,7 @@ void Compute2DCloudPlane(io vec3 color, vec3 ray, vec3 rayPos, float sunglow, fl
 	cvec3  weights  = vec3(0.5, 0.135, 0.075);
 	cfloat weight   = weights.x + weights.y + weights.z;
 	
-	vec2 coord = ray.xz / ray.y * (cloudHeight - rayPos.y) + rayPos.xz;
+	vec2 coord = ray.xz * ((cloudHeight - rayPos.y) / ray.y) + rayPos.xz;
 	
 	vec4 cloud;
 	mat4x2 coords;

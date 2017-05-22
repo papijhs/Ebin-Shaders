@@ -33,12 +33,35 @@ vec3 CalculateSunspot(vec3 worldSpaceVector) {
 	      sunspot  = pow(sunspot, 375.0);
 	      sunspot  = pow(sunspot + 1.0, 400.0) - 1.0;
 	      sunspot  = min(sunspot, 20.0) * 6.0;
+	      sunspot *= 1.0 + timeNight * 5.0;
 	
 	return sunspot * sunlightColor * sunlightColor * vec3(1.0, 0.8, 0.6);
 }
 
 #include "/lib/Fragment/Clouds.fsh"
 #include "/lib/Fragment/Atmosphere.fsh"
+
+vec3 CalculateStars(vec3 color, vec3 worldDir) {
+	if (worldDir.y <= 0.0) return color;
+	
+	vec2 coord = worldDir.xz * (2.5 * (2.0 - worldDir.y) * noiseScale);
+	
+//	vec3 shadowCoord = mat3(shadowViewMatrix) * worldDir;
+	
+//	shadowCoord.xz *= sign(sunVector.y);
+	
+//	coord.x = atan(shadowCoord.x, shadowCoord.z);
+//	coord.y = acos(shadowCoord.y);
+	
+//	coord *= 5.0 * noiseScale;
+	
+	float noise  = texture2D(noisetex, coord * 0.5).r;
+	      noise += texture2D(noisetex, coord).r * 0.5;
+	
+	float star = clamp01(noise - 1.3);
+	
+	return color + star * 29000.0 * pow2(worldDir.y) * timeNight;
+}
 
 vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, float alpha, cbool reflection, float sunlight) {
 	float visibility = (reflection ? alpha : CalculateFogFactor(worldSpacePosition, FOG_POWER, skyMask));
@@ -58,6 +81,8 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	vec3 sunspot = CalculateSunspot(worldSpaceVector) * (reflection ? sunlight : pow(visibility, 25) * alpha);
 	
 	vec3 sky = gradient + sunspot;
+	
+//	sky = CalculateStars(sky, worldSpaceVector);
 	
 	Compute2DCloudPlane(sky, worldSpaceVector, rayPosition, sunglow, visibility);
 	
