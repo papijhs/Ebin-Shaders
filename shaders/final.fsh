@@ -90,10 +90,10 @@ vec3 GetBloomTile(cint scale, vec2 offset) {
 	return DecodeColor(texture2D(colortex1, coord).rgb);
 }
 
-vec3[8] GetBloom() {
+void GetBloom(io vec3 color) {
+#ifdef BLOOM_ENABLED
 	vec3[8] bloom;
 	
-#ifdef BLOOM_ENABLED
 	// These arguments should be identical to those in composite2.fsh
 	bloom[1] = GetBloomTile(  4, vec2(0.0                         ,                          0.0));
 	bloom[2] = GetBloomTile(  8, vec2(0.0                         , 0.25     + pixelSize.y * 2.0));
@@ -109,9 +109,9 @@ vec3[8] GetBloom() {
 		bloom[0] += bloom[index];
 	
 	bloom[0] /= 7.0;
-#endif
 	
-	return bloom;
+	color = mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
+#endif
 }
 
 void Vignette(io vec3 color) {
@@ -133,9 +133,7 @@ void main() {
 	
 	MotionBlur(color, depth, mask.hand);
 	
-	vec3[8] bloom = GetBloom();
-	
-	color = mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
+	GetBloom(color); 
 	
 	Vignette(color);
 	Tonemap(color);
