@@ -124,7 +124,6 @@ const float zShrink = 4.0;
 #define REFLECTION_EDGE_FALLOFF
 //#define HIDE_ENTITIES
 //#define CLEAR_WATER
-#define NIGHTVISION
 //#define WEATHER
 
 //#define TIME_OVERRIDE

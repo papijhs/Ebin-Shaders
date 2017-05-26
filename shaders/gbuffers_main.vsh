@@ -22,7 +22,6 @@ varying vec3 worldDisplacement;
 
 varying float mcID;
 varying float materialIDs;
-varying float nightVision;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
@@ -96,12 +95,6 @@ void main() {
 	mcID         = mc_Entity.x;
 	vertLightmap = GetDefaultLightmap();
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
-	
-#ifdef NIGHTVISION
-	nightVision = float(texture2D(lightmap, vec2(0.0)).r > 0.2);
-#else
-	nightVision = 0.0;
-#endif
 	
 	
 	vec3 worldSpacePosition = GetWorldSpacePosition();

@@ -26,6 +26,7 @@ uniform vec3 cameraPosition;
 uniform vec3 upPosition;
 
 uniform float frameTimeCounter;
+uniform float nightVision;
 uniform float near;
 uniform float far;
 
