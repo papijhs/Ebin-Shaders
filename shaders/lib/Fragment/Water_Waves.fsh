@@ -23,62 +23,61 @@ float SharpenWave(float wave) {
 cvec4 heights = vec4(29.0, 15.0, 17.0, 4.0);
 cvec4 height = heights * WAVE_MULT / sum4(heights);
 
-cvec2 scale1 = vec2(0.0065, 0.0052  ) * noiseRes * noiseScale;
-cvec2 scale2 = vec2(0.013 , 0.00975 ) * noiseRes * noiseScale;
-cvec2 scale3 = vec2(0.0195, 0.014625) * noiseRes * noiseScale;
-cvec2 scale4 = vec2(0.0585, 0.04095 ) * noiseRes * noiseScale;
+const mat4x2 scale = mat4x2(
+	vec2(0.0065, 0.0052  ) * noiseRes * noiseScale,
+	vec2(0.013 , 0.00975 ) * noiseRes * noiseScale,
+	vec2(0.0195, 0.014625) * noiseRes * noiseScale,
+	vec2(0.0585, 0.04095 ) * noiseRes * noiseScale);
 
-float stretch1 = scale1.x * -1.7 ;
-float stretch2 = scale2.x * -1.7 ;
-float stretch3 = scale3.x *  1.1 ;
-float stretch4 = scale4.x * -1.05;
+cvec4 stretch = vec4(
+	scale[0].x * -1.7 ,
+	scale[1].x * -1.7 ,
+	scale[2].x *  1.1 ,
+	scale[3].x * -1.05);
 
-cvec2 disp1 = vec2(0.04155, -0.0165   ) * noiseRes * noiseScale;
-cvec2 disp2 = vec2(0.017  , -0.0469   ) * noiseRes * noiseScale;
-cvec2 disp3 = vec2(0.0555 ,  0.03405  ) * noiseRes * noiseScale;
-cvec2 disp4 = vec2(0.00825, -0.0491625) * noiseRes * noiseScale;
-
-vec2 waveTime1;
-vec2 waveTime2;
-vec2 waveTime3;
-vec2 waveTime4;
+mat4x2 waveTime;
 
 void SetupWaveFBM() {
-	float waveTime = TIME * WAVE_SPEED * 0.6;
+	cvec2 disp1 = vec2(0.04155, -0.0165   ) * noiseRes * noiseScale;
+	cvec2 disp2 = vec2(0.017  , -0.0469   ) * noiseRes * noiseScale;
+	cvec2 disp3 = vec2(0.0555 ,  0.03405  ) * noiseRes * noiseScale;
+	cvec2 disp4 = vec2(0.00825, -0.0491625) * noiseRes * noiseScale;
 	
-	waveTime1 = waveTime * disp1;
-	waveTime2 = waveTime * disp2;
-	waveTime3 = waveTime * disp3;
-	waveTime4 = waveTime * disp4;
+	float w = TIME * WAVE_SPEED * 0.6;
+	
+	waveTime[0] = w * disp1;
+	waveTime[1] = w * disp2;
+	waveTime[2] = w * disp3;
+	waveTime[3] = w * disp4;
 }
 
 float GetWaves(vec2 coord, io mat4x2 c) {
 	float waves = 0.0;
 	vec2 ebin;
 	
-	c[0].xy = coord * scale1 + waveTime1;
-	c[0].y = coord.x * stretch1 + c[0].y;
+	c[0].xy = coord * scale[0] + waveTime[0];
+	c[0].y = coord.x * stretch[0] + c[0].y;
 	ebin = GetWaveCoord(c[0].xy);
 	c[0].x = ebin.x;
 	
 	waves += SharpenWave(texture2D(noisetex, ebin).x) * height.x;
 	
-	c[1].xy = coord * scale2 + waveTime2;
-	c[1].y = coord.x * stretch2 + c[1].y;
+	c[1].xy = coord * scale[1] + waveTime[1];
+	c[1].y = coord.x * stretch[1] + c[1].y;
 	ebin = GetWaveCoord(c[1].xy);
 	c[1].x = ebin.x;
 	
 	waves += texture2D(noisetex, ebin).x * height.y;
 	
-	c[2].xy = coord * scale3 + waveTime3;
-	c[2].y = coord.x * stretch3 + c[2].y;
+	c[2].xy = coord * scale[2] + waveTime[2];
+	c[2].y = coord.x * stretch[2] + c[2].y;
 	ebin = GetWaveCoord(c[2].xy);
 	c[2].x = ebin.x;
 	
 	waves += texture2D(noisetex, ebin).x * height.z;
 	
-	c[3].xy = coord * scale4 + waveTime4;
-	c[3].y = coord.x * stretch4 + c[3].y;
+	c[3].xy = coord * scale[3] + waveTime[3];
+	c[3].y = coord.x * stretch[3] + c[3].y;
 	ebin = GetWaveCoord(c[3].xy);
 	c[3].x = ebin.x;
 	
@@ -96,19 +95,19 @@ float GetWaves(vec2 coord) {
 float GetWaves(mat4x2 c, float offset) {
 	float waves = 0.0;
 	
-	c[0].y = GetWaveCoord(offset * scale1.y + c[0].y);
+	c[0].y = GetWaveCoord(offset * scale[0].y + c[0].y);
 	
 	waves += SharpenWave(texture2D(noisetex, c[0].xy).x) * height.x;
 	
-	c[1].y = GetWaveCoord(offset * scale2.y + c[1].y);
+	c[1].y = GetWaveCoord(offset * scale[1].y + c[1].y);
 	
 	waves += texture2D(noisetex, c[1].xy).x * height.y;
 	
-	c[2].y = GetWaveCoord(offset * scale3.y + c[2].y);
+	c[2].y = GetWaveCoord(offset * scale[2].y + c[2].y);
 	
 	waves += texture2D(noisetex, c[2].xy).x * height.z;
 	
-	c[3].y = GetWaveCoord(offset * scale4.y + c[3].y);
+	c[3].y = GetWaveCoord(offset * scale[3].y + c[3].y);
 	
 	waves += texture2D(noisetex, c[3].xy).x * height.w;
 	
