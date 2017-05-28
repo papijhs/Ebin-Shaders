@@ -1,5 +1,5 @@
-float CalculateSunglow(vec3 worldSpaceVector) {
-	float sunglow = clamp01(dot(worldSpaceVector, worldLightVector) - 0.01);
+float CalculateSunglow(float lightCoeff) {
+	float sunglow = clamp01(lightCoeff - 0.01);
 	      sunglow = pow8(sunglow);
 	
 	return sunglow;
@@ -28,8 +28,8 @@ vec3 CalculateSkyGradient(vec3 worldSpacePosition, float sunglow) {
 	return color;
 }
 
-vec3 CalculateSunspot(vec3 worldSpaceVector) {
-	float sunspot  = clamp01(dot(worldSpaceVector, worldLightVector) - 0.01);
+vec3 CalculateSunspot(float lightCoeff) {
+	float sunspot  = clamp01(lightCoeff - 0.01);
 	      sunspot  = pow(sunspot, 375.0);
 	      sunspot  = pow(sunspot + 1.0, 400.0) - 1.0;
 	      sunspot  = min(sunspot, 20.0) * 6.0;
@@ -69,7 +69,11 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	
 	vec3 worldSpaceVector = normalize(worldSpacePosition);
 	
-	float sunglow = CalculateSunglow(worldSpaceVector);
+	float lightCoeff = dot(worldSpaceVector, worldLightVector);
+	
+	float sunglow = CalculateSunglow(lightCoeff);
+	vec3 sunspot = CalculateSunspot(lightCoeff) * (reflection ? sunlight : pow(visibility, 25) * alpha);
+	
 	
 #ifdef PHYSICAL_ATMOSPHERE
 	vec3 gradient  = ComputeAtmosphericSky(worldSpaceVector, visibility) * 3.0;
@@ -77,8 +81,6 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 #else
 	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow);
 #endif
-	
-	vec3 sunspot = CalculateSunspot(worldSpaceVector) * (reflection ? sunlight : pow(visibility, 25) * alpha);
 	
 	vec3 sky = gradient + sunspot;
 	

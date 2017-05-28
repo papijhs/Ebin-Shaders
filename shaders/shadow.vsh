@@ -30,11 +30,12 @@ varying vec3 vertNormal;
 #include "/lib/Utility.glsl"
 
 #ifdef SHADOWS_FOCUS_CENTER
-#include "/lib/Uniform/Projection_Matrices.vsh"
+//#include "/lib/Uniform/Projection_Matrices.vsh"
 #endif
 
 #include "/UserProgram/centerDepthSmooth.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
+#include "/lib/Uniform/Projection_Matrices.vsh"
 
 vec2 GetDefaultLightmap() {
 	vec2 lightmapCoord = mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st;
@@ -68,6 +69,54 @@ vec4 ProjectShadowMap(vec4 position) {
 	return position;
 }
 
+vec2 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
+	return (diagonal2(projMatrix) * viewSpacePosition.xy + projMatrix[3].xy) / -viewSpacePosition.z;
+}
+
+vec3 ViewSpaceToScreenSpace3(vec3 viewSpacePosition) {
+	return (diagonal3(projMatrix) * viewSpacePosition.xyz + projMatrix[3].xyz) / -viewSpacePosition.z;
+}
+
+bool CullVertex(vec3 wPos) {
+#ifdef GI_ENABLED
+	return false;
+#endif
+	
+	vec3 vRay = transpose(mat3(shadowViewMatrix))[2] * mat3(gbufferModelViewInverse);
+	
+	vec3 vPos = wPos * mat3(gbufferModelViewInverse);
+	
+	vPos.z -= 4.0;
+	
+	bool onscreen = all(lessThan(abs(ViewSpaceToScreenSpace(vPos)), vec2(1.0))) && vPos.z < 0.0;
+	
+	// c = distances to intersection with 4 frustum sides, vec4(xy = -1.0, xy = 1.0)
+	vec4 c =  vec4(diagonal2(projMatrix) * vPos.xy + projMatrix[3].xy, diagonal2(projMatrix) * vRay.xy);
+	     c = -vec4((c.xy - vPos.z) / (c.zw - vRay.z), (c.xy + vPos.z) / (c.zw + vRay.z)); // Solve for (M*(vPos + ray*c) + A) / (vPos.z + ray.z*c) = +-1.0
+	
+	vec3 b1 = vPos + vRay * c.x;
+	vec3 b2 = vPos + vRay * c.y;
+	vec3 b3 = vPos + vRay * c.z;
+	vec3 b4 = vPos + vRay * c.w;
+	
+	vec4 otherCoord = vec4( // vec4(y coord of x = -1.0 intersection,   x coord of y = -1.0,   y coord of x = 1.0,   x coord of y = 1.0)
+		(diagonal3(projMatrix).y * b1.y + projMatrix[3].y) / -b1.z,
+		(diagonal3(projMatrix).x * b2.x + projMatrix[3].x) / -b2.z,
+		(diagonal3(projMatrix).y * b3.y + projMatrix[3].y) / -b3.z,
+		(diagonal3(projMatrix).x * b4.x + projMatrix[3].x) / -b4.z);
+	
+	vec3 yDot = transpose(mat3(gbufferModelViewInverse))[1];
+	
+	vec4 w = vec4(dot(b1, yDot), dot(b2, yDot), dot(b3, yDot), dot(b4, yDot)); // World space y intersection points
+	
+	bvec4 yBounded   = lessThan(abs(w + cameraPosition.y - 128.0), vec4(128.0)); // Intersection happens within y[0.0, 256.0]
+	bvec4 inFrustum  = lessThan(abs(otherCoord), vec4(1.0)); // Example: check the y coordinate of the x-hits to make sure the intersection happens within the 2 perpendicular frustum edges
+	bvec4 correctDir = lessThan(vec4(b1.z, b2.z, b3.z, b4.z), vec4(0.0)) && lessThan(c, vec4(0.0));
+	
+	bool castscreen = any(inFrustum && correctDir && yBounded);
+	
+	return !(onscreen || castscreen);
+}
 
 void main() {
 #ifndef WATER_SHADOW
@@ -82,6 +131,8 @@ void main() {
 	CalculateShadowView();
 #endif
 	
+	SetupProjection();
+	
 	color        = gl_Color;
 	texcoord     = gl_MultiTexCoord0.st;
 	vertLightmap = GetDefaultLightmap();
@@ -93,6 +144,8 @@ void main() {
 	     position += CalculateVertexDisplacements(position);
 	
 	gl_Position = ProjectShadowMap(position.xyzz);
+	
+	if (CullVertex(position)) { gl_Position.z += 100000.0; return; }
 	
 	
 	color.rgb *= clamp01(vertNormal.z);
