@@ -49,11 +49,6 @@ If you download it from GitHub, it will be:
 6. The crashlog is located in either '/logs/shadersmod.log' OR '/logs/fml-client-latest.log'
 7. Send us the crashlog on [Discord](https://discord.gg/9YTc4Q4)
 
-## Development Status
-Development is currently on a soft hiatus because I haven't been very motivated as of late. I intend to continue working on Ebin at some point in the near future, and there are still a lot of features I would like to implement at some point. In the meantime, I have started working on the Continuum Cleanup, which I hope will deliver twice the performance of Continuum 1.3 when it is complete.
-
-~ BruceKnowsHow
-
 ## History
 
 This shaderpack was created after spending years modifying other shaderpacks, primarily [SEUS](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1280299). Ebin was created as a reaction to the many issues and inefficiencies within SEUS (which is by no means a bad shaderpack, it was probably the best shaderpack before the inception of Ebin). Developments within the Shaders Mod, such as its adoption by Optifine, and the addition of the #include preprocessor, boosted motivation to develop a more "modern" shaderpack.
