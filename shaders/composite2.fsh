@@ -85,11 +85,11 @@ int GetMaxSteps(vec3 pos, vec3 ray, float maxRayDepth, float rayGrowth) { // Ret
 	
 	x = (log2(1.0 - x*(1.0 - rayGrowth))) / log2(rayGrowth); // Solve geometric sequence with  a = 1.0  and  r = rayGrowth
 	
-	return min(30, int(x));
+	return min(75, int(x));
 }
 
 bool ComputeRaytracedIntersection(vec3 vPos, vec3 dir, out vec3 screenPos) {
-	cfloat rayGrowth      = 1.25;
+	cfloat rayGrowth      = 1.15;
 	cfloat rayGrowthL2    = log2(rayGrowth);
 	cint   maxRefinements = 0;
 	cbool  doRefinements  = maxRefinements != 0;

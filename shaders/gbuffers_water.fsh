@@ -16,6 +16,8 @@ uniform vec3 cameraPosition;
 uniform float nightVision;
 
 uniform ivec2 eyeBrightnessSmooth;
+
+uniform int isEyeInWater;
 uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
 

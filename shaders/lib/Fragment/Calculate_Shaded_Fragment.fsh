@@ -42,20 +42,18 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 #if defined composite1
 #include "/lib/Fragment/Water_Waves.fsh"
 
-float CalculateWaterCaustics(vec3 worldPos, float waterMask) {
+float CalculateWaterCaustics(vec3 worldPos, float skyLightmap, float waterMask) {
 #ifndef WATER_CAUSTICS
 	return 1.0;
 #endif
 	
-	if (WAVE_MULT == 0.0 || abs(isEyeInWater - waterMask) < 0.5) return 1.0;
+	if (skyLightmap <= 0.0 || WAVE_MULT == 0.0 || isEyeInWater == waterMask) return 1.0;
 	
 	SetupWaveFBM();
 	
 	worldPos += cameraPosition + gbufferModelViewInverse[3].xyz - vec3(0.0, 1.62, 0.0);
 	
-	cfloat waterPlaneHeight = 63.0;
-	
-	float verticalDist = min(abs(worldPos.y - waterPlaneHeight), 2.0);
+	float verticalDist = min(abs(worldPos.y - WATER_HEIGHT), 2.0);
 	
 	vec3 flatRefractVector  = refract(-worldLightVector, vec3(0.0, 1.0, 0.0), 1.0 / 1.3333);
 	     flatRefractVector *= verticalDist / flatRefractVector.y;
@@ -106,30 +104,34 @@ float CalculateWaterCaustics(vec3 worldPos, float waterMask) {
 	
 	return pow3(caustics);
 }
-
-
 #else
-#define CalculateWaterCaustics(a, b) 1.0
+#define CalculateWaterCaustics(a, c, b) 1.0
 #endif
 
 vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, mat2x3 position) {
 	Shading shading;
 	
-	shading.sunlight  = GetLambertianShading(normal, lightVector, mask) * skyLightmap;
-	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight);
-	
-	
-	shading.torchlight  = 1.0 - pow(clamp01(torchLightmap - 0.075), 4.0);
-	shading.torchlight  = 1.0 / pow(shading.torchlight, 2.0) - 1.0;
-	shading.torchlight += GetHeldLight(position[0], normal, mask.hand);
+#ifndef VARIABLE_WATER_HEIGHT
+	if (mask.water != isEyeInWater) // Surface is in water
+		skyLightmap = 1.0 - clamp01(-(position[1].y + cameraPosition.y - WATER_HEIGHT) / UNDERWATER_LIGHT_DEPTH);
+#endif
 	
 	shading.skylight = pow2(skyLightmap);
+	
+	shading.caustics = CalculateWaterCaustics(position[1], shading.skylight, mask.water);
+	
+	shading.sunlight = GetLambertianShading(normal, lightVector, mask) * shading.skylight;
+	shading.sunlight = ComputeSunlight(position[1], shading.sunlight);
+	
+	shading.skylight *= shading.caustics * 0.65 + 0.35;
+	
+	shading.torchlight  = 1.0 - pow4(clamp01(torchLightmap - 0.075));
+	shading.torchlight  = 1.0 / pow2(shading.torchlight) - 1.0;
+	shading.torchlight += GetHeldLight(position[0], normal, mask.hand);
 	
 #ifndef GI_ENABLED
 	shading.skylight *= 1.5;
 #endif
-	
-	shading.caustics = CalculateWaterCaustics(position[1], mask.water);
 	
 	shading.ambient  = 1.0 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 1.7;
 	shading.ambient += nightVision * 50.0;
@@ -139,8 +141,7 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	
 	lightmap.sunlight = shading.sunlight * shading.caustics * sunlightColor;
 	
-	lightmap.skylight = shading.skylight * pow(skylightColor, vec3(0.5));
-	
+	lightmap.skylight = shading.skylight * sqrt(skylightColor);
 	
 	lightmap.GI = GI * sunlightColor;
 	

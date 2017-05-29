@@ -169,6 +169,19 @@ option.CLOUD_SPEED_2D=Cloud Speed
 
 
 option.WATER_PARALLAX=Water Parallax
+option.WATER_PARALLAX.comment=High performance cost!
+
+option.WATER_CAUSTICS=Underwater Caustics
+option.WATER_CAUSTICS.comment=High performance cost!
+
+option.WATER_HEIGHT=Water Plane Height
+option.WATER_HEIGHT.comment=Assumed constant height for water surface
+
+option.VARIABLE_WATER_HEIGHT=Variable Water Height
+option.VARIABLE_WATER_HEIGHT.comment=Fallback to lightmaps to determine underwater depth. For situations with variable water surface heights
+
+option.UNDERWATER_LIGHT_DEPTH=Underwater light depth
+option.UNDERWATER_LIGHT_DEPTH.comment=How deep light penetrates below the water surface. Can be set manually in /UserProgram/WaterHeight.glsl
 
 option.WAVE_MULT=Wave Height
 option.WAVE_SPEED=Wave Speed

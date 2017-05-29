@@ -229,7 +229,7 @@ void main() {
 	if (depth0 >= 1.0) { gl_FragData[0] = vec4(0.0, 0.0, VL.yx); exit(); return; }
 	
 	
-	if (depth1 >= 1.0 || isEyeInWater != mask.water)
+	if (depth1 >= 1.0 || isEyeInWater != mask.water) // Back surface is sky OR surface is in water
 		{ gl_FragData[0] = vec4(0.0, 0.0, VL.yx); exit(); return; }
 	
 	
