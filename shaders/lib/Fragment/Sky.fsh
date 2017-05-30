@@ -41,26 +41,37 @@ vec3 CalculateSunspot(float lightCoeff) {
 #include "/lib/Fragment/Clouds.fsh"
 #include "/lib/Fragment/Atmosphere.fsh"
 
-vec3 CalculateStars(vec3 color, vec3 worldDir) {
-	if (worldDir.y <= 0.0) return color;
+#define STARS ON // [ON OFF]
+#define REFLECT_STARS OFF // [ON OFF]
+#define ROTATE_STARS OFF // [ON OFF]
+#define STAR_SCALE 1.0 // [0.5 1.0 2.0 4.0]
+#define STAR_BRIGHTNESS 1.00 // [0.25 0.50 1.00 2.00 4.00]
+#define STAR_COVERAGE 1.000 // [0.950 0.975 1.000 1.025 1.050]
+
+void CalculateStars(io vec3 color, vec3 worldDir, float visibility, cbool reflection) {
+	if (!STARS) return;
+	if (!REFLECT_STARS && reflection) return;
 	
-	vec2 coord = worldDir.xz * (2.5 * (2.0 - worldDir.y) * noiseScale);
+	float alpha = STAR_BRIGHTNESS * 2000.0 * pow2(clamp01(worldDir.y)) * timeNight * pow(visibility, 50.0);
+	if (alpha <= 0.0) return;
 	
-//	vec3 shadowCoord = mat3(shadowViewMatrix) * worldDir;
+	vec2 coord;
 	
-//	shadowCoord.xz *= sign(sunVector.y);
-	
-//	coord.x = atan(shadowCoord.x, shadowCoord.z);
-//	coord.y = acos(shadowCoord.y);
-	
-//	coord *= 5.0 * noiseScale;
+	if (ROTATE_STARS) {
+		vec3 shadowCoord     = mat3(shadowViewMatrix) * worldDir;
+		     shadowCoord.xz *= sign(sunVector.y);
+		
+		coord  = vec2(atan(shadowCoord.x, shadowCoord.z), acos(shadowCoord.y));
+		coord *= 3.0 * STAR_SCALE * noiseScale;
+	} else
+		coord = worldDir.xz * (2.5 * STAR_SCALE * (2.0 - worldDir.y) * noiseScale);
 	
 	float noise  = texture2D(noisetex, coord * 0.5).r;
 	      noise += texture2D(noisetex, coord).r * 0.5;
 	
-	float star = clamp01(noise - 1.3);
+	float star = clamp01(noise - 1.3 / STAR_COVERAGE);
 	
-	return color + star * 29000.0 * pow2(worldDir.y) * timeNight;
+	color += star * alpha;
 }
 
 vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, float alpha, cbool reflection, float sunlight) {
@@ -84,9 +95,10 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	
 	vec3 sky = gradient + sunspot;
 	
-//	sky = CalculateStars(sky, worldSpaceVector);
+	float cloudAlpha;
+	Compute2DCloudPlane(sky, cloudAlpha, worldSpaceVector, rayPosition, sunglow, visibility);
 	
-	Compute2DCloudPlane(sky, worldSpaceVector, rayPosition, sunglow, visibility);
+	CalculateStars(sky, worldSpaceVector, visibility * (1.0 - cloudAlpha), reflection);
 	
 	return sky * SKY_BRIGHTNESS;
 }

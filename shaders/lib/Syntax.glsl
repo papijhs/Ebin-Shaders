@@ -9,6 +9,9 @@
 
 #define io inout
 
+#define ON true
+#define OFF false
+
 #define FORCE_COMPATIBILITY
 
 #if defined FORCE_COMPATIBILITY || defined GL_VENDOR_INTEL

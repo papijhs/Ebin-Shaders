@@ -168,6 +168,20 @@ option.CLOUD_COVERAGE_2D=Cloud Coverage
 option.CLOUD_SPEED_2D=Cloud Speed
 
 
+option.STARS=Stars
+
+option.REFLECT_STARS=Reflect Stars
+
+option.ROTATE_STARS=Rotate Stars
+option.ROTATE_STARS.comment=Have the stars rotate with the sun/moon. Causes radially symmetric star patterns.
+
+option.STAR_SCALE=Star Scale
+
+option.STAR_BRIGHTNESS=Star Brightness
+
+option.STAR_COVERAGE=Star Coverage
+
+
 option.WATER_PARALLAX=Water Parallax
 option.WATER_PARALLAX.comment=High performance cost!
 
