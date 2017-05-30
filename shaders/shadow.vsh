@@ -82,7 +82,7 @@ bool CullVertex(vec3 wPos) {
 	return false;
 #endif
 	
-	vec3 vRay = transpose(mat3(shadowViewMatrix))[2] * mat3(gbufferModelViewInverse);
+	vec3 vRay = transpose(mat3(shadowViewMatrix))[2] * mat3(gbufferModelViewInverse); // view space light vector
 	
 	vec3 vPos = wPos * mat3(gbufferModelViewInverse);
 	
@@ -100,17 +100,17 @@ bool CullVertex(vec3 wPos) {
 	vec3 b4 = vPos + vRay * c.w;
 	
 	vec4 otherCoord = vec4( // vec4(y coord of x = -1.0 intersection,   x coord of y = -1.0,   y coord of x = 1.0,   x coord of y = 1.0)
-		(diagonal3(projMatrix).y * b1.y + projMatrix[3].y) / -b1.z,
-		(diagonal3(projMatrix).x * b2.x + projMatrix[3].x) / -b2.z,
-		(diagonal3(projMatrix).y * b3.y + projMatrix[3].y) / -b3.z,
-		(diagonal3(projMatrix).x * b4.x + projMatrix[3].x) / -b4.z);
+		(projMatrix[1].y * b1.y + projMatrix[3].y) / -b1.z,
+		(projMatrix[0].x * b2.x + projMatrix[3].x) / -b2.z,
+		(projMatrix[1].y * b3.y + projMatrix[3].y) / -b3.z,
+		(projMatrix[0].x * b4.x + projMatrix[3].x) / -b4.z);
 	
 	vec3 yDot = transpose(mat3(gbufferModelViewInverse))[1];
 	
 	vec4 w = vec4(dot(b1, yDot), dot(b2, yDot), dot(b3, yDot), dot(b4, yDot)); // World space y intersection points
 	
 	bvec4 yBounded   = lessThan(abs(w + cameraPosition.y - 128.0), vec4(128.0)); // Intersection happens within y[0.0, 256.0]
-	bvec4 inFrustum  = lessThan(abs(otherCoord), vec4(1.0)); // Example: check the y coordinate of the x-hits to make sure the intersection happens within the 2 perpendicular frustum edges
+	bvec4 inFrustum  = lessThan(abs(otherCoord), vec4(1.0)); // Example: check the y coordinate of the x-hits to make sure the intersection happens within the 2 adjacent frustum edges
 	bvec4 correctDir = lessThan(vec4(b1.z, b2.z, b3.z, b4.z), vec4(0.0)) && lessThan(c, vec4(0.0));
 	
 	bool castscreen = any(inFrustum && correctDir && yBounded);
