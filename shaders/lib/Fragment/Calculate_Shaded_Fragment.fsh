@@ -123,7 +123,7 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	shading.sunlight = GetLambertianShading(normal, lightVector, mask) * shading.skylight;
 	shading.sunlight = ComputeSunlight(position[1], shading.sunlight);
 	
-	shading.skylight *= shading.caustics * 0.65 + 0.35;
+	shading.skylight *= mix(shading.caustics * 0.65 + 0.35, 1.0, pow8(1.0 - abs(worldLightVector.y)));
 	
 	shading.torchlight  = 1.0 - pow4(clamp01(torchLightmap - 0.075));
 	shading.torchlight  = 1.0 / pow2(shading.torchlight) - 1.0;
