@@ -111,9 +111,9 @@ bool CullVertex(vec3 wPos) {
 	
 	bvec4 yBounded   = lessThan(abs(w + cameraPosition.y - 128.0), vec4(128.0)); // Intersection happens within y[0.0, 256.0]
 	bvec4 inFrustum  = lessThan(abs(otherCoord), vec4(1.0)); // Example: check the y coordinate of the x-hits to make sure the intersection happens within the 2 adjacent frustum edges
-	bvec4 correctDir = lessThan(vec4(b1.z, b2.z, b3.z, b4.z), vec4(0.0)) && lessThan(c, vec4(0.0));
+	bvec4 correctDir = and(lessThan(vec4(b1.z, b2.z, b3.z, b4.z), vec4(0.0)), lessThan(c, vec4(0.0)));
 	
-	bool castscreen = any(inFrustum && correctDir && yBounded);
+	bool castscreen = any(and(and(inFrustum, correctDir), yBounded));
 	
 	return !(onscreen || castscreen);
 }

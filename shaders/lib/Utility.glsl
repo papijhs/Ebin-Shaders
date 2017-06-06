@@ -32,6 +32,8 @@ cvec4 swizzle = vec4(1.0, 0.0, -1.0, 0.5);
 #define rcp(x) (1.0 / (x))
 
 
+#include "/lib/Utility/boolean.glsl"
+
 #include "/lib/Utility/pow.glsl"
 
 #include "/lib/Utility/fastMath.glsl"
