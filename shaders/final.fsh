@@ -18,6 +18,8 @@ uniform vec3 previousCameraPosition;
 uniform float viewWidth;
 uniform float viewHeight;
 
+uniform float rainStrength;
+
 varying vec2 texcoord;
 varying vec2 pixelSize;
 
@@ -25,6 +27,8 @@ varying vec2 pixelSize;
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
 #include "/lib/Uniform/Projection_Matrices.fsh"
+#include "/lib/Uniform/Shading_Variables.glsl"
+#include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Masks.fsh"
 
 vec3 GetColor(vec2 coord) {
@@ -120,10 +124,110 @@ void Vignette(io vec3 color) {
 	color *= 1.0 - pow(edge * 1.3, 1.5);
 }
 
-void Tonemap(io vec3 color) {
+#define TONEMAP 1 // [1 2 3]
+
+void ReinhardTonemap(io vec3 color) {
 	color *= EXPOSURE;
 	color  = color / (color + 1.0);
 	color  = pow(color, vec3(1.15 / 2.2));
+}
+
+vec3 Curve(vec3 x, vec3 a, vec3 b, vec3 c, vec3 d, vec3 e) {
+	x *= max0(a);
+	x  = ((x * (c * x + 0.5)) / (x * (c * x + 1.7) + b)) + e;
+	x  = pow(x, d);
+	
+	return x;
+}
+
+void BurgessTonemap(io vec3 color) {
+	vec3  a, b, c, d, e, f;
+	float g;
+	
+	#define BURGESS_PRESET 1 // [1 2]
+	
+#if BURGESS_PRESET == 1 // Silvia preferred, default
+	a = vec3( 1.50,  1.60,  1.60); // Exposure
+	b = vec3( 0.60,  0.60,  0.60); // Contrast
+	c = vec3(12.00, 12.00, 12.00); // Vibrance
+	d = vec3( 0.33,  0.36,  0.36); // Gamma
+	e = vec3( 0.00,  0.00,  0.00); // Lift
+	f = vec3( 1.00,  1.00,  1.00); // Highlights
+	g = 1.09; // Saturation
+#else // Custom
+	#define Exposure_r 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
+	#define Exposure_g 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
+	#define Exposure_b 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
+	#define Exposure   1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
+	
+	#define Contrast_r 0.6
+	#define Contrast_g 0.6
+	#define Contrast_b 0.6
+	#define Contrast   1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
+	
+	#define Vibrance_r 12.0
+	#define Vibrance_g 12.0
+	#define Vibrance_b 12.0
+	#define Vibrance   1.0  // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
+	
+	#define Gamma_r 0.76
+	#define Gamma_g 0.80
+	#define Gamma_b 0.78
+	#define Gamma   1.0  // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
+	
+	#define Lift_r 0.08
+	#define Lift_g 0.08
+	#define Lift_b 0.08
+	#define Lift   1.0  // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
+	
+	#define Highlights_r 1.0
+	#define Highlights_g 1.0
+	#define Highlights_b 1.0
+	#define Highlights   1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
+	
+	#define Saturation 1.0
+	
+	a = vec3(Exposure_r, Exposure_g, Exposure_b)*Exposure;         // Exposure
+	b = vec3(Contrast_r, Contrast_g, Contrast_b)*Contrast;         // Contrast
+	c = vec3(Vibrance_r, Vibrance_g, Vibrance_b)*Vibrance;         // Vibrance
+	d = vec3(Gamma_r, Gamma_g, Gamma_b)*Gamma;                     // Gamma
+	e = vec3(Lift_r, Lift_g, Lift_b)*Lift;                         // Lift
+	f = vec3(Highlights_r, Highlights_g, Highlights_b)*Highlights; // Highlights
+	g = Saturation;                                                // Saturation
+#endif
+	
+//	e *= smoothstep(0.1, -0.1, worldLightVector.y);
+//	g *= 1.0 - rainStrength * 0.5;
+	
+	color = Curve(color, a, b, c, d, e);
+	
+	float luma = dot(color, lumaCoeff);
+	color  = mix(vec3(luma), color, g) / Curve(vec3(1.0), a, b, c, d, e);
+	color *= f;
+}
+
+void Uncharted2Tonemap(io vec3 color) {
+	cfloat A = 0.15, B = 0.5, C = 0.1, D = 0.2, E = 0.02, F = 0.3, W = 11.2;
+	cfloat whiteScale = 1.0 / (((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F);
+	cfloat ExposureBias = 2.3 * EXPOSURE;
+	
+	vec3 curr = ExposureBias * color;
+	     curr = ((curr * (A * curr + C * B) + D * E) / (curr * (A * curr + B) + D * F)) - E / F;
+	
+	color = curr * whiteScale;
+	color = pow(color, vec3(1.0 / 2.2));
+}
+
+void Tonemap(io vec3 color) {
+#if TONEMAP == 1
+	ReinhardTonemap(color);
+#elif TONEMAP == 2
+	color = pow(color, vec3(1.0 / 1.5)) / 3.0 * 0.25;
+	
+	BurgessTonemap(color);
+#else
+	Uncharted2Tonemap(color);
+#endif
 }
 
 void main() {

@@ -284,3 +284,44 @@ option.CUSTOM_TIME_CYCLE=Custom Time Cycle
 
 option.FREEZE_TIME=Freeze Time
 option.FREEZE_TIME.comment=Disable animations and keep them in a static position. Helpful for screenshot comparisons
+
+
+option.TONEMAP=Tonemap
+value.TONEMAP.1=Reinhard
+value.TONEMAP.2=Burgess
+value.TONEMAP.3=Uncharted 2
+
+option.BURGESS_PRESET=Burgess Preset
+value.BURGESS_PRESET.1=Default
+value.BURGESS_PRESET.2=Custom
+
+screen.Custom_Burgess=Custom Burgess
+
+option.Exposure_r=Exposure r 
+option.Exposure_g=Exposure g 
+option.Exposure_b=Exposure b 
+option.Exposure=Exposure 
+
+option.Contrast_r=Contrast r 
+option.Contrast_g=Contrast g 
+option.Contrast_b=Contrast b 
+option.Contrast=Contrast 
+
+option.Vibrance_r=Vibrance r 
+option.Vibrance_g=Vibrance g 
+option.Vibrance_b=Vibrance b 
+
+option.Gamma_r=Gamma r 
+option.Gamma_g=Gamma g 
+option.Gamma_b=Gamma b 
+option.Gamma=Gamma 
+
+option.Lift_r=Lift r 
+option.Lift_g=Lift g 
+option.Lift_b=Lift b 
+
+option.Highlights_r=Highlights r 
+option.Highlights_g=Highlights g 
+option.Highlights_b=Highlights b 
+
+option.Saturation=Saturation 
