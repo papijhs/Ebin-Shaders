@@ -87,7 +87,7 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	
 	
 #ifdef PHYSICAL_ATMOSPHERE
-	vec3 gradient  = ComputeAtmosphericSky(worldSpaceVector, visibility) * 3.0;
+	vec3 gradient  = ComputeAtmosphericSky(worldSpaceVector, visibility) * 5.0;
 	     gradient += CalculateSkyGradient(worldSpacePosition, sunglow) * timeNight;
 #else
 	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow);

@@ -144,56 +144,45 @@ void BurgessTonemap(io vec3 color) {
 	vec3  a, b, c, d, e, f;
 	float g;
 	
-	#define BURGESS_PRESET 1 // [1 2]
+	#define BURGESS_PRESET 1 // [1 2 3 4]
 	
-#if BURGESS_PRESET == 1 // Silvia preferred, default
-	a = vec3( 1.50,  1.60,  1.60); // Exposure
-	b = vec3( 0.60,  0.60,  0.60); // Contrast
-	c = vec3(12.00, 12.00, 12.00); // Vibrance
-	d = vec3( 0.33,  0.36,  0.36); // Gamma
-	e = vec3( 0.00,  0.00,  0.00); // Lift
-	f = vec3( 1.00,  1.00,  1.00); // Highlights
+#if BURGESS_PRESET == 1 // Default
+	a =  3.00 * vec3(1.0, 1.0, 1.0); // Exposure
+	b =  1.00 * vec3(1.0, 1.0, 1.0); // Contrast
+	c = 12.00 * vec3(1.0, 1.0, 1.0); // Vibrance
+	d =  0.42 * vec3(1.0, 1.0, 1.0); // Gamma
+	e =  0.00 * vec3(1.0, 1.0, 1.0); // Lift
+	f =  1.00 * vec3(1.0, 1.0, 1.0); // Highlights
+	g =  1.00; // Saturation
+#elif BURGESS_PRESET == 2 // Silvia's Ebin preset
+	a =  1.50 * vec3(1.00, 1.06, 0.93); // Exposure
+	b =  0.60 * vec3(1.00, 1.00, 0.91); // Contrast
+	c = 17.00 * vec3(1.00, 1.00, 0.70); // Vibrance
+	d =  0.46 * vec3(0.93, 1.00, 1.00); // Gamma
+	e =  0.01 * vec3(1.50, 1.00, 1.00); // Lift
+	f =  1.00 * vec3(1.00, 1.00, 1.00); // Highlights
+	g =  0.93; // Saturation
+	
+	e *= smoothstep(0.1, -0.1, worldLightVector.y);
+#elif BURGESS_PRESET == 3 // Silvia's preferred from continuity
+	a =  1.60 * vec3(0.94, 1.00, 1.00); // Exposure
+	b =  0.60 * vec3(1.00, 1.00, 1.00); // Contrast
+	c = 12.00 * vec3(1.00, 1.00, 1.00); // Vibrance
+	d =  0.36 * vec3(0.92, 1.00, 1.00); // Gamma
+	e =  0.00 * vec3(1.00, 1.00, 1.00); // Lift
+	f =  1.00 * vec3(1.00, 1.00, 1.00); // Highlights
 	g = 1.09; // Saturation
-#else // Custom
-	#define Exposure_r 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
-	#define Exposure_g 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
-	#define Exposure_b 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
-	#define Exposure   1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
-	
-	#define Contrast_r 0.6
-	#define Contrast_g 0.6
-	#define Contrast_b 0.6
-	#define Contrast   1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
-	
-	#define Vibrance_r 12.0
-	#define Vibrance_g 12.0
-	#define Vibrance_b 12.0
-	#define Vibrance   1.0  // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
-	
-	#define Gamma_r 0.76
-	#define Gamma_g 0.80
-	#define Gamma_b 0.78
-	#define Gamma   1.0  // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
-	
-	#define Lift_r 0.08
-	#define Lift_g 0.08
-	#define Lift_b 0.08
-	#define Lift   1.0  // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
-	
-	#define Highlights_r 1.0
-	#define Highlights_g 1.0
-	#define Highlights_b 1.0
-	#define Highlights   1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 3.0 4.0]
-	
-	#define Saturation 1.0
-	
-	a = vec3(Exposure_r, Exposure_g, Exposure_b)*Exposure;         // Exposure
-	b = vec3(Contrast_r, Contrast_g, Contrast_b)*Contrast;         // Contrast
-	c = vec3(Vibrance_r, Vibrance_g, Vibrance_b)*Vibrance;         // Vibrance
-	d = vec3(Gamma_r, Gamma_g, Gamma_b)*Gamma;                     // Gamma
-	e = vec3(Lift_r, Lift_g, Lift_b)*Lift;                         // Lift
-	f = vec3(Highlights_r, Highlights_g, Highlights_b)*Highlights; // Highlights
-	g = Saturation;                                                // Saturation
+#else
+	/*
+	 * Tweak custom Burgess tonemap HERE
+	 */
+	a =  1.50 * vec3(1.00, 1.06, 0.93); // Exposure
+	b =  0.60 * vec3(1.00, 1.00, 0.91); // Contrast
+	c = 17.00 * vec3(1.00, 1.00, 0.70); // Vibrance
+	d =  0.46 * vec3(0.93, 1.00, 1.00); // Gamma
+	e =  0.01 * vec3(1.50, 1.00, 1.00); // Lift
+	f =  1.00 * vec3(1.00, 1.00, 1.00); // Highlights
+	g =  0.93; // Saturation
 #endif
 	
 //	e *= smoothstep(0.1, -0.1, worldLightVector.y);
