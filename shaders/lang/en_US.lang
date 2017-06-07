@@ -196,6 +196,7 @@ option.VARIABLE_WATER_HEIGHT.comment=Fallback to lightmaps to determine underwat
 
 option.UNDERWATER_LIGHT_DEPTH=Underwater light depth
 option.UNDERWATER_LIGHT_DEPTH.comment=How deep light penetrates below the water surface. Can be set manually in /UserProgram/WaterHeight.glsl
+value.UNDERWATER_LIGHT_DEPTH.65536=Infinite
 
 option.WAVE_MULT=Wave Height
 option.WAVE_SPEED=Wave Speed

@@ -29,10 +29,6 @@ varying vec3 vertNormal;
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 
-#ifdef SHADOWS_FOCUS_CENTER
-//#include "/lib/Uniform/Projection_Matrices.vsh"
-#endif
-
 #include "/UserProgram/centerDepthSmooth.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
 #include "/lib/Uniform/Projection_Matrices.vsh"

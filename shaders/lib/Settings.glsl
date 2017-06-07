@@ -19,8 +19,9 @@ const int colortex2Format = R8;
 const int colortex1Format = R11F_G11F_B10F;
 const int colortex4Format = RG32F;
 
-** composite0 Buffer **
+** composite0 Buffers **
 const int colortex5Format = RGBA8;
+const int colortex6Format = RG8;
 
 
 const float eyeBrightnessHalflife = 1.5;
@@ -114,7 +115,7 @@ const float zShrink = 4.0;
 //#define WATER_CAUSTICS
 #include "/UserProgram/WaterHeight.glsl"
 //#define VARIABLE_WATER_HEIGHT
-#define UNDERWATER_LIGHT_DEPTH 16 // [4 8 16 32 64 16384]
+#define UNDERWATER_LIGHT_DEPTH 16 // [4 8 16 32 64 65536]
 #define WAVE_MULT  1.0 // [0.0 0.5 1.0 1.5 2.0]
 #define WAVE_SPEED 1.0 // [0.0 0.5 1.0 2.0]
 

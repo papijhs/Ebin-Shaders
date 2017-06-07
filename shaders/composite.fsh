@@ -4,7 +4,7 @@
 #define ShaderStage 0
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:5 */
+/* DRAWBUFFERS:56 */
 
 const bool shadowtex1Mipmap    = true;
 const bool shadowcolor0Mipmap  = true;
@@ -226,11 +226,12 @@ void main() {
 	
 	vec2 VL = ComputeVolumetricLight(backPos[1], frontPos[1], noise2D, mask.water);
 	
-	if (depth0 >= 1.0) { gl_FragData[0] = vec4(0.0, 0.0, VL.yx); exit(); return; }
+	if (depth0 >= 1.0)
+		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, 0.0); gl_FragData[1] = vec4(VL, 0.0, 0.0); exit(); return; }
 	
 	
 	if (depth1 >= 1.0 || isEyeInWater != mask.water) // Back surface is sky OR surface is in water
-		{ gl_FragData[0] = vec4(0.0, 0.0, VL.yx); exit(); return; }
+		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, 0.0); gl_FragData[1] = vec4(VL, 0.0, 0.0); exit(); return; }
 	
 	
 	vec3 normal = DecodeNormal(texure4.g, 11);
@@ -238,9 +239,10 @@ void main() {
 	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
 	     GI = sqrt(GI * 0.2);
 	
-	if (isEyeInWater > 0) GI.b = VL.g;
+	float AO = 1.0;
 	
-	gl_FragData[0] = vec4(GI, VL.x);
+	gl_FragData[0] = vec4(GI, AO);
+	gl_FragData[1] = vec4(VL, 0.0, 0.0);
 	
 	exit();
 }
