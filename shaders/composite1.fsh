@@ -145,6 +145,28 @@ float CalculateSunglow(vec3 worldSpaceVector) {
 	return sunglow;
 }
 
+float Luma(vec3 color) {
+  return dot(color, vec3(0.299, 0.587, 0.114));
+}
+
+vec3 ColorSaturate(vec3 base, float saturation) {
+    return mix(base, vec3(Luma(base)), -saturation);
+}
+
+vec3 LightDesaturation(vec3 color, vec2 lightmap){
+	cvec3 nightColor = vec3(0.25, 0.35, 0.7);
+	cvec3 torchColor = vec3(0.5, 0.33, 0.15) * 0.1;
+	vec3  desatColor = vec3(color.x + color.y + color.z);
+	
+	desatColor = mix(desatColor * nightColor, mix(desatColor, color, 0.5) * ColorSaturate(torchColor, 0.35) * 40.0, clamp01(lightmap.r * 2.0));
+	
+	float moonFade = smoothstep(0.0, 0.3, max0(-worldLightVector.y));
+	
+	float coeff = clamp01(min(moonFade, 0.65) + pow(1.0 - lightmap.g, 1.4));
+	
+	return mix(color, desatColor, coeff);
+}
+
 void main() {
 	vec2 texure4 = ScreenTex(colortex4).rg;
 	
@@ -194,6 +216,7 @@ void main() {
 	
 	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, smoothness, backPos);
 	     composite *= pow(diffuse, vec3(2.8));
+	     composite  = LightDesaturation(composite, vec2(torchLightmap, skyLightmap));
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
 		composite = WaterFog(composite, waterNormal, viewSpacePosition0, backPos[0]);
