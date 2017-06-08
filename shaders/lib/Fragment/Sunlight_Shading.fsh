@@ -30,11 +30,11 @@ float GetLambertianShading(vec3 normal, vec3 lightVector, Mask mask) {
 #endif
 
 float ComputeSunlight(vec3 worldSpacePosition, float sunlightCoeff) {
-	if (sunlightCoeff <= 0.01) return sunlightCoeff;
+	if (sunlightCoeff <= 0.0) return sunlightCoeff;
 	
 	float distCoeff = GetDistanceCoeff(worldSpacePosition);
 	
-	if (distCoeff >= 0.99) return sunlightCoeff;
+	if (distCoeff >= 1.0) return sunlightCoeff;
 	
 	float biasCoeff;
 	
