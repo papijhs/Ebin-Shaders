@@ -25,5 +25,9 @@ float GetMaterialIDs(int mc_ID) { // Gather material masks
 			materialID = 1.0;
 	}
 	
+	// Custom Streams Mod ID's can go here:
+//	if (mc_Entity.x == 8 || mc_Entity.x == 9 || mc_Entity.x == 235 || mc_Entity.x == 236 ... )
+//		materialID = 4.0;
+	
 	return materialID;
 }

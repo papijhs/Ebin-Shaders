@@ -161,7 +161,7 @@ void main() {
 	
 	Mask mask = EmptyMask;
 	
-	if (abs(mcID - 8.5) < 0.6) {
+	if (abs(materialIDs - 4.0) < 0.1) {
 		if (!gl_FrontFacing) discard;
 		
 		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
