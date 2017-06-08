@@ -34,10 +34,19 @@ vec3 CalculateSunspot(float lightCoeff) {
 	      sunspot  = pow(sunspot, 375.0);
 	      sunspot  = pow(sunspot + 1.0, 400.0) - 1.0;
 	      sunspot  = min(sunspot, 20.0) * 6.0;
-	      sunspot *= 1.0 + timeNight * 5.0;
 	      sunspot  = sin(max(lightCoeff - 0.9985, 0.0) / 0.0015 * PI * 0.5) * 200.0;
 	
-	return vec3(sunspot) * 10.0;// * sunlightColor * sunlightColor * vec3(1.0, 0.8, 0.6);
+	return vec3(sunspot) * 10.0;// * pow2(sunlightColor) * vec3(1.0, 0.8, 0.6);
+}
+
+vec3 CalculateMoonspot(float lightCoeff) {
+	float moonspot  = clamp01(lightCoeff - 0.01);
+	      moonspot  = pow(moonspot, 400.0);
+	      moonspot  = pow(moonspot + 1.0, 400.0) - 1.0;
+	      moonspot  = min(moonspot, 20.0) * 6.0;
+	      moonspot *= timeNight * 5.0;
+	
+	return moonspot * pow2(sunlightColor);
 }
 
 #include "/lib/Fragment/Clouds.fsh"
@@ -82,10 +91,11 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	
 	vec3 worldSpaceVector = normalize(worldSpacePosition);
 	
-	float lightCoeff = dot(worldSpaceVector, worldLightVector);
+	float lightCoeff = dot(worldSpaceVector, worldLightVector) * sign(sunVector.y);
 	
 	float sunglow = CalculateSunglow(lightCoeff);
 	vec3  sunspot = CalculateSunspot(lightCoeff) * (reflection ? sunlight : pow(visibility, 25) * alpha);
+	vec3  moonspot = CalculateMoonspot(-lightCoeff) * (reflection ? sunlight : pow(visibility, 25) * alpha);
 	
 	
 #ifdef PHYSICAL_ATMOSPHERE
@@ -95,7 +105,7 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow, sunspot);
 #endif
 	
-	vec3 sky = gradient;
+	vec3 sky = gradient + moonspot;
 	
 	float cloudAlpha;
 	Compute2DCloudPlane(sky, cloudAlpha, worldSpaceVector, rayPosition, sunglow, visibility);
