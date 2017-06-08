@@ -68,6 +68,7 @@ const float zShrink = 4.0;
 
 #if !defined low_profile
 	#define GI_ENABLED
+	#define AO_ENABLED
 	//#define VOLUMETRIC_LIGHT
 #endif
 

@@ -108,7 +108,7 @@ float CalculateWaterCaustics(vec3 worldPos, float skyLightmap, float waterMask) 
 #define CalculateWaterCaustics(a, c, b) 1.0
 #endif
 
-vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec3 GI, vec3 normal, float smoothness, mat2x3 position) {
+vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec4 GI, vec3 normal, float smoothness, mat2x3 position) {
 	Shading shading;
 	
 #ifndef VARIABLE_WATER_HEIGHT
@@ -124,10 +124,12 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	shading.sunlight = ComputeSunlight(position[1], shading.sunlight);
 	
 	shading.skylight *= mix(shading.caustics * 0.65 + 0.35, 1.0, pow8(1.0 - abs(worldLightVector.y)));
+	shading.skylight *= GI.a;
 	
 	shading.torchlight  = 1.0 - pow4(clamp01(torchLightmap - 0.075));
 	shading.torchlight  = 1.0 / pow2(shading.torchlight) - 1.0;
 	shading.torchlight += GetHeldLight(position[0], normal, mask.hand);
+	shading.torchlight *= GI.a;
 	
 #ifndef GI_ENABLED
 	shading.skylight *= 1.5;
@@ -135,6 +137,7 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	
 	shading.ambient  = 1.0 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 1.7;
 	shading.ambient += nightVision * 50.0;
+	shading.ambient *= GI.a;
 	
 	
 	Lightmap lightmap;
@@ -143,7 +146,7 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	
 	lightmap.skylight = shading.skylight * sqrt(skylightColor);
 	
-	lightmap.GI = GI * sunlightColor;
+	lightmap.GI = GI.rgb * GI.a * sunlightColor;
 	
 	lightmap.ambient = vec3(shading.ambient);
 	

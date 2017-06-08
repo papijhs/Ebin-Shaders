@@ -155,6 +155,62 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 }
 #endif
 
+vec2 Hammersley(int i, int N) {
+	return vec2(float(i) / float(N), float(bitfieldReverse(i)) * 2.3283064365386963e-10);
+}
+
+vec2 Circlemap(vec2 p) {
+	p.y *= TAU;
+	return vec2(cos(p.y), sin(p.y)) * p.x;
+}
+
+#define AO_SAMPLE_COUNT 6 // [3 4 5 6 8 12 16]
+#define AO_RADIUS 1.30 // [0.70 0.85 1.00 1.15 1.30 1.50]
+#define AO_INTENSITY 1.00 // [0.25 0.50 0.75 1.00 1.50 2.00 4.00]
+
+float ContinuityAO(vec3 vPos, vec3 normal) {
+#ifndef AO_ENABLED
+	return 1.0;
+#endif
+	
+	cint steps = AO_SAMPLE_COUNT;
+	cfloat r = AO_RADIUS;
+	cfloat rInv = 1.0 / r;
+	
+	vec2 p  = gl_FragCoord.xy / COMPOSITE0_SCALE + 1.0 / vec2(viewWidth, viewHeight);
+	     p /= vec2(viewWidth, viewHeight);
+	
+	int x = int(gl_FragCoord.x) % 4;
+	int y = int(gl_FragCoord.y) % 4;
+	int index = (x << 2) + y + 1;
+	
+	vPos = CalculateViewSpacePosition(vec3(p, textureRaw(depthtex1, p).x));
+	
+	vec2 clipRadius = r * vec2(viewHeight / viewWidth, 1.0) / length(vPos);
+	
+	float nvisibility = 0.0;
+	
+	for (int i = 0; i < steps; i++) {
+		vec2 circlePoint = Circlemap(Hammersley(i * 15 + index, 16 * steps)) * clipRadius;
+		
+		vec2 p1 = p + circlePoint;
+		vec2 p2 = p + circlePoint * 0.25;
+		
+		vec3 o  = CalculateViewSpacePosition(vec3(p1, textureRaw(depthtex1, p1).x)) - vPos;
+		vec3 o2 = CalculateViewSpacePosition(vec3(p2, textureRaw(depthtex1, p2).x)) - vPos;
+		
+		vec2 len = vec2(length(o), length(o2));
+		
+		vec2 ratio = clamp01(len * rInv - 1.0); // (len - r) / r
+		
+		nvisibility += clamp01(1.0 - max(dot(o, normal) / len.x - ratio.x, dot(o2, normal) / len.y - ratio.y));
+	}
+	
+	nvisibility /= float(steps);
+	
+	return clamp01(mix(1.0, nvisibility, AO_INTENSITY));
+}
+
 vec2 ComputeVolumetricLight(vec3 position, vec3 frontPos, vec2 noise, float waterMask) {
 #ifndef VOLUMETRIC_LIGHT
 	return vec2(0.0);
@@ -226,23 +282,23 @@ void main() {
 	
 	vec2 VL = ComputeVolumetricLight(backPos[1], frontPos[1], noise2D, mask.water);
 	
-	if (depth0 >= 1.0)
-		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, 0.0); gl_FragData[1] = vec4(VL, 0.0, 0.0); exit(); return; }
+	gl_FragData[1] = vec4(VL, 0.0, 0.0);
 	
-	
-	if (depth1 >= 1.0 || isEyeInWater != mask.water) // Back surface is sky OR surface is in water
-		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, 0.0); gl_FragData[1] = vec4(VL, 0.0, 0.0); exit(); return; }
+	if (depth1 >= 1.0) // Back surface is sky
+		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0); exit(); return; }
 	
 	
 	vec3 normal = DecodeNormal(texure4.g, 11);
 	
+	float AO = ContinuityAO(backPos[0], normal * mat3(gbufferModelViewInverse));
+	
+	if (isEyeInWater != mask.water) // If surface is in water
+		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, AO); exit(); return; }
+	
+	
 	vec3 GI = ComputeGlobalIllumination(backPos[1], normal, skyLightmap, GI_RADIUS * 2.0, noise2D, mask);
-	     GI = sqrt(GI * 0.2);
 	
-	float AO = 1.0;
-	
-	gl_FragData[0] = vec4(GI, AO);
-	gl_FragData[1] = vec4(VL, 0.0, 0.0);
+	gl_FragData[0] = vec4(sqrt(GI * 0.2), AO);
 	
 	exit();
 }
