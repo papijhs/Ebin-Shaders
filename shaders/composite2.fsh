@@ -253,7 +253,7 @@ void main() {
 	if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
 	if (depth1 >= 1.0 && mask.water > 0.5 && isEyeInWater == 1) color0 = color1;
 	
-	gl_FragData[0] = vec4(EncodeColor(color0), 1.0);
+	gl_FragData[0] = vec4(clamp01(EncodeColor(color0)), 1.0);
 	
 	exit();
 }
