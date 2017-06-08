@@ -75,7 +75,7 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
 
 void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
-	GI = vec4(0.0);
+	GI = vec4(0.0, 0.0, 0.0, 1.0);
 	VL = vec2(1.0);
 	
 #if !(defined GI_ENABLED || defined AO_ENABLED || defined VOLUMETRIC_LIGHT)
