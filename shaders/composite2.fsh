@@ -6,8 +6,6 @@
 
 /* DRAWBUFFERS:32 */
 
-const bool colortex1MipmapEnabled = true;
-
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
