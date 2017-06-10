@@ -210,68 +210,6 @@ vec3 GetCloudSpacePosition(vec2 coord, float linDepth, float distanceMult) {
 	return worldPos;
 }
 
-struct MaskStruct {
-
-	float matIDs;
-
-	float sky;
-	float land;
-	float grass;
-	float leaves;
-	float ice;
-	float hand;
-	float translucent;
-	float glow;
-	float sunspot;
-	float goldBlock;
-	float ironBlock;
-	float diamondBlock;
-	float emeraldBlock;
-	float sand;
-	float sandstone;
-	float stone;
-	float cobblestone;
-	float wool;
-	float clouds;
-
-	float torch;
-	float lava;
-	float glowstone;
-	float fire;
-
-	float water;
-
-	float volumeCloud;
-
-	float stainedGlass;
-
-};
-
-struct SurfaceStruct { 			//Surface shading properties, attributes, and functions
-	
-	MaskStruct 		mask;			//Material ID Masks
-	
-	//Properties that are required for lighting calculation
-		vec3 	albedo;					//Diffuse texture aka "color texture"
-		vec3 	normal;					//Screen-space surface normals
-		float 	depth;					//Scene depth
-		float   linearDepth; 			//Linear depth
-
-		vec4	screenSpacePosition;	//Vector representing the screen-space position of the surface
-		vec4 	worldSpacePosition;
-		vec3 	viewVector; 			//Vector representing the viewing direction
-		vec3 	lightVector; 			//Vector representing sunlight direction
-		vec3 	worldLightVector;
-		vec3  	upVector;				//Vector representing "up" direction
-		float 	NdotL; 					//dot(normal, lightVector). used for direct lighting calculation
-		
-
-		float 	shadow;
-		float 	cloudShadow;
-
-		float 	cloudAlpha;
-} surface;
-
 float CalculateSunglow2(vec3 vPos) {
 	vec3 npos = normalize(vPos);
 	vec3 halfVector2 = normalize(-lightVector + npos);
@@ -553,9 +491,9 @@ void main() {
 	backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
-//	vec3 color = vec3(0.0, 0.5, 1.0) * float(depth0 >= 1.0);
-//	vec4 cloud = CalculateClouds3(color, backPos, float(depth1 >= 1.0));
-//	show(color);
+	vec3 color = vec3(0.0, 0.5, 1.0) * float(depth0 >= 1.0);
+	vec4 cloud = CalculateClouds3(color, backPos, float(depth1 >= 1.0));
+	show(color);
 	
 //	gl_FragData[3] = vec4(cloud);
 	
