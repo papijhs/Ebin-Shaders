@@ -6,10 +6,13 @@
 
 /* DRAWBUFFERS:32 */
 
+const bool colortex5MipmapEnabled = true;
+
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
+uniform sampler2D colortex5;
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
@@ -213,7 +216,13 @@ void main() {
 		alpha = texture2D(colortex2, texcoord).r;
 	}
 	
+	vec4 cloud = textureLod(colortex5, texcoord, 1.0 + sqrt(abs(normalize(frontPos[1]).y)));
+	
+	cloud.rgb = pow2(cloud.rgb) * 50.0;
+	
 	vec3 sky = CalculateSky(backPos[1], vec3(0.0), float(depth1 >= 1.0), 1.0 - alpha, false, 1.0);
+	
+	sky = mix(sky, cloud.rgb, cloud.a);
 	
 	vec3 normal = DecodeNormal(texture4.g, 11) * mat3(gbufferModelViewInverse);
 	
