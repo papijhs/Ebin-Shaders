@@ -216,7 +216,9 @@ void main() {
 		alpha = texture2D(colortex2, texcoord).r;
 	}
 	
-	vec4 cloud = textureLod(colortex5, texcoord, 1.0 + sqrt(abs(normalize(frontPos[1]).y)));
+	#define VolCloudLOD 0 // [0 1 2]
+	
+	vec4 cloud = textureLod(colortex5, texcoord, VolCloudLOD);
 	
 	cloud.rgb = pow2(cloud.rgb) * 50.0;
 	
