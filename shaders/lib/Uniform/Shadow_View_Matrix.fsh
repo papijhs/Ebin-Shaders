@@ -1,5 +1,5 @@
 #if defined TIME_OVERRIDE || defined TELEFOCAL_SHADOWS
-	varying mat4 shadowView;
+	flat varying mat4 shadowView;
 	
 	#define shadowViewMatrix shadowView
 #else

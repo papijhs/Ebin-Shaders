@@ -1,11 +1,11 @@
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 
-varying float FOV;
+flat varying float FOV;
 
 #ifdef FOV_OVERRIDE
-	varying mat4 projection;
-	varying mat4 projectionInverse;
+	flat varying mat4 projection;
+	flat varying mat4 projectionInverse;
 	
 	void SetupProjection() {
 		projection = gbufferProjection;

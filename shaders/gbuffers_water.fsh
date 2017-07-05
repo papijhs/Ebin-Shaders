@@ -8,6 +8,7 @@
 uniform sampler2DShadow shadow;
 uniform sampler2D noisetex;
 
+uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowProjection;
 

@@ -21,7 +21,8 @@ uniform float viewHeight;
 uniform float rainStrength;
 
 varying vec2 texcoord;
-varying vec2 pixelSize;
+
+flat varying vec2 pixelSize;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
@@ -127,7 +128,7 @@ void Vignette(io vec3 color) {
 #define TONEMAP 1 // [1 2 3]
 
 void ReinhardTonemap(io vec3 color) {
-	color *= EXPOSURE;
+	color *= EXPOSURE * 16.0;
 	color  = color / (color + 1.0);
 	color  = pow(color, vec3(1.15 / 2.2));
 }
@@ -176,13 +177,13 @@ void BurgessTonemap(io vec3 color) {
 	/*
 	 * Tweak custom Burgess tonemap HERE
 	 */
-	a =  1.50 * vec3(1.00, 1.06, 0.93); // Exposure
-	b =  0.60 * vec3(1.00, 1.00, 0.91); // Contrast
-	c = 17.00 * vec3(1.00, 1.00, 0.70); // Vibrance
-	d =  0.46 * vec3(0.93, 1.00, 1.00); // Gamma
-	e =  0.01 * vec3(1.50, 1.00, 1.00); // Lift
-	f =  1.00 * vec3(1.00, 1.00, 1.00); // Highlights
-	g =  0.93; // Saturation
+	a = vec3(1.5, 1.6, 1.6);	//Exposure
+	b = vec3(0.6, 0.6, 0.6);	//Contrast
+	c = vec3(12.0, 12.0, 12.0);	//Vibrance
+	d = vec3(0.33, 0.36, 0.36);	//Gamma
+	e = vec3(0.000, 0.000, 0.000);	//Lift
+	f = vec3(1.05, 1.02, 1.0);    //Highlights
+	g = 1.19;                    //Saturation
 #endif
 	
 //	e *= smoothstep(0.1, -0.1, worldLightVector.y);
@@ -211,7 +212,7 @@ void Tonemap(io vec3 color) {
 #if TONEMAP == 1
 	ReinhardTonemap(color);
 #elif TONEMAP == 2
-	color = pow(color, vec3(1.0 / 1.5)) / 3.0 * 0.25;
+//	color = pow(color, vec3(1.0 / 1.5)) / 3.0 * 0.25;
 	
 	BurgessTonemap(color);
 #else
@@ -228,7 +229,7 @@ void main() {
 	
 	GetBloom(color); 
 	
-	Vignette(color);
+//	Vignette(color);
 	Tonemap(color);
 	
 	gl_FragColor = vec4(color, 1.0);

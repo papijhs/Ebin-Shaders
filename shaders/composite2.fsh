@@ -37,7 +37,8 @@ uniform ivec2 eyeBrightnessSmooth;
 uniform int isEyeInWater;
 
 varying vec2 texcoord;
-varying vec2 pixelSize;
+
+flat varying vec2 pixelSize;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
@@ -235,17 +236,16 @@ void main() {
 	
 	
 	vec3 color0 = vec3(0.0);
-	vec3 color1 = vec3(0.0);
+	vec3 color1 = texture2D(colortex1, texcoord).rgb;
 	
 	if (mask.transparent > 0.5)
 		color0 = texture2D(colortex3, texcoord).rgb / alpha;
 	
-	color1 = texture2D(colortex1, texcoord).rgb;
-	
 	if (mask.transparent > 0.5) 
 		color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER, float(depth1 >= 1.0))) ;// * (1.0 - float(mask.water > 0.5 && isEyeInWater == 0)));
 	
-	color0 = mix(color1, color0, mask.transparent - mask.water);
+	if (mask.transparent - mask.water < 0.5)
+		color0 = color1;
 	
 	ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
 	

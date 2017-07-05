@@ -1,3 +1,5 @@
+#define powf(x, f) exp2((f) * log2(x))
+
 #define pow2_(type) type pow2(type x) { return x * x; }
 #define pow3_(type) type pow3(type x) { return x * x * x; }
 #define pow4_(type) type pow4(type x) { x *= x; return x * x; }

@@ -12,17 +12,16 @@ uniform float far;
 
 varying vec3 color;
 varying vec2 texcoord;
+varying vec2 vertLightmap;
 
-varying mat3 tbnMatrix;
+flat varying mat3 tbnMatrix;
 
 varying mat2x3 position;
 
 varying vec3 worldDisplacement;
 
-varying vec2 vertLightmap;
-
-varying float mcID;
-varying float materialIDs;
+flat varying float mcID;
+flat varying float materialIDs;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Debug.glsl"
@@ -172,8 +171,7 @@ void main() {
 		mask.water = 1.0;
 	}
 	
-	vec3 composite  = CalculateShadedFragment(mask, vertLightmap.r, vertLightmap.g, vec4(0.0, 0.0, 0.0, 1.0), normal.xyz * mat3(gbufferModelViewInverse), specularity, position);
-	     composite *= pow(diffuse.rgb, vec3(2.2));
+	vec3 composite  = CalculateShadedFragment(powf(diffuse.rgb, 2.2), mask, vertLightmap.r, vertLightmap.g, vec4(0.0, 0.0, 0.0, 1.0), normal.xyz * mat3(gbufferModelViewInverse), specularity, position);
 	
 	gl_FragData[0] = vec4(Encode4x8F(vec4(specularity, vertLightmap.g, 0.0, 0.1)), EncodeNormalU(normal.xyz, mask.water), 0.0, 1.0);
 	gl_FragData[1] = vec4(0.0);

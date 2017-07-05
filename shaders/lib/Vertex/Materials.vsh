@@ -18,6 +18,13 @@ float GetMaterialIDs(int mc_ID) { // Gather material masks
 		case 106:                    // Vines
 		case 161:                    // New leaves
 			materialID = 2.0; break; // Translucent
+		case 10:                     // Flowing Lava
+		case 11:                     // Still Lava
+		case 50:                     // Torch
+		case 51:                     // Fire
+		case 89:                     // Glowstone
+		case 124:                    // Redstone Lamp
+			materialID = 3.0; break; // Emissive
 		case 8:
 		case 9:
 			materialID = 4.0; break; // Water

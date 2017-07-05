@@ -20,23 +20,23 @@ struct Lightmap { // Vector light levels with color
 
 
 float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
-	const mat2x3 lightPos = mat2x3(
+	mat2x3 lightPos = mat2x3(
 	     0.16, -0.05, -0.1,
 	    -0.16, -0.05, -0.1);
 	
 	mat2x3 lightRay = mat2x3(
-	    viewSpacePosition - lightPos[0],
-	    viewSpacePosition - lightPos[1]);
+	    viewSpacePosition - lightPos[0]*0 - gbufferModelView[3].xyz,
+	    viewSpacePosition - lightPos[1]*0 - gbufferModelView[3].xyz);
 	
-	vec2 falloff = inversesqrt(vec2(length2(lightRay[0]), length2(lightRay[1])));
+	vec2 falloff = rcp(vec2(length2(lightRay[0]), length2(lightRay[1])));
 	
+	falloff  = vec2(length(lightRay[0]), length(lightRay[1]));
+	falloff  = pow2(1.0 / ((1.0 - clamp01(1.0 - falloff / 16.0)*0.9) * 16.0) - 1.0 / 16.0);
 	falloff *= clamp01(vec2(dot(normal, lightPos[0]), dot(normal, lightPos[1])) * falloff) * 0.35 + 0.65;
+	falloff  = mix(falloff, vec2(1.0), handMask * vec2(greaterThan(viewSpacePosition.x * vec2(1.0, -1.0), vec2(0.0))));
+	falloff *= vec2(heldBlockLightValue, heldBlockLightValue2);
 	
-	vec2 hand  = max0(falloff - 0.0625);
-	     hand  = mix(hand, vec2(2.0), handMask * vec2(greaterThan(viewSpacePosition.x * vec2(1.0, -1.0), vec2(0.0))));
-	     hand *= vec2(heldBlockLightValue, heldBlockLightValue2) / 16.0;
-	
-	return hand.x + hand.y;
+	return falloff.x + falloff.y;
 }
 
 #if defined composite1
@@ -108,7 +108,41 @@ float CalculateWaterCaustics(vec3 worldPos, float skyLightmap, float waterMask) 
 #define CalculateWaterCaustics(a, c, b) 1.0
 #endif
 
-vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, vec4 GI, vec3 normal, float smoothness, mat2x3 position) {
+float Luma(vec3 color) {
+  return dot(color, vec3(0.299, 0.587, 0.114));
+}
+
+vec3 ColorSaturate(vec3 base, float saturation) {
+    return mix(base, vec3(Luma(base)), -saturation);
+}
+
+cvec3 nightColor = vec3(0.25, 0.35, 0.7);
+cvec3 torchColor = vec3(0.5, 0.22, 0.05);
+
+vec3 LightDesaturation(vec3 color, float torchlight, float skylight, float emissive) {
+//	if (emissive > 0.5) return vec3(color);
+	
+	vec3  desatColor = vec3(color.x + color.y + color.z);
+	
+	desatColor = mix(desatColor * nightColor, mix(desatColor, color, 0.5) * ColorSaturate(torchColor, 0.35) * 40.0, clamp01(torchlight * 2.0)*0+1);
+	
+	float moonFade = smoothstep(0.0, 0.3, max0(-worldLightVector.y));
+	
+	float coeff = clamp01(min(moonFade, 0.65) + pow(1.0 - skylight, 1.4));
+	
+	return mix(color, desatColor, coeff);
+}
+
+vec3 nightDesat(vec3 color, vec3 lightmap, cfloat mult, cfloat curve) {
+	float desatAmount = clamp01(pow(length(lightmap) * mult, curve));
+	vec3 desatColor = vec3(color.r + color.g + color.b);
+	
+	desatColor *= sqrt(desatColor);
+	
+	return mix(desatColor, color, desatAmount);
+}
+
+vec3 CalculateShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float skyLightmap, vec4 GI, vec3 normal, float smoothness, mat2x3 position) {
 	Shading shading;
 	
 #ifndef VARIABLE_WATER_HEIGHT
@@ -120,24 +154,24 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	
 	shading.caustics = CalculateWaterCaustics(position[1], shading.skylight, mask.water);
 	
-	shading.sunlight = GetLambertianShading(normal, lightVector, mask) * shading.skylight;
-	shading.sunlight = ComputeSunlight(position[1], shading.sunlight);
+	shading.sunlight  = GetLambertianShading(normal, lightVector, mask) * shading.skylight;
+	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight);
+	shading.sunlight *= 1.0 * SUN_LIGHT_LEVEL;
 	
 	shading.skylight *= mix(shading.caustics * 0.65 + 0.35, 1.0, pow8(1.0 - abs(worldLightVector.y)));
 	shading.skylight *= GI.a;
+	shading.skylight *= 0.075 * SKY_LIGHT_LEVEL;
 	
-	shading.torchlight  = 1.0 - pow4(clamp01(torchLightmap - 0.075));
-	shading.torchlight  = 1.0 / pow2(shading.torchlight) - 1.0;
+	shading.torchlight  = pow2(1.0 / ((1.0 - torchLightmap*0.9) * 16.0) - 1.0 / 16.0) * 16.0;
 	shading.torchlight += GetHeldLight(position[0], normal, mask.hand);
+	shading.torchlight += mask.emissive * 5.0;
 	shading.torchlight *= GI.a;
+	shading.torchlight *= 0.05 * TORCH_LIGHT_LEVEL;
 	
-#ifndef GI_ENABLED
-	shading.skylight *= 1.5;
-#endif
-	
-	shading.ambient  = 1.0 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 1.7;
+	shading.ambient  = 0.5 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 3.0;
 	shading.ambient += nightVision * 50.0;
-	shading.ambient *= GI.a;
+	shading.ambient *= GI.a * 0.5 + 0.5;
+	shading.ambient *= 0.0002 * AMBIENT_LIGHT_LEVEL;
 	
 	
 	Lightmap lightmap;
@@ -150,15 +184,22 @@ vec3 CalculateShadedFragment(Mask mask, float torchLightmap, float skyLightmap, 
 	
 	lightmap.ambient = vec3(shading.ambient);
 	
-	lightmap.torchlight = shading.torchlight * vec3(0.7, 0.3, 0.1);
+	lightmap.torchlight = shading.torchlight * torchColor * 10.0;
 	
-	lightmap.skylight *= clamp01(1.0 - dot(lightmap.GI, vec3(1.0 / 3.0)) * 0.5);
+	lightmap.skylight *= clamp01(1.0 - dot(lightmap.GI, vec3(1.0)) / 6.0);
 	
-	return vec3(
-	    lightmap.sunlight   * 16.0  * SUN_LIGHT_LEVEL
-	+   lightmap.skylight   * 1.8   * SKY_LIGHT_LEVEL * SKY_BRIGHTNESS
-	+   lightmap.GI         * 1.0
-	+   lightmap.ambient    * 0.015 * AMBIENT_LIGHT_LEVEL
-	+   lightmap.torchlight * 6.0   * TORCH_LIGHT_LEVEL
-	    );
+	
+	vec3 desatColor = vec3(pow(diffuse.r + diffuse.g + diffuse.b, 1.5));
+	
+#define LIGHT_DESATURATION
+#ifndef LIGHT_DESATURATION
+//	desatColor = diffuse;
+#endif
+	
+	vec3 composite = diffuse * (lightmap.GI + lightmap.ambient)
+	+ lightmap.skylight   * mix(desatColor, diffuse, clamp01(pow(length(lightmap.skylight  ) * 25.0, 0.2)))
+	+ lightmap.sunlight   * mix(desatColor, diffuse, clamp01(pow(length(lightmap.sunlight  ) *  4.0, 0.1)))
+	+ lightmap.torchlight * mix(desatColor, diffuse, clamp01(pow(length(lightmap.torchlight) *  1.0, 0.1)));
+	
+	return composite;
 }

@@ -1,8 +1,8 @@
-varying float FOV;
+flat varying float FOV;
 
 #ifdef FOV_OVERRIDE
-	varying mat4 projection;
-	varying mat4 projectionInverse;
+	flat varying mat4 projection;
+	flat varying mat4 projectionInverse;
 	
 	#define projMatrix projection
 	#define projInverseMatrix projectionInverse

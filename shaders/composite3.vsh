@@ -8,7 +8,8 @@ uniform float viewWidth;
 uniform float viewHeight;
 
 varying vec2 texcoord;
-varying vec2 pixelSize;
+
+flat varying vec2 pixelSize;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"

@@ -1,10 +1,10 @@
-varying vec3 lightVector;
-varying vec3 worldLightVector;
-varying vec3 sunVector;
+flat varying vec3 lightVector;
+flat varying vec3 worldLightVector;
+flat varying vec3 sunVector;
 
-varying float timeDay;
-varying float timeNight;
-varying float timeHorizon;
+flat varying float timeDay;
+flat varying float timeNight;
+flat varying float timeHorizon;
 
-varying vec3 sunlightColor;
-varying vec3 skylightColor;
+flat varying vec3 sunlightColor;
+flat varying vec3 skylightColor;

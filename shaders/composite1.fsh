@@ -20,6 +20,7 @@ uniform sampler2D noisetex;
 uniform sampler2D shadowtex1;
 uniform sampler2DShadow shadow;
 
+uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowProjection;
 
@@ -42,7 +43,8 @@ uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
 
 varying vec2 texcoord;
-varying vec2 pixelSize;
+
+flat varying vec2 pixelSize;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
@@ -144,28 +146,6 @@ void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
 #include "/lib/Misc/Calculate_Fogfactor.glsl"
 #include "/lib/Fragment/Water_Depth_Fog.fsh"
 #include "/lib/Fragment/AerialPerspective.fsh"
-
-float Luma(vec3 color) {
-  return dot(color, vec3(0.299, 0.587, 0.114));
-}
-
-vec3 ColorSaturate(vec3 base, float saturation) {
-    return mix(base, vec3(Luma(base)), -saturation);
-}
-
-vec3 LightDesaturation(vec3 color, vec2 lightmap){
-	cvec3 nightColor = vec3(0.25, 0.35, 0.7);
-	cvec3 torchColor = vec3(0.5, 0.33, 0.15) * 0.1;
-	vec3  desatColor = vec3(color.x + color.y + color.z);
-	
-	desatColor = mix(desatColor * nightColor, mix(desatColor, color, 0.5) * ColorSaturate(torchColor, 0.35) * 40.0, clamp01(lightmap.r * 2.0));
-	
-	float moonFade = smoothstep(0.0, 0.3, max0(-worldLightVector.y));
-	
-	float coeff = clamp01(min(moonFade, 0.65) + pow(1.0 - lightmap.g, 1.4));
-	
-	return mix(color, desatColor, coeff);
-}
 
 float CalculateDitherPattern1() {
 	const int[16] ditherPattern = int[16] (
@@ -369,12 +349,12 @@ void CloudLighting1(float sunglow) {
 
 void CloudLighting2(float sunglow) {
 	directColor  = sunlightColor;
-	directColor *= 35.0 * (1.0 + pow2(sunglow) * 2.0) * mix(1.0, 0.2, timeNight) * mix(1.0, 0.2, rainStrength);
+	directColor *= 35.0 * (1.0 + pow2(sunglow) * 2.0) * mix(1.0, 0.2, rainStrength);
 	
 	ambientColor  = mix(sqrt(skylightColor), sunlightColor, 0.5);
 	ambientColor *= 0.5 + timeHorizon * 0.5;
 	
-	directColor = mix(directColor, ambientColor * 20.0, pow8(timeHorizon));
+	directColor += ambientColor * 20.0 * timeHorizon;
 	
 	bouncedColor = vec3(0.0);
 }
@@ -424,7 +404,7 @@ void RaymarchClouds(io vec4 cloudSum, vec3 position, float sunglow, float sample
 	for (float i = 0.0; i < samples && cloudSum.a < 1.0; i++, rayPosition += rayIncrement) {
 		vec4 cloud = CloudColor(rayPosition, cloudLowerHeight, cloudDepth, denseFactor, coverage, sunglow);
 		
-		cloudSum.rgb = mix(cloudSum.rgb, cloud.rgb, (1.0 - cloudSum.a) * cloud.a);
+		cloudSum.rgb += cloud.rgb * (1.0 - cloudSum.a) * cloud.a;
 		cloudSum.a += cloud.a;
 	}
 	
@@ -471,11 +451,11 @@ vec4 CalculateClouds3(mat2x3 position, float depth) {
 	return vec4(0.0);
 #endif
 	
-//	if (depth < 1.0) return vec4(0.0);
+	if (depth < 1.0) return vec4(0.0);
 	const ivec2[4] offsets = ivec2[4](ivec2(2), ivec2(-2, 2), ivec2(2, -2), ivec2(-2));
-	if (all(lessThan(textureGatherOffsets(depthtex1, texcoord, offsets, 0), vec4(1.0)))) return vec4(0.0);
+//	if (all(lessThan(textureGatherOffsets(depthtex1, texcoord, offsets, 0), vec4(1.0)))) return vec4(0.0);
 	
-	float sunglow  = pow8(clamp01(dotNorm(position[1], worldLightVector) - 0.01));
+	float sunglow  = pow8(clamp01(dotNorm(position[1], worldLightVector) - 0.01)) * pow4(max(timeDay, timeNight));
 	float coverage = 0.0;
 	
 	vec4 cloudSum = vec4(0.0);
@@ -500,6 +480,8 @@ vec4 CalculateClouds3(mat2x3 position, float depth) {
 	Cloud3Lighting(sunglow);
 	RaymarchClouds(cloudSum, position[1], sunglow, CLOUD3_SAMPLES, CLOUD3_NOISE, CLOUD3_DENSITY, coverage, CLOUD3_START_HEIGHT, CLOUD3_DEPTH);
 #endif
+	
+	cloudSum.rgb *= 0.1;
 	
 	return cloudSum;
 }
@@ -558,9 +540,7 @@ void main() {
 	vec3 viewSpacePosition0 = CalculateViewSpacePosition(vec3(texcoord, depth0));
 	
 	
-	vec3 composite  = CalculateShadedFragment(mask, torchLightmap, skyLightmap, GI, normal, smoothness, backPos);
-	     composite *= pow(diffuse, vec3(2.8));
-	     composite  = LightDesaturation(composite, vec2(torchLightmap, skyLightmap));
+	vec3 composite = CalculateShadedFragment(powf(diffuse, 2.2), mask, torchLightmap, skyLightmap, GI, normal, smoothness, backPos);
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
 		composite = WaterFog(composite, waterNormal, viewSpacePosition0, backPos[0]);

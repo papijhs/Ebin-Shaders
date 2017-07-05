@@ -14,14 +14,14 @@ varying vec3 color;
 varying vec2 texcoord;
 varying vec2 vertLightmap;
 
-varying mat3 tbnMatrix;
+flat varying mat3 tbnMatrix;
 
 varying mat2x3 position;
 
 varying vec3 worldDisplacement;
 
-varying float mcID;
-varying float materialIDs;
+flat varying float mcID;
+flat varying float materialIDs;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
@@ -38,7 +38,7 @@ varying float materialIDs;
 vec2 GetDefaultLightmap() {
 	vec2 lightmapCoord = mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st;
 	
-	return clamp01((lightmapCoord * pow2(1.031)) - 0.032).rg;
+	return clamp01(lightmapCoord / vec2(0.8745, 0.9373)).rg;
 }
 
 #include "/lib/Vertex/Materials.vsh"

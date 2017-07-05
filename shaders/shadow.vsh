@@ -24,7 +24,7 @@ varying vec4 color;
 varying vec2 texcoord;
 varying vec2 vertLightmap;
 
-varying vec3 vertNormal;
+flat varying vec3 vertNormal;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"

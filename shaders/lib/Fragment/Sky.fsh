@@ -36,7 +36,7 @@ vec3 CalculateSunspot(float lightCoeff) {
 	      sunspot  = min(sunspot, 20.0) * 6.0;
 	      sunspot  = sin(max(lightCoeff - 0.9985, 0.0) / 0.0015 * PI * 0.5) * 200.0;
 	
-	return vec3(sunspot) * 10.0;// * pow2(sunlightColor) * vec3(1.0, 0.8, 0.6);
+	return vec3(sunspot);// * pow2(sunlightColor) * vec3(1.0, 0.8, 0.6);
 }
 
 vec3 CalculateMoonspot(float lightCoeff) {
@@ -44,7 +44,7 @@ vec3 CalculateMoonspot(float lightCoeff) {
 	      moonspot  = pow(moonspot, 400.0);
 	      moonspot  = pow(moonspot + 1.0, 400.0) - 1.0;
 	      moonspot  = min(moonspot, 20.0) * 6.0;
-	      moonspot *= timeNight * 5.0;
+	      moonspot *= timeNight * 200.0;
 	
 	return moonspot * pow2(sunlightColor);
 }
@@ -112,5 +112,5 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	
 	CalculateStars(sky, worldSpaceVector, visibility * (1.0 - cloudAlpha), reflection);
 	
-	return sky * SKY_BRIGHTNESS;
+	return sky * SKY_BRIGHTNESS * 0.1;
 }

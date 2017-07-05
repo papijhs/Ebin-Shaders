@@ -10,7 +10,7 @@ uniform sampler2D texture;
 varying vec4 color;
 varying vec2 texcoord;
 
-varying vec3 vertNormal;
+flat varying vec3 vertNormal;
 
 
 void main() {
