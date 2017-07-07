@@ -83,6 +83,8 @@ mat3 CalculateTBN(vec3 worldPosition) {
 	return mat3(tangent, binormal, normal);
 }
 
+//#define HIDE_ENTITIES
+
 void main() {
 #ifdef HIDE_ENTITIES
 	if (mc_Entity.x < 0.5) { gl_Position = vec4(-1.0); return; }

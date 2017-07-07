@@ -1,3 +1,9 @@
+const int   shadowMapResolution = 2048;  // [1024 2048 3072 4096 8192]
+const float shadowDistance      = 140;   // [70 140 280]
+
+#define SHADOW_MAP_BIAS 0.80     // [0.00 0.60 0.70 0.80 0.85 0.90]
+//#define LIMIT_SHADOW_DISTANCE
+
 float GetDistanceCoeff(vec3 position) {
 #ifndef LIMIT_SHADOW_DISTANCE
 	return 0.0;

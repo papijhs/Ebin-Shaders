@@ -1,3 +1,7 @@
+#define WAVING_GRASS
+#define WAVING_LEAVES
+#define WAVING_WATER
+
 vec3 GetWavingGrass(vec3 position, cbool doubleTall) {
 #ifndef WAVING_GRASS
 	return vec3(0.0);

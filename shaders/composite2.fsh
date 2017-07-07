@@ -145,6 +145,8 @@ bool ComputeRaytracedIntersection(vec3 vPos, vec3 dir, out vec3 screenPos) {
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight_Shading.fsh"
 
+#define REFLECTION_EDGE_FALLOFF
+
 void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
 	if (isEyeInWater == 1) return;
 	
@@ -173,7 +175,7 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 		
 		fogFactor = CalculateFogFactor(refVPos, FOG_POWER, 0.0);
 		
-		#ifdef REFLECTION_EDGE_FALLOFF
+		#ifdef  REFLECTION_EDGE_FALLOFF
 			float angleCoeff = clamp01(pow(normal.z + 0.15, 0.25) * 2.0) * 0.2 + 0.8;
 			float dist       = length8(abs(refCoord.st - vec2(0.5)));
 			float edge       = clamp01(1.0 - pow2(dist * 2.0 * angleCoeff));

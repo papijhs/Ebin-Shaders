@@ -1,3 +1,6 @@
+//#define PHYSICAL_ATMOSPHERE
+#define BLEND_PHYSICAL_ATMOSPHERE
+
 vec2 AtmosphereDistances(vec3 worldPosition, vec3 worldDirection, cfloat atmosphereRadius, cvec2 radiiSquared) {
 	// Considers the planet's center as the coordinate origin, as per convention
 	

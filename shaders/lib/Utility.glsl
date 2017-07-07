@@ -4,6 +4,7 @@ cfloat TAU = radians(360.0);
 cfloat RAD = radians(  1.0); // Degrees per radian
 cfloat DEG = degrees(  1.0); // Radians per degree
 
+//#define FREEZE_TIME
 #ifdef FREEZE_TIME
 	#define TIME 0.0
 #else
@@ -32,27 +33,15 @@ cvec4 swizzle = vec4(1.0, 0.0, -1.0, 0.5);
 #define rcp(x) (1.0 / (x))
 
 
-#include "/lib/Utility/boolean.glsl"
-
-#include "/lib/Utility/pow.glsl"
-
-#include "/lib/Utility/fastMath.glsl"
-
-#include "/lib/Utility/lengthDotNormalize.glsl"
-
-#include "/lib/Utility/clamping.glsl"
-
-#include "/lib/Utility/encoding.glsl"
-
-#include "/lib/Utility/blending.glsl"
+#include "/lib/Utility/Default/pow.glsl"
+#include "/lib/Utility/Default/lengthDotNormalize.glsl"
+#include "/lib/Utility/Default/clamping.glsl"
+#include "/lib/Utility/Default/encoding.glsl"
 
 
 // Applies a subtle S-shaped curve, domain [0 to 1]
 #define cubesmooth_(type) type cubesmooth(type x) { return (x * x) * (3.0 - 2.0 * x); }
 DEFINE_genFType(cubesmooth_)
-
-#define cosmooth_(type) type cosmooth(type x) { return 0.5 - cos(x * PI) * 0.5; }
-DEFINE_genFType(cosmooth_)
 
 vec2 rotate(in vec2 vector, float radians) {
 	return vector *= mat2(

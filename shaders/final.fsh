@@ -48,8 +48,19 @@ vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z;
 }
 
+//#define MOTION_BLUR
+#define VARIABLE_MOTION_BLUR_SAMPLES
+#define MAX_MOTION_BLUR_SAMPLE_COUNT            50    // [10 25 50 100]
+#define VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT 1.000 // [0.125 0.250 0.500 1.000]
+#define CONSTANT_MOTION_BLUR_SAMPLE_COUNT       2     // [2 3 4 5 10]
+#define MOTION_BLUR_INTENSITY                   1.0   // [0.5 1.0 2.0]
+#define MAX_MOTION_BLUR_AMOUNT                  1.0   // [0.5 1.0 2.0]
+
 void MotionBlur(io vec3 color, float depth, float handMask) {
-#ifdef MOTION_BLUR
+#ifndef MOTION_BLUR
+	return;
+#endif
+	
 	if (handMask > 0.5) return;
 	
 	vec3 position = vec3(texcoord, depth) * 2.0 - 1.0; // Signed [-1.0 to 1.0] screen space position
@@ -84,7 +95,6 @@ void MotionBlur(io vec3 color, float depth, float handMask) {
 	}
 	
 	color *= 1000.0 / max(sampleCount + 1.0, 1.0);
-#endif
 }
 
 vec3 GetBloomTile(cint scale, vec2 offset) {
@@ -95,8 +105,15 @@ vec3 GetBloomTile(cint scale, vec2 offset) {
 	return DecodeColor(texture2D(colortex1, coord).rgb);
 }
 
+#define BLOOM_ENABLED
+#define BLOOM_AMOUNT 0.15 // [0.15 0.30 0.45]
+#define BLOOM_CURVE  1.50 // [1.00 1.25 1.50 1.75 2.00]
+
 void GetBloom(io vec3 color) {
-#ifdef BLOOM_ENABLED
+#ifndef BLOOM_ENABLED
+	return;
+#endif
+	
 	vec3[8] bloom;
 	
 	// These arguments should be identical to those in composite2.fsh
@@ -116,7 +133,6 @@ void GetBloom(io vec3 color) {
 	bloom[0] /= 7.0;
 	
 	color = mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
-#endif
 }
 
 void Vignette(io vec3 color) {
@@ -127,10 +143,15 @@ void Vignette(io vec3 color) {
 
 #define TONEMAP 1 // [1 2 3]
 
+#define EXPOSURE   1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+#define SATURATION 1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
+
 void ReinhardTonemap(io vec3 color) {
 	color *= EXPOSURE * 16.0;
 	color  = color / (color + 1.0);
-	color  = pow(color, vec3(1.15 / 2.2));
+	color  = powf(color, 1.0 / 2.2);
+	
+	color = rgb(hsv(color) * vec3(1.0, SATURATION, 1.0));
 }
 
 vec3 Curve(vec3 x, vec3 a, vec3 b, vec3 c, vec3 d, vec3 e) {
@@ -189,6 +210,9 @@ void BurgessTonemap(io vec3 color) {
 //	e *= smoothstep(0.1, -0.1, worldLightVector.y);
 //	g *= 1.0 - rainStrength * 0.5;
 	
+	a *= EXPOSURE;
+	g *= SATURATION;
+	
 	color = Curve(color, a, b, c, d, e);
 	
 	float luma = dot(color, lumaCoeff);
@@ -212,8 +236,6 @@ void Tonemap(io vec3 color) {
 #if TONEMAP == 1
 	ReinhardTonemap(color);
 #elif TONEMAP == 2
-//	color = pow(color, vec3(1.0 / 1.5)) / 3.0 * 0.25;
-	
 	BurgessTonemap(color);
 #else
 	Uncharted2Tonemap(color);
@@ -229,7 +251,7 @@ void main() {
 	
 	GetBloom(color); 
 	
-//	Vignette(color);
+	Vignette(color);
 	Tonemap(color);
 	
 	gl_FragColor = vec4(color, 1.0);

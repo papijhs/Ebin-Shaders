@@ -46,6 +46,8 @@ varying vec2 texcoord;
 
 flat varying vec2 pixelSize;
 
+#include "/lib/Initialize.glsl"
+
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
@@ -79,6 +81,8 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 }
 
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
+
+#define COMPOSITE0_SCALE 0.50 // [0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 
 void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
 	GI = vec4(0.0, 0.0, 0.0, 1.0);

@@ -1,3 +1,5 @@
+//#define CLEAR_WATER
+
 vec3 WaterFog(vec3 color, vec3 normal, vec3 viewSpacePosition0, vec3 viewSpacePosition1) {
 #ifdef CLEAR_WATER
 	return color;

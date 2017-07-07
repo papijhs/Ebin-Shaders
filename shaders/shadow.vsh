@@ -69,9 +69,7 @@ vec2 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 	return (diagonal2(projMatrix) * viewSpacePosition.xy + projMatrix[3].xy) / -viewSpacePosition.z;
 }
 
-vec3 ViewSpaceToScreenSpace3(vec3 viewSpacePosition) {
-	return (diagonal3(projMatrix) * viewSpacePosition.xyz + projMatrix[3].xyz) / -viewSpacePosition.z;
-}
+#include "/lib/Utility/boolean.glsl"
 
 bool CullVertex(vec3 wPos) {
 #ifdef GI_ENABLED
@@ -114,6 +112,11 @@ bool CullVertex(vec3 wPos) {
 	return !(onscreen || castscreen);
 }
 
+//#define HIDE_ENTITIES
+//#define WATER_SHADOW
+#define PLAYER_SHADOW
+//#define PLAYER_GI_BOUNCE
+
 void main() {
 #ifndef WATER_SHADOW
 	if (abs(mc_Entity.x - 8.5) < 0.6) { gl_Position = vec4(-1.0); return; }
@@ -123,10 +126,7 @@ void main() {
 	if (mc_Entity.x < 0.5) { gl_Position = vec4(-1.0); return; }
 #endif
 	
-#if defined TIME_OVERRIDE || defined TELEFOCAL_SHADOWS
 	CalculateShadowView();
-#endif
-	
 	SetupProjection();
 	
 	color        = gl_Color;
@@ -146,14 +146,17 @@ void main() {
 	
 	color.rgb *= clamp01(vertNormal.z);
 	
+	
 	if (   mc_Entity.x == 0 // If the vertex is an entity
 		&& abs(position.x) < 1.2
 		&& position.y > -0.1 &&  position.y < 2.2 // Check if the vertex is A bounding box around the player, so that at least non-near entities still cast shadows
 		&& abs(position.z) < 1.2) {
 	#ifndef PLAYER_SHADOW
 		color.a = 0.0;
-	#elif !defined PLAYER_GI_BOUNCE
-		color.rgb = vec3(0.0);
+	#else
+		#ifndef PLAYER_GI_BOUNCE
+			color.rgb = vec3(0.0);
+		#endif
 	#endif
 	}
 }

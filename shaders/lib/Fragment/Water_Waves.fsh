@@ -20,6 +20,9 @@ float SharpenWave(float wave) {
 	return wave < 0.78 ? wave : (wave * -2.5 + 5.0) * wave - 1.6;
 }
 
+#define WAVE_MULT  1.0 // [0.0 0.5 1.0 1.5 2.0]
+#define WAVE_SPEED 1.0 // [0.0 0.5 1.0 2.0]
+
 cvec4 heights = vec4(29.0, 15.0, 17.0, 4.0);
 cvec4 height = heights * WAVE_MULT / sum4(heights);
 
@@ -124,22 +127,28 @@ vec2 GetWaveDifferentials(vec2 coord, cfloat scale) { // Get finite wave differe
 	return a - vec2(aX, aY);
 }
 
+//#define WATER_PARALLAX
+
+#define WATER_PARALLAX_QUALITY     1.0  // [0.5 1.0 2.0]
+#define WATER_PARALLAX_DISTANCE   12.0  // [30.0 60.0 120.0 240.0]
+#define WATER_PARALLAX_INTENSITY   1.00 // [0.25 0.50 0.75 1.00 1.50 2.00]
+
 #if defined gbuffers_water
 vec2 GetParallaxWave(vec2 worldPos, float angleCoeff) {
 #ifndef WATER_PARALLAX
 	return worldPos;
 #endif
 	
-	cfloat parallaxDist = TERRAIN_PARALLAX_DISTANCE * 5.0;
+	cfloat parallaxDist = WATER_PARALLAX_DISTANCE;
 	cfloat distFade     = parallaxDist / 3.0;
 	cfloat MinQuality   = 0.5;
 	cfloat maxQuality   = 1.5;
 	
-	float intensity = clamp01((parallaxDist - length(position[1]) * FOV / 90.0) / distFade) * 0.85 * TERRAIN_PARALLAX_INTENSITY;
+	float intensity = clamp01((parallaxDist - length(position[1]) * FOV / 90.0) / distFade) * 0.85 * WATER_PARALLAX_INTENSITY;
 	
 //	if (intensity < 0.01) return worldPos;
 	
-	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position[1]), 0.25)), MinQuality, maxQuality) * TERRAIN_PARALLAX_QUALITY;
+	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position[1]), 0.25)), MinQuality, maxQuality) * WATER_PARALLAX_QUALITY;
 	
 	vec3  tangentRay = normalize(position[1]) * tbnMatrix;
 	vec3  stepSize = 0.1 * vec3(1.0, 1.0, 1.0);

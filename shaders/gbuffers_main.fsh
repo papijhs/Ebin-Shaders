@@ -78,6 +78,10 @@ float GetSpecularity(vec2 coord) {
 #endif
 }
 
+#define TERRAIN_PARALLAX_QUALITY     1.0  // [0.5 1.0 2.0]
+#define TERRAIN_PARALLAX_DISTANCE   12.0  // [6.0 12.0 24.0 48.0]
+#define TERRAIN_PARALLAX_INTENSITY   1.00 // [0.25 0.50 0.75 1.00 1.50 2.00]
+
 vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 #if !defined TERRAIN_PARALLAX || !defined gbuffers_terrain
 	return coord;
@@ -97,7 +101,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position), 0.25)), MinQuality, maxQuality) * TERRAIN_PARALLAX_QUALITY;
 	
 	vec3 tangentRay = normalize(position) * tbnMatrix;
-//	
+	
 	vec2 textureRes = vec2(TEXTURE_PACK_RESOLUTION);
 	
 	if (atlasSize.x != atlasSize.y){ 

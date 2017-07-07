@@ -15,6 +15,7 @@ flat varying vec2 pixelSize;
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
 
+#define BLOOM_ENABLED
 
 void main() {
 #ifdef BLOOM_ENABLED
