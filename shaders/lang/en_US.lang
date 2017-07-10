@@ -1,8 +1,5 @@
 screen.Setup=Setup
 
-option.DEFAULT_TEXTURE_PACK=Default Texture Pack
-option.DEFAULT_TEXTURE_PACK.comment=Enabling this option will overwrite every other texture-pack setting with default texture-pack settings.
-
 option.TEXTURE_PACK_RESOLUTION_SETTING=Texture Pack Resolution
 
 option.NORMAL_MAPS=Normal Map Texture Pack
@@ -325,9 +322,6 @@ option.REFLECTION_EDGE_FALLOFF=Reflection Edge Falloff
 option.REFLECTION_EDGE_FALLOFF.comment=Whether or not screen-space-reflections "fade out" on the edges of the screen
 
 option.CLEAR_WATER=Clear Water
-
-option.WEATHER=Weather
-option.WEATHER.comment=Weather is not really set up yet.
 
 
 screen.Telefocal=Telefocal Shadows

@@ -1,3 +1,8 @@
+const int noiseTextureResolution = 64; // [16 32 64 128 256 512 1024]
+cfloat noiseRes = float(noiseTextureResolution);
+cfloat noiseResInverse = 1.0 / noiseRes;
+cfloat noiseScale = 64.0 / noiseRes;
+
 #define CLOUDS_2D
 #define CLOUD_HEIGHT_2D   512  // [384 512 640 768]
 #define CLOUD_COVERAGE_2D 0.5  // [0.3 0.4 0.5 0.6 0.7]

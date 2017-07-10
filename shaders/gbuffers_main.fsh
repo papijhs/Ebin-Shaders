@@ -40,6 +40,20 @@ flat varying float materialIDs;
 
 float LOD;
 
+#define TEXTURE_PACK_RESOLUTION_SETTING 128 // [16 32 64 128 256 512 1024 2048 4096]
+
+#define TEXTURE_PACK_RESOLUTION TEXTURE_PACK_RESOLUTION_SETTING
+
+#if !defined gbuffers_entities
+	#define NORMAL_MAPS
+#endif
+
+#ifdef NORMAL_MAPS
+	//#define TERRAIN_PARALLAX
+#endif
+
+//#define SPECULARITY_MAPS
+
 #ifdef TERRAIN_PARALLAX
 	#define GetTexture(x, y) texture2DLod(x, y, LOD)
 #else
@@ -134,7 +148,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 }
 
 void main() {
-	if (CalculateFogFactor(position[0], FOG_POWER) >= 1.0) discard;
+	if (CalculateFogFactor(position[0]) >= 1.0) discard;
 	
 	vec2 coord = ComputeParallaxCoordinate(texcoord, position[1]);
 	

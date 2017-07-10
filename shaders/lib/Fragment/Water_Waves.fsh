@@ -1,3 +1,8 @@
+const int noiseTextureResolution = 64; // [16 32 64 128 256 512 1024]
+cfloat noiseRes = float(noiseTextureResolution);
+cfloat noiseResInverse = 1.0 / noiseRes;
+cfloat noiseScale = 64.0 / noiseRes;
+
 float GetWaveCoord(float coord) {
 	cfloat madd = 0.5 * noiseResInverse;
 	float whole = floor(coord);
