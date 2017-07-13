@@ -91,48 +91,67 @@ void MotionBlur(io vec3 color, float depth, float handMask) {
 	for(float i = 1.0; i <= sampleCount; i++) {
 		vec2 coord = texcoord - sampleStep * i;
 		
-		color += pow2(texture2D(colortex3, clampScreen(coord, pixelSize)).rgb);
+		color += DecodeColor(texture2D(colortex3, clampScreen(coord, pixelSize)).rgb);
 	}
 	
-	color *= 1000.0 / max(sampleCount + 1.0, 1.0);
+	color /= max(sampleCount + 1.0, 1.0);
 }
+
+#include "/lib/Misc/BicubicTexture3.glsl"
 
 vec3 GetBloomTile(cint scale, vec2 offset) {
 	vec2 coord  = texcoord;
 	     coord /= scale;
 	     coord += offset + pixelSize;
 	
-	return DecodeColor(texture2D(colortex1, coord).rgb);
+	return DecodeColor(BicubicTexture(colortex1, coord));
 }
 
 #define BLOOM_ENABLED
-#define BLOOM_AMOUNT 0.15 // [0.15 0.30 0.45]
-#define BLOOM_CURVE  1.50 // [1.00 1.25 1.50 1.75 2.00]
+#define BLOOM_AMOUNT     0.15 // [0.05 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define BLOOM_BRIGHTNESS 1.0  // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 
-void GetBloom(io vec3 color) {
+void EbinBloom(io vec3 color) {
 #ifndef BLOOM_ENABLED
 	return;
 #endif
 	
-	vec3[8] bloom;
+	vec3 bloom = vec3(0.0);
 	
 	// These arguments should be identical to those in composite2.fsh
-	bloom[1] = GetBloomTile(  4, vec2(0.0                         ,                          0.0));
-	bloom[2] = GetBloomTile(  8, vec2(0.0                         , 0.25     + pixelSize.y * 2.0));
-	bloom[3] = GetBloomTile( 16, vec2(0.125    + pixelSize.x * 2.0, 0.25     + pixelSize.y * 2.0));
-	bloom[4] = GetBloomTile( 32, vec2(0.1875   + pixelSize.x * 4.0, 0.25     + pixelSize.y * 2.0));
-	bloom[5] = GetBloomTile( 64, vec2(0.125    + pixelSize.x * 2.0, 0.3125   + pixelSize.y * 4.0));
-	bloom[6] = GetBloomTile(128, vec2(0.140625 + pixelSize.x * 4.0, 0.3125   + pixelSize.y * 4.0));
-	bloom[7] = GetBloomTile(256, vec2(0.125    + pixelSize.x * 2.0, 0.328125 + pixelSize.y * 6.0));
+	bloom += GetBloomTile(  4, vec2(0.0                         ,                          0.0));
+	bloom += GetBloomTile(  8, vec2(0.0                         , 0.25     + pixelSize.y * 2.0));
+	bloom += GetBloomTile( 16, vec2(0.125    + pixelSize.x * 2.0, 0.25     + pixelSize.y * 2.0));
+	bloom += GetBloomTile( 32, vec2(0.1875   + pixelSize.x * 4.0, 0.25     + pixelSize.y * 2.0));
+	bloom += GetBloomTile( 64, vec2(0.125    + pixelSize.x * 2.0, 0.3125   + pixelSize.y * 4.0));
+	bloom += GetBloomTile(128, vec2(0.140625 + pixelSize.x * 4.0, 0.3125   + pixelSize.y * 4.0));
 	
-	bloom[0] = vec3(0.0);
+	bloom *= BLOOM_BRIGHTNESS / 6.0;
 	
-	for (uint index = 1; index <= 7; index++)
-		bloom[0] += bloom[index];
+	color = mix(color, bloom, BLOOM_AMOUNT);
+}
+
+void SeishinBloom(inout vec3 color) {
+#ifndef BLOOM_ENABLED
+	return;
+#endif
 	
-	bloom[0] /= 7.0;
+	vec3 bloom = vec3(0.0);
+	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 2.0) + vec2(0.0, 0.0)).rgb * 10.0) * 7.0;
+	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 3.0) + vec2(0.3, 0.0)).rgb * 12.0) * 6.0;
+	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 4.0) + vec2(0.0, 0.3)).rgb * 16.0) * 5.0;
+	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 5.0) + vec2(0.1, 0.3)).rgb * 24.0) * 4.0;
+	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 6.0) + vec2(0.2, 0.3)).rgb * 30.0) * 3.0;
+	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 7.0) + vec2(0.3, 0.3)).rgb * 38.0) * 2.0;
 	
-	color = mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
+//	if (isEyeInWater > 0.5) bloom *= 8.0;
+	
+#ifdef DIRTY_LENS
+//	bloom = dirtyLens(bloom, texcoord);
+#endif
+	
+	color = mix(color, bloom * 0.0051 * BLOOM_BRIGHTNESS, BLOOM_AMOUNT);
+//	color = mix(color, bloom, 0.0018);
 }
 
 void Vignette(io vec3 color) {
@@ -248,10 +267,8 @@ void main() {
 	Mask  mask  = CalculateMasks(texture2D(colortex2, texcoord).r);
 	
 	MotionBlur(color, depth, mask.hand);
-	
-	GetBloom(color); 
-	
-	Vignette(color);
+	SeishinBloom(color); 
+//	Vignette(color);
 	Tonemap(color);
 	
 	gl_FragColor = vec4(color, 1.0);

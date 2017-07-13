@@ -57,8 +57,7 @@ option.BLOOM_ENABLED=Bloom Enabled
 option.BLOOM_AMOUNT=Bloom Amount
 option.BLOOM_AMOUNT.comment=The visibility level of bloom, AKA Glow
 
-option.BLOOM_CURVE=Bloom Curve
-option.BLOOM_CURVE.comment=Higher values make the bloom more concentrated to bright areas, and also make the bloom more colorful
+option.BLOOM_BRIGHTNESS=Bloom Brightness
 
 
 screen.Motion_Blur=Motion Blur
