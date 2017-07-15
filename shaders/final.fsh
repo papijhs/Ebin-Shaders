@@ -17,8 +17,9 @@ uniform vec3 previousCameraPosition;
 
 uniform float viewWidth;
 uniform float viewHeight;
-
 uniform float rainStrength;
+
+uniform int isEyeInWater;
 
 varying vec2 texcoord;
 
@@ -71,18 +72,18 @@ void MotionBlur(io vec3 color, float depth, float handMask) {
 	     previousPos    = transMAD(gbufferPreviousModelView, previousPos);
 	     previousPos.xy = projMAD(projMatrix, previousPos).xy / -previousPos.z;
 	
-	cfloat intensity = MOTION_BLUR_INTENSITY * 0.5;
+	cfloat intensity   = MOTION_BLUR_INTENSITY  * 0.5;
 	cfloat maxVelocity = MAX_MOTION_BLUR_AMOUNT * 0.1;
 	
 	vec2 velocity = (position.st - previousPos.st) * intensity; // Screen-space motion vector
 	     velocity = clamp(velocity, vec2(-maxVelocity), vec2(maxVelocity));
 	
-	#ifdef VARIABLE_MOTION_BLUR_SAMPLES
+#ifdef VARIABLE_MOTION_BLUR_SAMPLES
 	float sampleCount = length(velocity / pixelSize) * VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT; // There should be exactly 1 sample for every pixel when the sample coefficient is 1.0
 	      sampleCount = floor(clamp(sampleCount, 1, MAX_MOTION_BLUR_SAMPLE_COUNT));
-	#else
+#else
 	cfloat sampleCount = CONSTANT_MOTION_BLUR_SAMPLE_COUNT;
-	#endif
+#endif
 	
 	vec2 sampleStep = velocity / sampleCount;
 	
@@ -99,36 +100,12 @@ void MotionBlur(io vec3 color, float depth, float handMask) {
 
 #include "/lib/Misc/BicubicTexture3.glsl"
 
-vec3 GetBloomTile(cint scale, vec2 offset) {
-	vec2 coord  = texcoord;
-	     coord /= scale;
-	     coord += offset + pixelSize;
-	
-	return DecodeColor(BicubicTexture(colortex1, coord));
-}
-
 #define BLOOM_ENABLED
-#define BLOOM_AMOUNT     0.15 // [0.05 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
-#define BLOOM_BRIGHTNESS 1.0  // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
+#define BLOOM_AMOUNT     0.20 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define BLOOM_BRIGHTNESS 1.0  // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 
-void EbinBloom(io vec3 color) {
-#ifndef BLOOM_ENABLED
-	return;
-#endif
-	
-	vec3 bloom = vec3(0.0);
-	
-	// These arguments should be identical to those in composite2.fsh
-	bloom += GetBloomTile(  4, vec2(0.0                         ,                          0.0));
-	bloom += GetBloomTile(  8, vec2(0.0                         , 0.25     + pixelSize.y * 2.0));
-	bloom += GetBloomTile( 16, vec2(0.125    + pixelSize.x * 2.0, 0.25     + pixelSize.y * 2.0));
-	bloom += GetBloomTile( 32, vec2(0.1875   + pixelSize.x * 4.0, 0.25     + pixelSize.y * 2.0));
-	bloom += GetBloomTile( 64, vec2(0.125    + pixelSize.x * 2.0, 0.3125   + pixelSize.y * 4.0));
-	bloom += GetBloomTile(128, vec2(0.140625 + pixelSize.x * 4.0, 0.3125   + pixelSize.y * 4.0));
-	
-	bloom *= BLOOM_BRIGHTNESS / 6.0;
-	
-	color = mix(color, bloom, BLOOM_AMOUNT);
+vec3 SeishinBloomTile(cfloat lod, vec2 offset) {
+	return DecodeColor(BicubicTexture(colortex1, texcoord / exp2(lod) + offset));
 }
 
 void SeishinBloom(inout vec3 color) {
@@ -137,21 +114,23 @@ void SeishinBloom(inout vec3 color) {
 #endif
 	
 	vec3 bloom = vec3(0.0);
-	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 2.0) + vec2(0.0, 0.0)).rgb * 10.0) * 7.0;
-	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 3.0) + vec2(0.3, 0.0)).rgb * 12.0) * 6.0;
-	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 4.0) + vec2(0.0, 0.3)).rgb * 16.0) * 5.0;
-	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 5.0) + vec2(0.1, 0.3)).rgb * 24.0) * 4.0;
-	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 6.0) + vec2(0.2, 0.3)).rgb * 30.0) * 3.0;
-	bloom += DecodeColor(BicubicTexture(colortex1, texcoord / pow(2.0, 7.0) + vec2(0.3, 0.3)).rgb * 38.0) * 2.0;
+	bloom += SeishinBloomTile(2.0, vec2(0.0                         ,                        0.0)) * 1.00;
+	bloom += SeishinBloomTile(3.0, vec2(0.0                         , 0.25   + pixelSize.y * 2.0)) * 1.28;
+	bloom += SeishinBloomTile(4.0, vec2(0.125    + pixelSize.x * 2.0, 0.25   + pixelSize.y * 2.0)) * 2.00;
+	bloom += SeishinBloomTile(5.0, vec2(0.1875   + pixelSize.x * 4.0, 0.25   + pixelSize.y * 2.0)) * 3.92;
+	bloom += SeishinBloomTile(6.0, vec2(0.125    + pixelSize.x * 2.0, 0.3125 + pixelSize.y * 4.0)) * 4.80;
+	bloom += SeishinBloomTile(7.0, vec2(0.140625 + pixelSize.x * 4.0, 0.3125 + pixelSize.y * 4.0)) * 5.38;
 	
-//	if (isEyeInWater > 0.5) bloom *= 8.0;
+	bloom *= 0.0355 * BLOOM_BRIGHTNESS;
 	
-#ifdef DIRTY_LENS
-//	bloom = dirtyLens(bloom, texcoord);
-#endif
+	float amount = BLOOM_AMOUNT;
 	
-	color = mix(color, bloom * 0.0051 * BLOOM_BRIGHTNESS, BLOOM_AMOUNT);
-//	color = mix(color, bloom, 0.0018);
+	if (isEyeInWater == 1) {
+	//	bloom *= 8.0;
+		amount = mix(amount, 1.0, 0.5);
+	}
+	
+	color = mix(color, bloom, amount);
 }
 
 void Vignette(io vec3 color) {
@@ -248,7 +227,7 @@ void Uncharted2Tonemap(io vec3 color) {
 	     curr = ((curr * (A * curr + C * B) + D * E) / (curr * (A * curr + B) + D * F)) - E / F;
 	
 	color = curr * whiteScale;
-	color = pow(color, vec3(1.0 / 2.2));
+	color = powf(color, 1.0 / 2.2);
 }
 
 void Tonemap(io vec3 color) {
