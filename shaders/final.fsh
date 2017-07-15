@@ -101,7 +101,7 @@ void MotionBlur(io vec3 color, float depth, float handMask) {
 #include "/lib/Misc/BicubicTexture3.glsl"
 
 #define BLOOM_ENABLED
-#define BLOOM_AMOUNT     0.20 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define BLOOM_AMOUNT     0.35 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define BLOOM_BRIGHTNESS 1.0  // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 
 vec3 SeishinBloomTile(cfloat lod, vec2 offset) {
@@ -139,7 +139,7 @@ void Vignette(io vec3 color) {
 	color *= 1.0 - pow(edge * 1.3, 1.5);
 }
 
-#define TONEMAP 1 // [1 2 3]
+#define TONEMAP 2 // [1 2 3]
 
 #define EXPOSURE   1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 #define SATURATION 1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
@@ -164,13 +164,13 @@ void BurgessTonemap(io vec3 color) {
 	vec3  a, b, c, d, e, f;
 	float g;
 	
-	#define BURGESS_PRESET 1 // [1 2 3 4]
+	#define BURGESS_PRESET 3 // [1 2 3 4]
 	
 #if BURGESS_PRESET == 1 // Default
 	a =  3.00 * vec3(1.0, 1.0, 1.0); // Exposure
 	b =  1.00 * vec3(1.0, 1.0, 1.0); // Contrast
 	c = 12.00 * vec3(1.0, 1.0, 1.0); // Vibrance
-	d =  0.42 * vec3(1.0, 1.0, 1.0); // Gamma
+	d =  0.45 * vec3(1.0, 1.0, 1.0); // Gamma
 	e =  0.00 * vec3(1.0, 1.0, 1.0); // Lift
 	f =  1.00 * vec3(1.0, 1.0, 1.0); // Highlights
 	g =  1.00; // Saturation

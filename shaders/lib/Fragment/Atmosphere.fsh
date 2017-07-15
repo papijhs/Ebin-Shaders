@@ -1,4 +1,4 @@
-//#define PHYSICAL_ATMOSPHERE
+#define PHYSICAL_ATMOSPHERE
 #define BLEND_PHYSICAL_ATMOSPHERE
 
 vec2 AtmosphereDistances(vec3 worldPosition, vec3 worldDirection, cfloat atmosphereRadius, cvec2 radiiSquared) {
@@ -46,7 +46,7 @@ vec3 ComputeAtmosphericSky(vec3 worldDirection, float visibility, vec3 color) {
 	
 	cvec2 radiiSquared = vec2(planetRadius, atmosphereRadius) * vec2(planetRadius, atmosphereRadius);
 	
-	vec3 worldPosition = vec3(0.0, planetRadius + 1.061e3 + max0(cameraPosition.y - HORIZON_HEIGHT) * 40.0, 0.0);
+	vec3 worldPosition = vec3(0.0, planetRadius + 1.061e3 + max0(cameraPosition.y - HORIZON_HEIGHT) * 40.0*0, 0.0);
 	
 #ifdef BLEND_PHYSICAL_ATMOSPHERE
 	float zenith = 1.0 - pow8(1.0 - pow2(sunVector.y));

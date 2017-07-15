@@ -120,6 +120,17 @@ float CalculateWaterCaustics(vec3 worldPos, float skyLightmap, float waterMask) 
 
 #define LIGHT_DESATURATION
 
+vec3 Desaturation(vec3 diffuse, vec3 lightmap) {
+#ifndef LIGHT_DESATURATION
+	return diffuse;
+#endif
+	
+	float desatAmount = clamp01(pow(length(lightmap), 0.07));
+	vec3  desatColor  = vec3(diffuse.r + diffuse.g + diffuse.b);
+	
+	return mix(desatColor, diffuse, desatAmount);
+}
+
 vec3 CalculateShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float skyLightmap, vec4 GI, vec3 normal, float smoothness, mat2x3 position) {
 	Shading shading;
 	
@@ -134,7 +145,7 @@ vec3 CalculateShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float
 	
 	shading.sunlight  = GetLambertianShading(normal, lightVector, mask) * shading.skylight;
 	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight);
-	shading.sunlight *= 1.0 * SUN_LIGHT_LEVEL;
+	shading.sunlight *= 3.0 * SUN_LIGHT_LEVEL;
 	
 	shading.skylight *= mix(shading.caustics * 0.65 + 0.35, 1.0, pow8(1.0 - abs(worldLightVector.y)));
 	shading.skylight *= GI.a;
@@ -166,16 +177,9 @@ vec3 CalculateShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float
 	
 	lightmap.skylight *= clamp01(1.0 - dot(lightmap.GI, vec3(1.0)) / 6.0);
 	
-	vec3 desatColor = vec3(pow(diffuse.r + diffuse.g + diffuse.b, 1.5));
 	
-#ifndef LIGHT_DESATURATION
-	desatColor = diffuse;
-#endif
-	
-	vec3 composite = diffuse * (lightmap.GI + lightmap.ambient)
-	+ lightmap.skylight   * mix(desatColor, diffuse, clamp01(pow(length(lightmap.skylight  ) * 25.0, 0.2)))
-	+ lightmap.sunlight   * mix(desatColor, diffuse, clamp01(pow(length(lightmap.sunlight  ) *  4.0, 0.1)))
-	+ lightmap.torchlight * mix(desatColor, diffuse, clamp01(pow(length(lightmap.torchlight) *  1.0, 0.1)));
+	vec3 composite  = lightmap.sunlight + lightmap.skylight + lightmap.torchlight + lightmap.GI + lightmap.ambient;
+	     composite *= Desaturation(diffuse, composite);
 	
 	return composite;
 }

@@ -117,5 +117,5 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	
 	CalculateStars(sky, worldSpaceVector, visibility * (1.0 - cloudAlpha), reflection);
 	
-	return sky * SKY_BRIGHTNESS * 0.1;
+	return sky * SKY_BRIGHTNESS * 0.07;
 }

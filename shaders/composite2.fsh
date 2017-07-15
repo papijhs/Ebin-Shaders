@@ -227,6 +227,8 @@ void main() {
 	
 	vec3 sky = CalculateSky(backPos[1], vec3(0.0), float(depth1 >= 1.0), 1.0 - alpha, false, 1.0);
 	
+//	cloud.a *= clamp01(1.0 - length(backPos[1] * ((400.0 - cameraPosition.y) / backPos[1].y)) / 10000.0);
+	
 	sky = mix(sky, cloud.rgb, cloud.a);
 	
 	vec3 normal = DecodeNormal(texture4.g, 11) * mat3(gbufferModelViewInverse);

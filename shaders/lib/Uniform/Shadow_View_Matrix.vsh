@@ -8,8 +8,6 @@
 //#define SHADOWS_FOCUS_CENTER
 
 #if defined TIME_OVERRIDE || defined TELEFOCAL_SHADOWS
-	const float sunPathRotation = -40.0; // [-60.0 -50.0 -40.0 -30.0 -20.0 -10.0 0.0 10.0 20.0 30.0 40.0 50.0 60.0]
-	
 	flat varying mat4 shadowView;
 	
 	#define shadowViewMatrix shadowView
@@ -26,6 +24,8 @@
 	#include "/lib/EbinScript/Unload.vsh"
 	
 	void GetDaylightVariables(out float isNight, out vec3 worldLightVector) {
+		const float sunPathRotation = -40.0; // [-60.0 -50.0 -40.0 -30.0 -20.0 -10.0 0.0 10.0 20.0 30.0 40.0 50.0 60.0]
+		
 		timeAngle = sunAngle * 360.0;
 		pathRotationAngle = sunPathRotation;
 		twistAngle = 0.0;

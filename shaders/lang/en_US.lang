@@ -124,9 +124,9 @@ option.COMPOSITE0_NOISE.comment=Helps hide artifacts due to low sample counts. M
 
 screen.Fog=Fog
 
-option.FOG_ENABLED=Fog Enabled
+option.FOG_ENABLED=Fog
 
-option.FOG_POWER=Fog Power
+option.FOG_POWER=Fog Curve
 option.FOG_POWER.comment=Higher values make fog more subtle nearby, but more intense farther away
 
 option.AERIAL_PERSPECTIVE_AMOUNT=Aerial Perspective Amount

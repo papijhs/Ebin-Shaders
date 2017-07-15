@@ -450,6 +450,8 @@ void RaymarchClouds(io vec4 cloudSum, vec3 position, float sunglow, float sample
 #define Cloud3FBM CloudFBM1 // [CloudFBM1 CloudFBM2]
 #define Cloud3Lighting CloudLighting2 // [CloudLighting1 CloudLighting2 CloudLighting3]
 
+#define SKY_BRIGHTNESS 1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+
 vec4 CalculateClouds3(mat2x3 position, float depth) {
 #ifndef VOLUMETRIC_CLOUDS
 	return vec4(0.0);
@@ -485,7 +487,7 @@ vec4 CalculateClouds3(mat2x3 position, float depth) {
 	RaymarchClouds(cloudSum, position[1], sunglow, CLOUD3_SAMPLES, CLOUD3_NOISE, CLOUD3_DENSITY, coverage, CLOUD3_START_HEIGHT, CLOUD3_DEPTH);
 #endif
 	
-	cloudSum.rgb *= 0.1;
+	cloudSum.rgb *= SKY_BRIGHTNESS * 0.07;
 	
 	return cloudSum;
 }

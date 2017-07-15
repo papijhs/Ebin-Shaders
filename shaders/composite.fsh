@@ -70,7 +70,7 @@ vec3 GetNormal(vec2 coord) {
 #define COMPOSITE0_NOISE
 
 vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise pattern ranging {-1.0 to 1.0} that repeats every n pixels
-#ifdef COMPOSITE0_NOISE
+#ifndef COMPOSITE0_NOISE
 	return vec2(0.0);
 #endif
 	
@@ -121,7 +121,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	
 	cvec3 sampleMax = vec3(0.0, 0.0, radius * radius);
 	
-	cfloat brightness = 1.0 * radius * radius * GI_BRIGHTNESS;
+	cfloat brightness = 3.0 * radius * radius * GI_BRIGHTNESS;
 	cfloat scale      = radius / 256.0;
 	
 	noise *= scale;
@@ -178,12 +178,15 @@ vec2 Circlemap(vec2 p) {
 
 #define AO_SAMPLE_COUNT 6 // [3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define AO_RADIUS 1.3 // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-#define AO_INTENSITY 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+#define AO_INTENSITY 2.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 
-float ContinuityAO(vec3 vPos, vec3 normal) {
+float ContinuityAO(vec3 vPos, vec3 normal, vec2 lightmap, Mask mask) {
 #ifndef AO_ENABLED
 	return 1.0;
 #endif
+	
+	float illumination = clamp01(pow4(lightmap.r) + lightmap.g * 0.7 + mask.emissive);
+	if (illumination >= 1.0) return 1.0;
 	
 	cint steps = AO_SAMPLE_COUNT;
 	cfloat r = AO_RADIUS;
@@ -219,8 +222,10 @@ float ContinuityAO(vec3 vPos, vec3 normal) {
 	}
 	
 	nvisibility /= float(steps);
+	nvisibility  = mix(1.0, nvisibility, AO_INTENSITY);
+	nvisibility  = mix(nvisibility, 1.0, illumination);
 	
-	return clamp01(mix(1.0, nvisibility, AO_INTENSITY));
+	return nvisibility;
 }
 
 vec2 ComputeVolumetricLight(vec3 position, vec3 frontPos, vec2 noise, float waterMask) {
@@ -296,7 +301,7 @@ void main() {
 	
 	vec3 normal = DecodeNormal(texure4.g, 11);
 	
-	float AO = ContinuityAO(backPos[0], normal * mat3(gbufferModelViewInverse));
+	float AO = ContinuityAO(backPos[0], normal * mat3(gbufferModelViewInverse), vec2(torchLightmap, skyLightmap), mask);
 	
 	if (isEyeInWater != mask.water) // If surface is in water
 		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, AO); exit(); return; }
