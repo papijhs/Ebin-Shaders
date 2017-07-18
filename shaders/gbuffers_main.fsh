@@ -14,7 +14,7 @@ varying vec3 color;
 varying vec2 texcoord;
 varying vec2 vertLightmap;
 
-flat varying mat3 tbnMatrix;
+varying mat3 tbnMatrix;
 
 varying mat2x3 position;
 
@@ -66,12 +66,12 @@ vec4 GetDiffuse(vec2 coord) {
 
 vec3 GetNormal(vec2 coord) {
 #ifdef NORMAL_MAPS
-	vec3 normal = GetTexture(normals, coord).xyz;
+	vec3 normal = GetTexture(normals, coord).xyz * 2.0 - 1.0;
 #else
-	vec3 normal = vec3(0.5, 0.5, 1.0);
+	vec3 normal = vec3(0.0, 0.0, 1.0);
 #endif
 	
-	normal.xyz = tbnMatrix * normalize(normal.xyz * 2.0 - 1.0);
+	normal.xyz = normalize(tbnMatrix * normal.xyz);
 	
 	return normal;
 }
@@ -114,7 +114,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 	
 	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position), 0.25)), MinQuality, maxQuality) * TERRAIN_PARALLAX_QUALITY;
 	
-	vec3 tangentRay = normalize(position) * tbnMatrix;
+	vec3 tangentRay = normalize(position * tbnMatrix);
 	
 	vec2 textureRes = vec2(TEXTURE_PACK_RESOLUTION);
 	

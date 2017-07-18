@@ -220,6 +220,7 @@ void main() {
 	}
 	
 	#define VolCloudLOD 0 // [0 1 2]
+	#define CLOUD3D_START_HEIGHT 400 // [260 300 350 400 450 500 550 600 650 700 750 800 850 900 950 1000]
 	
 	vec4 cloud = textureLod(colortex5, texcoord, VolCloudLOD);
 	
@@ -227,7 +228,7 @@ void main() {
 	
 	vec3 sky = CalculateSky(backPos[1], vec3(0.0), float(depth1 >= 1.0), 1.0 - alpha, false, 1.0);
 	
-//	cloud.a *= clamp01(1.0 - length(backPos[1] * ((400.0 - cameraPosition.y) / backPos[1].y)) / 10000.0);
+	cloud.a *= clamp01(1.5 - sqrt(length(backPos[1] * ((CLOUD3D_START_HEIGHT - cameraPosition.y) / backPos[1].y)) / 5000.0));
 	
 	sky = mix(sky, cloud.rgb, cloud.a);
 	

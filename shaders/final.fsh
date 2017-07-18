@@ -121,7 +121,7 @@ void SeishinBloom(inout vec3 color) {
 	bloom += SeishinBloomTile(6.0, vec2(0.125    + pixelSize.x * 2.0, 0.3125 + pixelSize.y * 4.0)) * 4.80;
 	bloom += SeishinBloomTile(7.0, vec2(0.140625 + pixelSize.x * 4.0, 0.3125 + pixelSize.y * 4.0)) * 5.38;
 	
-	bloom *= 0.0355 * BLOOM_BRIGHTNESS;
+	bloom *= 0.03 * BLOOM_BRIGHTNESS;
 	
 	float amount = BLOOM_AMOUNT;
 	
@@ -196,13 +196,13 @@ void BurgessTonemap(io vec3 color) {
 	/*
 	 * Tweak custom Burgess tonemap HERE
 	 */
-	a = vec3(1.5, 1.6, 1.6);	//Exposure
-	b = vec3(0.6, 0.6, 0.6);	//Contrast
-	c = vec3(12.0, 12.0, 12.0);	//Vibrance
-	d = vec3(0.33, 0.36, 0.36);	//Gamma
-	e = vec3(0.000, 0.000, 0.000);	//Lift
-	f = vec3(1.05, 1.02, 1.0);    //Highlights
-	g = 1.19;                    //Saturation
+	a =  1.60 * vec3(0.94, 1.00, 1.00); // Exposure
+	b =  0.60 * vec3(1.00, 1.00, 1.00); // Contrast
+	c = 12.00 * vec3(1.00, 1.00, 1.00); // Vibrance
+	d =  0.36 * vec3(0.92, 1.00, 1.00); // Gamma
+	e =  0.00 * vec3(1.00, 1.00, 1.00); // Lift
+	f =  1.00 * vec3(1.00, 1.00, 1.00); // Highlights
+	g =  1.09; // Saturation
 #endif
 	
 //	e *= smoothstep(0.1, -0.1, worldLightVector.y);

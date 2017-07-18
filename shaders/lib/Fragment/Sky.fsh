@@ -52,7 +52,7 @@ vec3 CalculateMoonspot(float lightCoeff) {
 	return moonspot * pow2(sunlightColor);
 }
 
-#include "/lib/Fragment/Clouds.fsh"
+#include "/lib/Fragment/Compute2DClouds.fsh"
 #include "/lib/Fragment/Atmosphere.fsh"
 
 #define STARS ON // [ON OFF]
@@ -64,7 +64,7 @@ vec3 CalculateMoonspot(float lightCoeff) {
 
 void CalculateStars(io vec3 color, vec3 worldDir, float visibility, cbool reflection) {
 	if (!STARS) return;
-	if (!REFLECT_STARS && reflection) return;
+	if (reflection && !REFLECT_STARS) return;
 	
 	float alpha = STAR_BRIGHTNESS * 2000.0 * pow2(clamp01(worldDir.y)) * timeNight * pow(visibility, 50.0);
 	if (alpha <= 0.0) return;
@@ -113,7 +113,7 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	vec3 sky = gradient + moonspot;
 	
 	float cloudAlpha;
-	Compute2DCloudPlane(sky, cloudAlpha, worldSpaceVector, rayPosition, sunglow, visibility);
+	Compute2DClouds(sky, cloudAlpha, worldSpaceVector, rayPosition, sunglow, visibility);
 	
 	CalculateStars(sky, worldSpaceVector, visibility * (1.0 - cloudAlpha), reflection);
 	

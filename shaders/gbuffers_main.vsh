@@ -14,7 +14,7 @@ varying vec3 color;
 varying vec2 texcoord;
 varying vec2 vertLightmap;
 
-flat varying mat3 tbnMatrix;
+varying mat3 tbnMatrix;
 
 varying mat2x3 position;
 
@@ -46,7 +46,7 @@ vec2 GetDefaultLightmap() {
 vec3 GetWorldSpacePosition() {
 	vec3 position = transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
 	
-#if  defined gbuffers_water
+#if defined gbuffers_water
 	position -= gl_NormalMatrix * gl_Normal * (norm(gl_Normal) * 0.00005 * float(abs(mc_Entity.x - 8.5) > 0.6));
 #elif defined gbuffers_spidereyes
 	position += gl_NormalMatrix * gl_Normal * (norm(gl_Normal) * 0.0002);

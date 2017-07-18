@@ -145,7 +145,7 @@ vec3 CalculateShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float
 	
 	shading.sunlight  = GetLambertianShading(normal, lightVector, mask) * shading.skylight;
 	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight);
-	shading.sunlight *= 3.0 * SUN_LIGHT_LEVEL;
+	shading.sunlight *= 3.4 * SUN_LIGHT_LEVEL;
 	
 	shading.skylight *= mix(shading.caustics * 0.65 + 0.35, 1.0, pow8(1.0 - abs(worldLightVector.y)));
 	shading.skylight *= GI.a;

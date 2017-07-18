@@ -178,73 +178,25 @@ option.CLOUD_COVERAGE_2D=Cloud Coverage
 option.CLOUD_SPEED_2D=Cloud Speed
 
 
-screen.Cloud1=Volumetric Cloudset 1
+screen.Cloud3D=Volumetric Clouds
 
-option.CLOUD1=Volumetric Cloudset 1
-option.CLOUD1_START_HEIGHT=Starting Height
-value.CLOUD1_START_HEIGHT.260=250
-option.CLOUD1_SAMPLES=Sample Count
-option.CLOUD1_NOISE=Dithered Noise
-value.CLOUD1_NOISE.0.0=OFF
-value.CLOUD1_NOISE.1.0=ON
-option.CLOUD1_DEPTH=Height
-option.CLOUD1_DEPTH.comment=The height of the 3D cloud volume
-option.CLOUD1_COVERAGE=Coverage
+option.CLOUDS_3D=Volumetric Clouds
+option.CLOUD3D_START_HEIGHT=Starting Height
+value.CLOUD3D_START_HEIGHT.260=250
+option.CLOUD3D_SAMPLES=Sample Count
+option.CLOUD3D_DITHER=Dithered Noise
+option.CLOUD3D_DEPTH=Height
+option.CLOUD3D_DEPTH.comment=The height of the 3D cloud volume
+option.CLOUD3D_COVERAGE=Coverage
 option.CLOUD1_DENSITY=Density
-option.CLOUD1_SPEED=Speed
-option.Cloud1FBM=Shape & Motion Preset
-value.Cloud1FBM.CloudFBM1=1
-value.Cloud1FBM.CloudFBM2=2
-option.Cloud1Lighting=Lighting Model
-value.Cloud1Lighting.CloudLighting1=1
-value.Cloud1Lighting.CloudLighting2=2
-value.Cloud1Lighting.CloudLighting3=3
-
-
-screen.Cloud2=Volumetric Cloudset 2
-
-option.CLOUD2=Volumetric Cloudset 2
-option.CLOUD2_START_HEIGHT=Starting Height
-value.CLOUD2_START_HEIGHT.260=250
-option.CLOUD2_SAMPLES=Sample Count
-option.CLOUD2_NOISE=Dithered Noise
-value.CLOUD2_NOISE.0.0=OFF
-value.CLOUD2_NOISE.1.0=ON
-option.CLOUD2_DEPTH=Height
-option.CLOUD2_DEPTH.comment=The height of the 3D cloud volume
-option.CLOUD2_COVERAGE=Coverage
-option.CLOUD2_DENSITY=Density
-option.CLOUD2_SPEED=Speed
-option.Cloud2FBM=Shape & Motion Preset
-value.Cloud2FBM.CloudFBM1=1
-value.Cloud2FBM.CloudFBM2=2
-option.Cloud2Lighting=Lighting Model
-value.Cloud2Lighting.CloudLighting1=1
-value.Cloud2Lighting.CloudLighting2=2
-value.Cloud2Lighting.CloudLighting3=3
-
-
-screen.Cloud3=Volumetric Cloudset 3
-
-option.CLOUD3=Volumetric Cloudset 3
-option.CLOUD3_START_HEIGHT=Starting Height
-value.CLOUD3_START_HEIGHT.260=250
-option.CLOUD3_SAMPLES=Sample Count
-option.CLOUD3_NOISE=Dithered Noise
-value.CLOUD3_NOISE.0.0=OFF
-value.CLOUD3_NOISE.1.0=ON
-option.CLOUD3_DEPTH=Height
-option.CLOUD3_DEPTH.comment=The height of the 3D cloud volume
-option.CLOUD3_COVERAGE=Coverage
-option.CLOUD3_DENSITY=Density
-option.CLOUD3_SPEED=Speed
-option.Cloud3FBM=Shape & Motion Preset
-value.Cloud3FBM.CloudFBM1=1
-value.Cloud3FBM.CloudFBM2=2
-option.Cloud3Lighting=Lighting Model
-value.Cloud3Lighting.CloudLighting1=1
-value.Cloud3Lighting.CloudLighting2=2
-value.Cloud3Lighting.CloudLighting3=3
+option.CLOUD3D_SPEED=Speed
+option.Cloud3DFBM=Shape & Motion Preset
+value.Cloud3DFBM.CloudFBM1=1
+value.Cloud3DFBM.CloudFBM2=2
+option.Cloud3DLighting=Lighting Model
+value.Cloud3DLighting.CloudLighting1=1
+value.Cloud3DLighting.CloudLighting2=2
+value.Cloud3DLighting.CloudLighting3=3
 
 
 option.STARS=Stars
