@@ -1,7 +1,7 @@
 const int noiseTextureResolution = 64; // [16 32 64 128 256 512 1024]
-cfloat noiseRes = float(noiseTextureResolution);
-cfloat noiseResInverse = 1.0 / noiseRes;
-cfloat noiseScale = 64.0 / noiseRes;
+const float noiseRes = float(noiseTextureResolution);
+const float noiseResInverse = 1.0 / noiseRes;
+const float noiseScale = 64.0 / noiseRes;
 
 float GetWaveCoord(float coord) {
 	cfloat madd = 0.5 * noiseResInverse;
@@ -25,19 +25,19 @@ float SharpenWave(float wave) {
 	return wave < 0.78 ? wave : (wave * -2.5 + 5.0) * wave - 1.6;
 }
 
-#define WAVE_MULT  1.0 // [0.0 0.5 1.0 1.5 2.0]
-#define WAVE_SPEED 1.0 // [0.0 0.5 1.0 2.0]
+#define WAVE_MULT  1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
+#define WAVE_SPEED 1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 
-cvec4 heights = vec4(29.0, 15.0, 17.0, 4.0);
-cvec4 height = heights * WAVE_MULT / sum4(heights);
+const vec4 heights = vec4(29.0, 15.0, 17.0, 4.0);
+const vec4 height  = heights * WAVE_MULT / sum4(heights);
 
-cvec2[4] scale = vec2[4](
+const vec2[4] scale = vec2[4](
 	vec2(0.0065, 0.0052  ) * noiseRes * noiseScale,
 	vec2(0.013 , 0.00975 ) * noiseRes * noiseScale,
 	vec2(0.0195, 0.014625) * noiseRes * noiseScale,
 	vec2(0.0585, 0.04095 ) * noiseRes * noiseScale);
 
-cvec4 stretch = vec4(
+const vec4 stretch = vec4(
 	scale[0].x * -1.7 ,
 	scale[1].x * -1.7 ,
 	scale[2].x *  1.1 ,
@@ -59,153 +59,54 @@ void SetupWaveFBM() {
 	waveTime[3] = w * disp4;
 }
 
-float GetWaves(vec2 coord, io mat4x2 c) {
+float GetWaves(vec2 coord) {
 	float waves = 0.0;
-	vec2 ebin;
+	vec2 c;
 	
-	c[0].xy = coord * scale[0] + waveTime[0];
-	c[0].y = coord.x * stretch[0] + c[0].y;
-	ebin = GetWaveCoord(c[0].xy);
-	c[0].x = ebin.x;
-	
-	waves += SharpenWave(texture2D(noisetex, ebin).x) * height.x;
-	
-	c[1].xy = coord * scale[1] + waveTime[1];
-	c[1].y = coord.x * stretch[1] + c[1].y;
-	ebin = GetWaveCoord(c[1].xy);
-	c[1].x = ebin.x;
-	
-	waves += texture2D(noisetex, ebin).x * height.y;
-	
-	c[2].xy = coord * scale[2] + waveTime[2];
-	c[2].y = coord.x * stretch[2] + c[2].y;
-	ebin = GetWaveCoord(c[2].xy);
-	c[2].x = ebin.x;
-	
-	waves += texture2D(noisetex, ebin).x * height.z;
-	
-	c[3].xy = coord * scale[3] + waveTime[3];
-	c[3].y = coord.x * stretch[3] + c[3].y;
-	ebin = GetWaveCoord(c[3].xy);
-	c[3].x = ebin.x;
-	
-	waves += texture2D(noisetex, ebin).x * height.w;
+	for (int i = 0; i <= 3; i++) {
+		c = coord * scale[i] + waveTime[i];
+		c.y = coord.x * stretch[i] + c.y;
+		c = GetWaveCoord(c);
+		
+		float wave = texture2D(noisetex, c).x;
+		if (i == 0) wave = SharpenWave(wave);
+		
+		waves += wave * height[i];
+	}
 	
 	return waves;
 }
 
-float GetWaves(vec2 coord) {
-	mat4x2 c;
+float GetWaves(vec2 coord, io mat4x2 c) {
+	float waves = 0.0;
+	vec2 ebin;
 	
-	return GetWaves(coord, c);
+	for (int i = 0; i <= 3; i++) {
+		c[i] = coord * scale[i] + waveTime[i];
+		c[i].y = coord.x * stretch[i] + c[i].y;
+		ebin = GetWaveCoord(c[i]);
+		c[i].x = ebin.x;
+		
+		float wave = texture2D(noisetex, ebin).x;
+		if (i == 0) wave = SharpenWave(wave);
+		
+		waves += wave * height[i];
+	}
+	
+	return waves;
 }
 
 float GetWaves(mat4x2 c, float offset) {
 	float waves = 0.0;
 	
-	c[0].y = GetWaveCoord(offset * scale[0].y + c[0].y);
-	
-	waves += SharpenWave(texture2D(noisetex, c[0].xy).x) * height.x;
-	
-	c[1].y = GetWaveCoord(offset * scale[1].y + c[1].y);
-	
-	waves += texture2D(noisetex, c[1].xy).x * height.y;
-	
-	c[2].y = GetWaveCoord(offset * scale[2].y + c[2].y);
-	
-	waves += texture2D(noisetex, c[2].xy).x * height.z;
-	
-	c[3].y = GetWaveCoord(offset * scale[3].y + c[3].y);
-	
-	waves += texture2D(noisetex, c[3].xy).x * height.w;
+	for (int i = 0; i <= 3; i++) {
+		c[i].y = GetWaveCoord(offset * scale[i].y + c[i].y);
+		
+		float wave = texture2D(noisetex, c[i].xy).x;
+		if (i == 0) wave = SharpenWave(wave);
+		
+		waves += wave * height[i];
+	}
 	
 	return waves;
 }
-
-vec2 GetWaveDifferentials(vec2 coord, cfloat scale) { // Get finite wave differentials for the world-space X and Z coordinates
-	mat4x2 c;
-	
-	float a  = GetWaves(coord, c);
-	float aX = GetWaves(coord + vec2(scale,   0.0));
-	float aY = GetWaves(c, scale);
-	
-	return a - vec2(aX, aY);
-}
-
-//#define WATER_PARALLAX
-
-#define WATER_PARALLAX_QUALITY     1.0  // [0.5 1.0 2.0]
-#define WATER_PARALLAX_DISTANCE   12.0  // [30.0 60.0 120.0 240.0]
-#define WATER_PARALLAX_INTENSITY   1.00 // [0.25 0.50 0.75 1.00 1.50 2.00]
-
-#if defined gbuffers_water
-vec2 GetParallaxWave(vec2 worldPos, float angleCoeff) {
-#ifndef WATER_PARALLAX
-	return worldPos;
-#endif
-	
-	cfloat parallaxDist = WATER_PARALLAX_DISTANCE;
-	cfloat distFade     = parallaxDist / 3.0;
-	cfloat MinQuality   = 0.5;
-	cfloat maxQuality   = 1.5;
-	
-	float intensity = clamp01((parallaxDist - length(position[1]) * FOV / 90.0) / distFade) * 0.85 * WATER_PARALLAX_INTENSITY;
-	
-//	if (intensity < 0.01) return worldPos;
-	
-	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position[1]), 0.25)), MinQuality, maxQuality) * WATER_PARALLAX_QUALITY;
-	
-	vec3  tangentRay = normalize(position[1]) * tbnMatrix;
-	vec3  stepSize = 0.1 * vec3(1.0, 1.0, 1.0);
-	float stepCoeff = -tangentRay.z * 5.0 / stepSize.z;
-	
-	angleCoeff = clamp01(angleCoeff * 2.0) * stepCoeff;
-	
-	vec3 step   = tangentRay   * stepSize;
-	     step.z = tangentRay.z * -tangentRay.z * 5.0;
-	
-	float rayHeight = angleCoeff;
-	float sampleHeight = GetWaves(worldPos) * angleCoeff;
-	
-	float count = 0.0;
-	
-	while(sampleHeight < rayHeight && count++ < 150.0) {
-		worldPos  += step.xy * clamp01(rayHeight - sampleHeight);
-		rayHeight += step.z;
-		
-		sampleHeight = GetWaves(worldPos) * angleCoeff;
-	}
-	
-	return worldPos;
-}
-
-vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
-	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z * 0.5 + 0.5;
-}
-
-vec3 GetWaveNormals(vec3 worldSpacePosition, vec3 flatWorldNormal) {
-	if (WAVE_MULT == 0.0) return vec3(0.0, 0.0, 1.0);
-	
-	SetupWaveFBM();
-	
-	float angleCoeff  = dotNorm(-position[1].xyz, flatWorldNormal);
-	      angleCoeff /= clamp(length(position[1]) * 0.05, 1.0, 10.0);
-	      angleCoeff  = clamp01(angleCoeff * 2.5);
-	      angleCoeff  = sqrt(angleCoeff);
-	
-	vec3 worldPos    = position[1] + cameraPos - worldDisplacement;
-	     worldPos.xz = worldPos.xz + worldPos.y;
-	
-	worldPos.xz = GetParallaxWave(worldPos.xz, angleCoeff);
-	
-//	vec3 p = pos + worldDisplacement - cameraPos;
-//	p = p * mat3(gbufferModelViewInverse);
-//	p.z = min(-0.0, p.z);
-//	p = ViewSpaceToScreenSpace(p);
-//	gl_FragDepth = p.z;
-	
-	vec2 diff = GetWaveDifferentials(worldPos.xz, 0.1) * angleCoeff;
-	
-	return vec3(diff, sqrt(1.0 - length2(diff)));
-}
-#endif

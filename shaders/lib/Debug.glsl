@@ -1,7 +1,7 @@
 //#define DEBUG
 #define DEBUG_VIEW 1 // [-1 0 1 2 3 7]
 
-vec3 Debug;
+vec3 Debug = vec3(0.0);
 
 #if ShaderStage < 0
 	varying vec3 vDebug;
@@ -68,6 +68,6 @@ void exit() {
 	#endif
 }
 
-#if (defined DEBUG && (defined composite0 || defined composite1))
+#if defined DEBUG && defined composite0
 	#define discard exit(); return
 #endif

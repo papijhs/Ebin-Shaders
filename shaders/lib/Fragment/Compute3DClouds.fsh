@@ -70,7 +70,9 @@ float GetCoverage(float coverage, float clouds) {
 mat4x3 cloudMul;
 mat4x3 cloudAdd;
 
-vec3 directColor, ambientColor, bouncedColor;
+vec3 directColor  = vec3(0.0);
+vec3 ambientColor = vec3(0.0);
+vec3 bouncedColor = vec3(0.0);
 
 vec4 CloudColor(vec3 worldPosition, cfloat cloudLowerHeight, cfloat cloudDepth, float coverage, float sunglow) {
 	cfloat cloudCenter = cloudLowerHeight + cloudDepth * 0.5;
@@ -113,12 +115,6 @@ vec4 CloudColor(vec3 worldPosition, cfloat cloudLowerHeight, cfloat cloudDepth, 
 	cloud.rgb = mix(ambientColor, directColor, sunlight) + bouncedColor;
 	
 	return cloud;
-}
-
-void swap(io vec3 a, io vec3 b) {
-	vec3 swap = a;
-	a = b;
-	b = swap;
 }
 
 void CloudFBM1(cfloat speed) {
@@ -166,6 +162,12 @@ void CloudLighting3(float sunglow) {
 	ambientColor = mix(skylightColor, sunlightColor, 0.15) * 7.0;
 	
 	bouncedColor = vec3(0.0);
+}
+
+void swap(io vec3 a, io vec3 b) {
+	vec3 swap = a;
+	a = b;
+	b = swap;
 }
 
 #define CLOUDS_3D ON // [ON OFF]

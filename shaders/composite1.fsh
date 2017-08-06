@@ -165,7 +165,7 @@ void main() {
 	
 	vec3 wNormal = DecodeNormal(texure4.g, 11);
 	vec3 normal  = wNormal * mat3(gbufferModelViewInverse);
-	vec3 waterNormal;
+	vec3 waterNormal = vec3(0.0);
 	
 	float depth1 = mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord);
 	
@@ -199,7 +199,7 @@ void main() {
 	
 	gl_FragData[3] = vec4(sqrt(cloud.rgb / 50.0), cloud.a);
 	
-	if (depth1 - mask.hand >= 1.0) { exit(); return; }
+	if (depth1 - mask.hand >= 1.0) { gl_FragData[0] = vec4(0.0); exit(); return; }
 	
 	
 	vec3 diffuse = GetDiffuse(texcoord);

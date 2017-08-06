@@ -1,6 +1,6 @@
 screen.Setup=Setup
 
-option.TEXTURE_PACK_RESOLUTION_SETTING=Texture Pack Resolution
+option.TEXTURE_PACK_RESOLUTION=Texture Pack Resolution
 
 option.NORMAL_MAPS=Normal Map Texture Pack
 option.NORMAL_MAPS.comment=Disable this if you're using a texture-pack that does not have normal-map textures.
