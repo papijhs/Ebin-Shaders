@@ -43,7 +43,7 @@ const vec4 stretch = vec4(
 	scale[2].x *  1.1 ,
 	scale[3].x * -1.05);
 
-mat4x2 waveTime;
+mat4x2 waveTime = mat4x2(0.0);
 
 void SetupWaveFBM() {
 	cvec2 disp1 = vec2(0.04155, -0.0165   ) * noiseRes * noiseScale;

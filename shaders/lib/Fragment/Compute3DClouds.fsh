@@ -67,8 +67,8 @@ float GetCoverage(float coverage, float clouds) {
 	return clamp01((clouds + coverage - 1.0) * denseFactor);
 }
 
-mat4x3 cloudMul;
-mat4x3 cloudAdd;
+mat4x3 cloudMul = mat4x3(0.0);
+mat4x3 cloudAdd = mat4x3(0.0);
 
 vec3 directColor  = vec3(0.0);
 vec3 ambientColor = vec3(0.0);

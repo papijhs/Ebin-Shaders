@@ -11,7 +11,7 @@ float GetLambertianShading(vec3 normal, vec3 lightVector, Mask mask) {
 
 #define SHADOW_TYPE 2 // [1 2]
 
-#if SHADOW_TYPE == 2 && defined composite1
+#if SHADOW_TYPE == 2
 	float ComputeShadows(vec3 shadowPosition, float biasCoeff) {
 		float spread = (1.0 - biasCoeff) / shadowMapResolution;
 		

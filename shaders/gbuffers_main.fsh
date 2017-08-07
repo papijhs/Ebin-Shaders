@@ -30,13 +30,6 @@ flat varying float materialIDs;
 #include "/lib/Misc/Calculate_Fogfactor.glsl"
 #include "/lib/Fragment/Masks.fsh"
 
-#if defined gbuffers_water
-#include "/lib/Uniform/Shading_Variables.glsl"
-#include "/lib/Uniform/Shadow_View_Matrix.fsh"
-#include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
-#include "/lib/Fragment/Water_Waves.fsh"
-#endif
-
 
 float LOD = 0.0;
 

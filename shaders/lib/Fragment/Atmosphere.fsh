@@ -76,7 +76,7 @@ vec3 ComputeAtmosphericSky(vec3 worldDirection, float visibility, vec3 color) {
 	vec3 rayleigh = vec3(0.0); // Accumulators for Rayleigh and Mie scattering
 	vec3 mie      = vec3(0.0);
 	
-	vec3 absorb		= vec3(1.0);
+	vec3 absorb = vec3(1.0);
 	
 	vec2 opticalDepth = vec2(0.0); // Optical depth accumulators
 	

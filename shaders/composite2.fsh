@@ -80,7 +80,7 @@ int GetMaxSteps(vec3 pos, vec3 ray, float maxRayDepth, float rayGrowth) { // Ret
 	
 	c = mix(c, vec4(1000000.0), lessThan(c, vec4(0.0))); // Remove negative coefficients from consideration by making them B I G
 	
-	float x = minVec4(c); // Nearest ray length to reach screen edge
+	float x = min(c.x, min(c.y, min(c.z, c.w))); // Nearest ray length to reach screen edge
 	
 	if (ray.z < 0.0) // If stepping away from player
 		x = min(x, (maxRayDepth + pos.z) / -ray.z); // Clip against maxRayDepth

@@ -27,8 +27,6 @@ uniform sampler2D normals;
 uniform sampler2D specular;
 
 
-uniform ivec2 atlasSize;
-
 uniform float frameTimeCounter;
 uniform float wetness;
 uniform float far;
@@ -56,6 +54,10 @@ flat varying float materialIDs;
 
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
+#include "/UserProgram/WaterHeight.glsl"
+//#define VARIABLE_WATER_HEIGHT
+#define UNDERWATER_LIGHT_DEPTH 16 // [4 8 16 32 64 65536]
+#define ComputeUnderwaterCaustics(a, b, c) 1.0
 #include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
 #include "/lib/Fragment/Water_Waves.fsh"
 
@@ -107,7 +109,7 @@ vec2 GetParallaxWave(vec2 worldPos, float angleCoeff) {
 	
 //	if (intensity < 0.01) return worldPos;
 	
-	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position[1]), 0.25)), MinQuality, maxQuality) * WATER_PARALLAX_QUALITY;
+	float quality = clamp(radians(180.0 - FOV) / max(1.0, pow(length(position[1]), 0.25)), MinQuality, maxQuality) * WATER_PARALLAX_QUALITY;
 	
 	vec3  tangentRay = normalize(position[1]) * tbnMatrix;
 	vec3  stepSize = 0.1 * vec3(1.0, 1.0, 1.0);

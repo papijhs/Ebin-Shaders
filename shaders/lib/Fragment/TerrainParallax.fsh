@@ -18,7 +18,7 @@ vec2 TerrainParallax(vec2 coord, vec3 position) {
 	
 	if (intensity < 0.01) return coord;
 	
-	float quality = clamp(radians(180.0 - FOV) / max1(pow(length(position), 0.25)), MinQuality, maxQuality) * TERRAIN_PARALLAX_QUALITY;
+	float quality = clamp(radians(180.0 - FOV) / max(1.0, pow(length(position), 0.25)), MinQuality, maxQuality) * TERRAIN_PARALLAX_QUALITY;
 	
 	vec3 tangentRay = normalize(position * tbnMatrix);
 	
