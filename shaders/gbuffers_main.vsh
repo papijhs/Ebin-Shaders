@@ -28,12 +28,6 @@ flat varying float materialIDs;
 #include "/lib/Debug.glsl"
 #include "/lib/Uniform/Projection_Matrices.vsh"
 
-#if defined gbuffers_water
-#include "/lib/Uniform/Shading_Variables.glsl"
-#include "/UserProgram/centerDepthSmooth.glsl"
-#include "/lib/Uniform/Shadow_View_Matrix.vsh"
-#endif
-
 
 vec2 GetDefaultLightmap() {
 	vec2 lightmapCoord = mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st;
@@ -112,11 +106,6 @@ void main() {
 	
 	
 	tbnMatrix = CalculateTBN(worldSpacePosition);
-	
-	
-#if defined gbuffers_water
-	#include "/lib/Vertex/Shading_Setup.vsh"
-#endif
 	
 	
 	exit();

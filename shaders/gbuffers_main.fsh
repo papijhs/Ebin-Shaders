@@ -4,9 +4,6 @@ uniform sampler2D texture;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
-uniform ivec2 atlasSize;
-
-uniform float frameTimeCounter;
 uniform float wetness;
 uniform float far;
 
@@ -33,23 +30,13 @@ flat varying float materialIDs;
 
 float LOD = 0.0;
 
-#define TEXTURE_PACK_RESOLUTION 128 // [16 32 64 128 256 512 1024 2048]
-
-#if defined gbuffers_terrain || defined gbuffers_hand
+#if defined gbuffers_hand
 	#define NORMAL_MAPS
-#endif
-
-#ifdef NORMAL_MAPS
-	//#define TERRAIN_PARALLAX
 #endif
 
 //#define SPECULARITY_MAPS
 
-#ifdef TERRAIN_PARALLAX
-	#define GetTexture(x, y) texture2DLod(x, y, LOD)
-#else
-	#define GetTexture(x, y) texture2D(x, y)
-#endif
+#define GetTexture(x, y) texture2D(x, y)
 
 vec4 GetDiffuse(vec2 coord) {
 	return vec4(color.rgb, 1.0) * GetTexture(texture, coord);
@@ -81,16 +68,12 @@ float GetSpecularity(vec2 coord) {
 #endif
 }
 
-#include "/lib/Fragment/TerrainParallax.fsh"
-
 void main() {
 	if (CalculateFogFactor(position[0]) >= 1.0) discard;
 	
-	vec2 coord = TerrainParallax(texcoord, position[1]);
-	
-	vec4  diffuse     = GetDiffuse(coord); if (diffuse.a < 0.1000003) discard;
-	vec3  normal      = GetNormal(coord);
-	float specularity = GetSpecularity(coord);
+	vec4  diffuse     = GetDiffuse(texcoord); if (diffuse.a < 0.1000003) discard;
+	vec3  normal      = GetNormal(texcoord);
+	float specularity = GetSpecularity(texcoord);
 	
 	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0, 0.0, 0.0, 0.0));
 	
