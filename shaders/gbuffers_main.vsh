@@ -2,8 +2,6 @@ attribute vec4 mc_Entity;
 attribute vec4 at_tangent;
 attribute vec4 mc_midTexCoord;
 
-uniform sampler2D lightmap;
-
 uniform mat4 gbufferModelViewInverse;
 
 uniform vec3  cameraPosition;
@@ -20,7 +18,6 @@ varying mat2x3 position;
 
 varying vec3 worldDisplacement;
 
-flat varying float mcID;
 flat varying float materialIDs;
 
 #include "/lib/Settings.glsl"
@@ -90,7 +87,6 @@ void main() {
 	
 	color        = abs(mc_Entity.x - 10.5) > 0.6 ? gl_Color.rgb : vec3(1.0);
 	texcoord     = gl_MultiTexCoord0.st;
-	mcID         = mc_Entity.x;
 	vertLightmap = GetDefaultLightmap();
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
 	

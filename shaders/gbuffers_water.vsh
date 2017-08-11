@@ -15,8 +15,6 @@ attribute vec4 mc_Entity;
 attribute vec4 at_tangent;
 attribute vec4 mc_midTexCoord;
 
-uniform sampler2D lightmap;
-
 uniform mat4 gbufferModelViewInverse;
 
 uniform vec3  cameraPosition;
@@ -33,7 +31,6 @@ varying mat2x3 position;
 
 varying vec3 worldDisplacement;
 
-flat varying float mcID;
 flat varying float materialIDs;
 
 #include "/lib/Settings.glsl"
@@ -44,6 +41,23 @@ flat varying float materialIDs;
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/UserProgram/centerDepthSmooth.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
+#include "/lib/Vertex/Shading_Setup.vsh"
+
+float GetMaterialIDs(int mc_ID) {
+	float materialID = 1.0;
+	
+	switch(mc_ID) {
+		case 8:
+		case 9:
+			materialID = 4.0; break; // Water
+	}
+	
+	// Custom Streams Mod ID's can go here:
+//	if (mc_Entity.x == 8 || mc_Entity.x == 9 || mc_Entity.x == 235 || mc_Entity.x == 236 ... )
+//		materialID = 4.0;
+	
+	return materialID;
+}
 
 
 vec2 GetDefaultLightmap() {
@@ -51,8 +65,6 @@ vec2 GetDefaultLightmap() {
 	
 	return clamp01(lightmapCoord / vec2(0.8745, 0.9373)).rg;
 }
-
-#include "/lib/Vertex/Materials.vsh"
 
 vec3 GetWorldSpacePosition() {
 	vec3 position = transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
@@ -104,10 +116,10 @@ void main() {
 #endif
 	
 	SetupProjection();
+	SetupShading();
 	
 	color        = abs(mc_Entity.x - 10.5) > 0.6 ? gl_Color.rgb : vec3(1.0);
 	texcoord     = gl_MultiTexCoord0.st;
-	mcID         = mc_Entity.x;
 	vertLightmap = GetDefaultLightmap();
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
 	
@@ -123,9 +135,6 @@ void main() {
 	
 	
 	tbnMatrix = CalculateTBN(worldSpacePosition);
-	
-	
-	#include "/lib/Vertex/Shading_Setup.vsh"
 	
 	
 	exit();

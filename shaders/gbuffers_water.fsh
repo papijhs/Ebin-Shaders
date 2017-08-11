@@ -22,7 +22,7 @@ uniform int isEyeInWater;
 uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
@@ -41,7 +41,6 @@ varying mat2x3 position;
 
 varying vec3 worldDisplacement;
 
-flat varying float mcID;
 flat varying float materialIDs;
 
 
@@ -62,7 +61,7 @@ flat varying float materialIDs;
 #include "/lib/Fragment/Water_Waves.fsh"
 
 vec4 GetDiffuse(vec2 coord) {
-	return vec4(color.rgb, 1.0) * texture2D(texture, coord);
+	return vec4(color.rgb, 1.0) * texture2D(tex, coord);
 }
 
 vec3 GetNormal(vec2 coord) {
@@ -177,7 +176,7 @@ vec3 GetWaveNormals(vec3 worldSpacePosition, vec3 flatWorldNormal) {
 
 void main() {
 	if (CalculateFogFactor(position[0]) >= 1.0) discard;
-	if (!gl_FrontFacing && abs(materialIDs - 4.0) < 0.1) discard;
+	if (!gl_FrontFacing && materialIDs == 4.0) discard;
 	
 	vec4  diffuse     = GetDiffuse(texcoord);
 	vec3  normal      = GetNormal(texcoord);
@@ -185,7 +184,7 @@ void main() {
 	
 	Mask mask = EmptyMask;
 	
-	if (abs(materialIDs - 4.0) < 0.1) {
+	if (materialIDs == 4.0) {
 		diffuse = vec4(0.215, 0.356, 0.533, 0.75);
 		
 		normal = tbnMatrix * GetWaveNormals(position[1], tbnMatrix[2]);

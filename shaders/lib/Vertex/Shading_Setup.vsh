@@ -1,4 +1,4 @@
-// {
+void SetupShading() {
 	float isNight;
 	
 	GetDaylightVariables(isNight, worldLightVector);
@@ -41,4 +41,4 @@
 	skylightColor =
 		mix(skylightDay, skylightSunrise, timeHorizon) * timeDay +
 		skylightNight * timeNight + skylightHorizon * timeHorizon;
-// }
+}

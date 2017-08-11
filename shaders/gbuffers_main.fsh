@@ -1,6 +1,6 @@
 /* DRAWBUFFERS:01234 */
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
@@ -17,7 +17,6 @@ varying mat2x3 position;
 
 varying vec3 worldDisplacement;
 
-flat varying float mcID;
 flat varying float materialIDs;
 
 #include "/lib/Settings.glsl"
@@ -39,7 +38,7 @@ float LOD = 0.0;
 #define GetTexture(x, y) texture2D(x, y)
 
 vec4 GetDiffuse(vec2 coord) {
-	return vec4(color.rgb, 1.0) * GetTexture(texture, coord);
+	return vec4(color.rgb, 1.0) * GetTexture(tex, coord);
 }
 
 vec3 GetNormal(vec2 coord) {

@@ -27,6 +27,7 @@ flat varying vec2 pixelSize;
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/UserProgram/centerDepthSmooth.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.vsh"
+#include "/lib/Vertex/Shading_Setup.vsh"
 
 void main() {
 	texcoord    = gl_MultiTexCoord0.st;
@@ -35,6 +36,5 @@ void main() {
 	pixelSize = 1.0 / vec2(viewWidth, viewHeight);
 	
 	SetupProjection();
-	
-	#include "/lib/Vertex/Shading_Setup.vsh"
+	SetupShading();
 }
