@@ -32,8 +32,6 @@ vec2 GetDefaultLightmap() {
 	return clamp01(lightmapCoord / vec2(0.8745, 0.9373)).rg;
 }
 
-#include "/lib/Vertex/Materials.vsh"
-
 vec3 GetWorldSpacePosition() {
 	vec3 position = transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
 	
