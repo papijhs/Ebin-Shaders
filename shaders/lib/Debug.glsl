@@ -32,7 +32,7 @@ void exit() {
 	#ifdef DEBUG
 		#if ShaderStage == DEBUG_VIEW
 			#if ShaderStage == -1
-				gl_FragData[3] = vec4(Debug, 1.0);
+				gl_FragData[0] = vec4(Debug, 1.0);
 			#elif ShaderStage < 7
 				gl_FragData[0] = vec4(Debug, 1.0);
 			#else
@@ -47,7 +47,7 @@ void exit() {
 				#if DEBUG_VIEW == 0
 					gl_FragData[0] = vec4(texture2D(colortex5, texcoord).rgb, 1.0);
 				#else
-					gl_FragData[0] = vec4(texture2D(colortex3, texcoord).rgb, 1.0);
+					gl_FragData[0] = vec4(texture2D(colortex1, texcoord).rgb, 1.0);
 				#endif
 				
 			#elif ShaderStage == 2
@@ -68,6 +68,6 @@ void exit() {
 	#endif
 }
 
-#if defined DEBUG && defined composite0
+#if defined DEBUG && (defined composite0 || defined composite1)
 	#define discard exit(); return
 #endif

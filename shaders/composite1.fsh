@@ -4,8 +4,6 @@
 #define ShaderStage 1
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:1465 */
-
 const bool colortex5MipmapEnabled = true;
 
 uniform sampler2D colortex0;
@@ -14,7 +12,7 @@ uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
 uniform sampler2D colortex6;
-uniform sampler2D gdepthtex;
+uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 uniform sampler2D shadowtex1;
@@ -58,18 +56,6 @@ flat varying vec2 pixelSize;
 
 #include "/UserProgram/centerDepthSmooth.glsl" // Doesn't seem to be enabled unless it's initialized in a fragment.
 
-vec3 GetDiffuse(vec2 coord) {
-	return texture2D(colortex1, coord).rgb;
-}
-
-float GetDepth(vec2 coord) {
-	return texture2D(gdepthtex, coord).x;
-}
-
-float GetTransparentDepth(vec2 coord) {
-	return texture2D(depthtex1, coord).x;
-}
-
 float ExpToLinearDepth(float depth) {
 	return 2.0 * near * (far + near - depth * (far - near));
 }
@@ -110,7 +96,7 @@ void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
 			for (float x = -range; x <= range; x++) {
 				vec2 offset = vec2(x, y) * pixelSize;
 				
-				float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
+				float sampleDepth  = ExpToLinearDepth(texture2D(depthtex0, texcoord + offset * 8.0).x);
 				vec3  sampleNormal =     DecodeNormal(texture2D(colortex4, texcoord + offset * 8.0).g, 11);
 				
 				float weight  = clamp01(1.0 - abs(expDepth - sampleDepth));
@@ -135,7 +121,7 @@ void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
 		for (float x = -range; x <= range; x++) {
 			vec2 offset = vec2(x, y) * pixelSize;
 			
-			float sampleDepth = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
+			float sampleDepth = ExpToLinearDepth(texture2D(depthtex0, texcoord + offset * 8.0).x);
 			float weight = clamp01(1.0 - abs(expDepth - sampleDepth)) + 0.001;
 			
 			samples.xy += texture2DLod(colortex6, scaledCoord + offset, 0).rg * weight;
@@ -148,12 +134,18 @@ void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
 #endif
 }
 
-#include "/lib/Misc/Calculate_Fogfactor.glsl"
 #include "/lib/Fragment/Water_Depth_Fog.fsh"
 #include "/lib/Fragment/AerialPerspective.fsh"
-#include "/lib/Fragment/Compute3DClouds.fsh"
+
+/* DRAWBUFFERS:146 */
 
 void main() {
+	float depth0 = texture2D(depthtex0, texcoord).x;
+	
+	if (depth0 >= 1.0) { discard; }
+//	if (depth0 >= 1.0) { gl_FragData[0] = vec4(0.5); return; }
+	
+	
 	vec2 texure4 = ScreenTex(colortex4).rg;
 	
 	vec4  decode4       = Decode4x8F(texure4.r);
@@ -162,19 +154,17 @@ void main() {
 	float torchLightmap = decode4.b;
 	float skyLightmap   = decode4.a;
 	
-	float depth0 = (mask.hand > 0.5 ? 0.9 : GetDepth(texcoord));
+	depth0 = mask.hand > 0.5 ? 0.9 : depth0;
 	
 	vec3 wNormal = DecodeNormal(texure4.g, 11);
 	vec3 normal  = wNormal * mat3(gbufferModelViewInverse);
-	vec3 waterNormal = vec3(0.0);
 	
-	float depth1 = mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord);
+	float depth1 = mask.hand > 0.5 ? depth0 : texture2D(depthtex1, texcoord).x;
 	
 	if (depth0 != depth1) {
 		vec2 texure0 = texture2D(colortex0, texcoord).rg;
 		
 		vec4 decode0 = Decode4x8F(texure0.r);
-		waterNormal = DecodeNormalU(texure0.g) * mat3(gbufferModelViewInverse);
 		
 		mask.transparent = 1.0;
 		mask.water       = DecodeWater(texure0.g);
@@ -190,27 +180,21 @@ void main() {
 	gl_FragData[1] = vec4(texure4.rg, 0.0, 1.0);
 	gl_FragData[2] = vec4(VL.xy, 0.0, 1.0);
 	
+	if (depth1 >= 1.0) { gl_FragData[0] = vec4(0.0); exit(); return; }
+	
+	
+	vec3 diffuse = texture2D(colortex1, texcoord).rgb;
+	vec3 frontPos0 = CalculateViewSpacePosition(vec3(texcoord, depth0));
 	
 	mat2x3 backPos;
 	backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
-	vec4 cloud = Compute3DClouds(backPos[1], depth1);
-	
-	
-	gl_FragData[3] = vec4(sqrt(cloud.rgb / 50.0), cloud.a);
-	
-	if (depth1 - mask.hand >= 1.0) { gl_FragData[0] = vec4(0.0); exit(); return; }
-	
-	
-	vec3 diffuse = GetDiffuse(texcoord);
-	vec3 frontPos0 = CalculateViewSpacePosition(vec3(texcoord, depth0));
-	
 	
 	vec3 composite = CalculateShadedFragment(powf(diffuse, 2.2), mask, torchLightmap, skyLightmap, GI, normal, smoothness, backPos);
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
-		composite = WaterFog(composite, waterNormal, frontPos0, backPos[0]);
+		composite = WaterFog(composite, frontPos0, backPos[0]);
 	
 	composite += AerialPerspective(length(backPos[0]), skyLightmap) * (1.0 - mask.water);
 	

@@ -7,7 +7,7 @@ vec2 TerrainParallax(vec2 coord, vec3 position) {
 	return coord;
 #endif
 	
-	LOD = textureQueryLod(texture, coord).x;
+	LOD = textureQueryLod(tex, coord).x;
 	
 	cfloat parallaxDist = TERRAIN_PARALLAX_DISTANCE;
 	cfloat distFade     = parallaxDist / 3.0;

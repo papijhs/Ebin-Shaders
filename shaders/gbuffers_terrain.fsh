@@ -5,9 +5,7 @@
 #include "/lib/Syntax.glsl"
 
 
-/* DRAWBUFFERS:01234 */
-
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
@@ -33,7 +31,7 @@ flat varying float materialIDs;
 #include "/lib/Debug.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Uniform/Projection_Matrices.fsh"
-#include "/lib/Misc/Calculate_Fogfactor.glsl"
+#include "/lib/Misc/CalculateFogFactor.glsl"
 #include "/lib/Fragment/Masks.fsh"
 
 
@@ -58,7 +56,7 @@ float LOD = 0.0;
 #endif
 
 vec4 GetDiffuse(vec2 coord) {
-	return vec4(color.rgb, 1.0) * GetTexture(texture, coord);
+	return vec4(color.rgb, 1.0) * GetTexture(tex, coord);
 }
 
 vec3 GetNormal(vec2 coord) {
@@ -89,6 +87,8 @@ float GetSpecularity(vec2 coord) {
 
 #include "/lib/Fragment/TerrainParallax.fsh"
 
+/* DRAWBUFFERS:14 */
+
 void main() {
 	if (CalculateFogFactor(position[0]) >= 1.0) discard;
 	
@@ -100,11 +100,8 @@ void main() {
 	
 	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0, 0.0, 0.0, 0.0));
 	
-	gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
-	gl_FragData[1] = vec4(diffuse.rgb, 1.0);
-	gl_FragData[2] = vec4(0.0);
-	gl_FragData[3] = vec4(0.0);
-	gl_FragData[4] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), EncodeNormal(normal, 11.0), 0.0, 1.0);
+	gl_FragData[0] = vec4(diffuse.rgb, 1.0);
+	gl_FragData[1] = vec4(Encode4x8F(vec4(encodedMaterialIDs, specularity, vertLightmap.rg)), EncodeNormal(normal, 11.0), 0.0, 1.0);
 	
 	exit();
 }

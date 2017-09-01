@@ -20,14 +20,14 @@ const int colortex1Format = R11F_G11F_B10F;
 const int colortex4Format = RG32F;
 
 ** composite0 Buffers **
-const int colortex5Format = RGBA16;
+const int colortex5Format = RGBA8;
 const int colortex6Format = RG8;
 
 
 const bool colortex0Clear = false;
 const bool colortex1Clear = false;
-const bool colortex2Clear = false;
-const bool colortex3Clear = false;
+const bool colortex2Clear = true;
+const bool colortex3Clear = true;
 const bool colortex4Clear = true;
 const bool colortex5Clear = false;
 const bool colortex6Clear = false;

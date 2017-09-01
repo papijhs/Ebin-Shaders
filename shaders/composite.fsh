@@ -4,8 +4,6 @@
 #define ShaderStage 0
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:56 */
-
 const bool shadowtex1Mipmap    = true;
 const bool shadowcolor0Mipmap  = true;
 const bool shadowcolor1Mipmap  = true;
@@ -16,7 +14,7 @@ const bool shadowcolor1Nearest = false;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex4;
-uniform sampler2D gdepthtex;
+uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 uniform sampler2D shadowcolor;
@@ -30,11 +28,8 @@ uniform mat4 shadowProjectionInverse;
 
 uniform vec3 cameraPosition;
 
-uniform float near;
-uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
-uniform float frameTimeCounter;
 
 uniform int isEyeInWater;
 
@@ -48,35 +43,21 @@ varying vec2 texcoord;
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Masks.fsh"
 
-float GetDepth(vec2 coord) {
-	return textureRaw(gdepthtex, coord).x;
-}
-
-float GetDepthLinear(vec2 coord) {	
-	return (near * far) / (textureRaw(gdepthtex, coord).x * (near - far) + far);
-}
-
 vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	screenPos = screenPos * 2.0 - 1.0;
 	
 	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
 }
 
-vec3 GetNormal(vec2 coord) {
-	return DecodeNormal(textureRaw(colortex4, coord).xy);
-}
-
 #define COMPOSITE0_SCALE 0.50 // [0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define COMPOSITE0_NOISE
 
-vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise pattern ranging {-1.0 to 1.0} that repeats every n pixels
+vec2 GetDitherred2DNoise(int n) { // Returns a random noise pattern ranging {-1.0 to 1.0} that repeats every n pixels
 #ifndef COMPOSITE0_NOISE
 	return vec2(0.0);
 #endif
 	
-	coord *= vec2(viewWidth, viewHeight);
-	coord  = mod(coord, vec2(n));
-	return texelFetch(noisetex, ivec2(coord), 0).xy * 2.0 - 1.0;
+	return texelFetch(noisetex, ivec2(gl_FragCoord.st) % n, 0).xy * 2.0 - 1.0;
 }
 
 #include "/lib/Misc/Bias_Functions.glsl"
@@ -261,14 +242,16 @@ vec2 ComputeVolumetricLight(vec3 position, vec3 frontPos, vec2 noise, float wate
 	return result / maxSteps;
 }
 
+/* DRAWBUFFERS:56 */
+
 void main() {
-	float depth0 = GetDepth(texcoord);
+	float depth0 = textureRaw(depthtex0, texcoord).x;
 	
 #ifndef VOLUMETRIC_LIGHT
-	if (depth0 >= 1.0) { discard; }
+	if (depth0 >= 1.0) { gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0); return; }
 #endif
 	
-	vec2 noise2D = GetDitherred2DNoise(texcoord * COMPOSITE0_SCALE, 4.0);
+	vec2 noise2D = GetDitherred2DNoise(4);
 	
 	vec2 texure4 = textureRaw(colortex4, texcoord).rg;
 	

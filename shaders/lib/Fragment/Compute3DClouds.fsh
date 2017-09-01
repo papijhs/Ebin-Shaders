@@ -1,6 +1,6 @@
 #define CLOUD3D_DITHER ON // [ON OFF]
 
-float GetCloudDither() {
+float GetCloudDither(vec2 offset) {
 	if (!CLOUD3D_DITHER) return 0.0;
 	
 	const int[16] ditherPattern = int[16] (
@@ -9,20 +9,19 @@ float GetCloudDither() {
 		 3, 11,  1,  9,
 		15,  7, 13,  5);
 	
-	vec2 count = vec2(mod(gl_FragCoord.st, vec2(4.0)));
+	ivec2 count = ivec2(mod(gl_FragCoord.st + offset * mix(vec2(-1.0), vec2(1.0), equal(ivec2(gl_FragCoord.st) % ivec2(2), ivec2(0))), vec2(4.0)));
 	
-	int dither = ditherPattern[int(count.x) + int(count.y) * 4] + 1;
+	int dither = ditherPattern[count.x + count.y * 4] + 1;
 	
 	return float(dither) / 17.0;
 }
-
 
 float Get2DNoise(vec3 pos) { // 2D slices
 	return texture2D(noisetex, pos.xz * noiseResInverse).x;
 }
 
 float Get2DStretchNoise(vec3 pos) {
-	float zStretch = 15.0 * noiseResInverse;
+	const float zStretch = 15.0 * noiseResInverse;
 	
 	vec2 coord = pos.xz * noiseResInverse + (floor(pos.y) * zStretch);
 	
@@ -33,7 +32,7 @@ float Get2_5DNoise(vec3 pos) { // 2.5D
 	float p = floor(pos.y);
 	float f = pos.y - p;
 	
-	float zStretch = 17.0 * noiseResInverse;
+	const float zStretch = 17.0 * noiseResInverse;
 	
 	vec2 coord = pos.xz * noiseResInverse + (p * zStretch);
 	
@@ -42,21 +41,34 @@ float Get2_5DNoise(vec3 pos) { // 2.5D
 	return mix(noise.x, noise.y, f);
 }
 
-float Get3DNoise(vec3 pos) { // True 3D
+float Get3DNoise(vec3 pos) {
 	float p = floor(pos.z);
 	float f = pos.z - p;
 	
-	float zStretch = 17.0 * noiseResInverse;
+	const float zStretch = 17.0 * noiseResInverse;
 	
 	vec2 coord = pos.xy * noiseResInverse + (p * zStretch);
 	
-	float xy1 = texture2D(noisetex, coord).x;
-	float xy2 = texture2D(noisetex, coord + zStretch).x;
+	vec2 noise = vec2(texture2D(noisetex, coord).x,
+	                  texture2D(noisetex, coord + zStretch).x);
 	
-	return mix(xy1, xy2, f);
+	return mix(noise.x, noise.y, f);
 }
 
-#define CloudNoise Get3DNoise // [Get2DNoise Get2DStretchNoise Get2_5DNoise Get3DNoise]
+float GetCustom3DNoise(vec3 pos) {
+	float p = floor(pos.z);
+	float f = pos.z - p;
+	
+	const float zStretch = 17.0 * noiseResInverse;
+	
+	vec2 coord = pos.xy * noiseResInverse + (p * zStretch);
+	
+	vec2 noise = texture2D(colortex7, coord).xy;
+	
+	return mix(noise.x, noise.y, f);
+}
+
+#define CloudNoise GetCustom3DNoise // [Get2DNoise Get2DStretchNoise Get2_5DNoise Get3DNoise GetCustom3DNoise]
 
 
 #define CLOUD1_DENSITY   0.95 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 0.97 0.99]
@@ -92,7 +104,7 @@ vec4 CloudColor(vec3 worldPosition, cfloat cloudLowerHeight, cfloat cloudDepth, 
 	p[1] = w * cloudMul[1] + cloudAdd[1];
 	
 	cloud.a  = CloudNoise(p[0]) * weights[0];
-	cloud.a += CloudNoise(p[1]) * weights[1];
+	cloud.a += CloudNoise(p[1]) * weights[1] - weights[1];
 	
 	if (GetCoverage(coverage, (cloud.a - weights[1]) * cloudAltitudeWeight) < 1.0)
 		return vec4(0.0);
@@ -100,11 +112,10 @@ vec4 CloudColor(vec3 worldPosition, cfloat cloudLowerHeight, cfloat cloudDepth, 
 	p[2] = w * cloudMul[2] + cloudAdd[2];
 	p[3] = w * cloudMul[3] + cloudAdd[3];
 	
-	cloud.a += CloudNoise(p[2]) * weights[2];
-	cloud.a += CloudNoise(p[3]) * weights[3];
+	cloud.a += CloudNoise(p[2]) * weights[2] - weights[2];
+	cloud.a += CloudNoise(p[3]) * weights[3] - weights[3];
 	cloud.a += CloudNoise(p[3] * cloudMul[3] / 6.0 + cloudAdd[3]) * weights[4];
 	
-	cloud.a += -(weights[1] + weights[2] + weights[3]);
 	cloud.a /= 2.15;
 	
 	cloud.a = GetCoverage(coverage, cloud.a * cloudAltitudeWeight);
@@ -182,12 +193,8 @@ void swap(io vec3 a, io vec3 b) {
 
 #define SKY_BRIGHTNESS 1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 
-vec4 Compute3DClouds(vec3 position, float depth) {
+vec4 Compute3DClouds(vec3 position, vec3 rayPos, const bool reflection) {
 	if (!CLOUDS_3D) return vec4(0.0);
-	
-	if (depth < 1.0) return vec4(0.0);
-//	const ivec2[4] offsets = ivec2[4](ivec2(2), ivec2(-2, 2), ivec2(2, -2), ivec2(-2));
-//	if (all(lessThan(textureGatherOffsets(depthtex1, texcoord, offsets, 0), vec4(1.0)))) return vec4(0.0);
 	
 	cfloat cloudDepth = CLOUD3D_DEPTH;
 	cfloat cloudLowerHeight = CLOUD3D_START_HEIGHT;
@@ -197,14 +204,16 @@ vec4 Compute3DClouds(vec3 position, float depth) {
 	
 	vec3 a, b, rayPosition, rayIncrement;
 	
-	a = position * ((cloudUpperHeight - cameraPosition.y) / position.y);
-	b = position * ((cloudLowerHeight - cameraPosition.y) / position.y);
+	rayPos += cameraPosition;
 	
-	if (cameraPosition.y < cloudLowerHeight) {
+	a = position * ((cloudUpperHeight - rayPos.y) / position.y);
+	b = position * ((cloudLowerHeight - rayPos.y) / position.y);
+	
+	if (rayPos.y < cloudLowerHeight) {
 		if (position.y <= 0.0) return vec4(0.0);
 		
 		swap(a, b);
-	} else if (cloudLowerHeight <= cameraPosition.y && cameraPosition.y <= cloudUpperHeight) {
+	} else if (cloudLowerHeight <= rayPos.y && rayPos.y <= cloudUpperHeight) {
 		if (position.y < 0.0) swap(a, b);
 		
 		samples *= abs(a.y) / cloudDepth;
@@ -214,10 +223,10 @@ vec4 Compute3DClouds(vec3 position, float depth) {
 	} else if (position.y >= 0.0) return vec4(0.0);
 	
 	rayIncrement = (b - a) / (samples + 1.0);
-	rayPosition = a + cameraPosition + rayIncrement * (1.0 + GetCloudDither());
+	rayPosition = a + rayPos + rayIncrement * (1.0 + GetCloudDither(vec2(0.0)));
 	
 	float coverage  = CLOUD3D_COVERAGE + rainStrength * 0.335;
-	      coverage *= clamp01(1.0 - length2((rayPosition.xz - cameraPosition.xz) / 15000.0));
+	      coverage *= clamp01(1.0 - length2((rayPosition.xz - rayPos.xz) / 15000.0));
 	if (  coverage <= 0.1) return vec4(0.0);
 	
 	float sunglow = pow8(clamp01(dotNorm(position, worldLightVector) - 0.01)) * pow4(max(timeDay, timeNight));
@@ -234,8 +243,7 @@ vec4 Compute3DClouds(vec3 position, float depth) {
 		cloudSum.a += cloud.a;
 	}
 	
-	cloudSum.rgb *= SKY_BRIGHTNESS * 0.07;
-	cloudSum.a    = clamp01(cloudSum.a);
+	cloudSum.a = clamp01(cloudSum.a);
 	
 	return cloudSum;
 }

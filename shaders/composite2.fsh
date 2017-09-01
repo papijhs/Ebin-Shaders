@@ -4,16 +4,12 @@
 #define ShaderStage 2
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:32 */
-
-const bool colortex5MipmapEnabled = true;
-
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
-uniform sampler2D colortex5;
-uniform sampler2D gdepthtex;
+uniform sampler2D colortex7;
+uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 uniform sampler2DShadow shadow; 
@@ -47,20 +43,8 @@ flat varying vec2 pixelSize;
 #include "/lib/Uniform/Shading_Variables.glsl"
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Masks.fsh"
-#include "/lib/Misc/Calculate_Fogfactor.glsl"
+#include "/lib/Misc/CalculateFogFactor.glsl"
 
-
-vec3 GetColor(vec2 coord) {
-	return texture2D(colortex1, coord).rgb;
-}
-
-float GetDepth(vec2 coord) {
-	return texture2D(gdepthtex, coord).x;
-}
-
-float GetTransparentDepth(vec2 coord) {
-	return texture2D(depthtex1, coord).x;
-}
 
 vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	screenPos = screenPos * 2.0 - 1.0;
@@ -169,7 +153,7 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	bool hit = ComputeRaytracedIntersection(position[0], normalize(refRay[0]), refCoord);
 	
 	if (hit) {
-		reflection = GetColor(refCoord.st);
+		reflection = texture2D(colortex1, refCoord.st).rgb;
 		
 		vec3 refVPos = CalculateViewSpacePosition(refCoord);
 		
@@ -190,8 +174,94 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	color = mix(color, reflection, alpha);
 }
 
+/* DRAWBUFFERS:32 */
+
 void main() {
-	vec2 texture4 = ScreenTex(colortex4).rg;
+	float depth0 = texture2D(depthtex0, texcoord).x;
+	
+	mat2x3 frontPos;
+	frontPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth0));
+	frontPos[1] = mat3(gbufferModelViewInverse) * frontPos[0];
+	
+	vec3 sky = vec3(0.0);
+	
+	if (depth0 >= 1.0) {
+		sky = CalculateSky(frontPos[1], vec3(0.0), 1.0, 1.0, false, 1.0);
+		
+		if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
+		
+		gl_FragData[0] = vec4(EncodeColor(sky), 1.0);
+		
+		exit(); return;
+	} else {
+		vec2 texture4 = ScreenTex(colortex4).rg;
+		
+		vec4  decode4       = Decode4x8F(texture4.r);
+		Mask  mask          = CalculateMasks(decode4.r);
+		float smoothness    = decode4.g;
+		float skyLightmap   = decode4.a;
+		
+		gl_FragData[1] = vec4(decode4.r, 0.0, 0.0, 1.0);
+		
+		depth0 = mask.hand > 0.5 ? 0.55 : depth0;
+		
+		float  depth1  = depth0;
+		mat2x3 backPos = frontPos;
+		float  alpha   = 0.0;
+		
+		if (mask.transparent > 0.5) {
+			depth1 = mask.hand > 0.5 ? 0.55 : texture2D(depthtex1, texcoord).x;
+			
+			backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
+			backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
+			
+			alpha = texture2D(colortex2, texcoord).r;
+		}
+		
+		sky = CalculateSky(backPos[1], vec3(0.0), float(depth1 >= 1.0), 1.0 - alpha, false, 1.0);
+		
+		vec3 normal = DecodeNormal(texture4.g, 11) * mat3(gbufferModelViewInverse);
+		
+		if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
+		else if (mask.water > 0.5) sky = mix(WaterFog(sky, frontPos[0], backPos[0]), sky, CalculateFogFactor(frontPos[0]));
+		
+		vec3 color0 = vec3(0.0);
+		vec3 color1 = texture2D(colortex1, texcoord).rgb;
+		
+		if (mask.transparent > 0.5) {
+			color0 = texture2D(colortex3, texcoord).rgb / alpha;
+			color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], float(depth1 >= 1.0))) ;// * (1.0 - float(mask.water > 0.5 && isEyeInWater == 0)));
+		}
+		
+		if (mask.transparent - mask.water < 0.5)
+			color0 = color1;
+		
+		
+		ComputeReflectedLight(color0, frontPos, normal, smoothness, skyLightmap);
+		
+		
+		if (mask.transparent > 0.5)
+			color0 += AerialPerspective(length(frontPos[0]), skyLightmap);
+		
+		if (depth1 >= 1.0)
+			color0 = mix(sky.rgb, color0, mix(alpha, 0.0, isEyeInWater == 1));
+		
+		
+		color0 = mix(color0, sky.rgb, CalculateFogFactor(frontPos[0]));
+		
+		if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
+		if (depth1 >= 1.0 && mask.water > 0.5 && isEyeInWater == 1) color0 = color1;
+		
+		gl_FragData[0] = vec4(EncodeColor(color0), 1.0);
+		
+		exit();
+	}
+}
+
+void main1() {
+	float depth0 = texture2D(depthtex0, texcoord).x;
+	
+	vec2 texture4 = depth0 < 1.0 ? ScreenTex(colortex4).rg : vec2(0.0);
 	
 	vec4  decode4       = Decode4x8F(texture4.r);
 	Mask  mask          = CalculateMasks(decode4.r);
@@ -200,7 +270,7 @@ void main() {
 	
 	gl_FragData[1] = vec4(decode4.r, 0.0, 0.0, 1.0);
 	
-	float depth0 = (mask.hand > 0.5 ? 0.55 : GetDepth(texcoord));
+	depth0 = mask.hand > 0.5 ? 0.55 : depth0;
 	
 	mat2x3 frontPos;
 	frontPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth0));
@@ -211,7 +281,7 @@ void main() {
 	float  alpha   = 0.0;
 	
 	if (mask.transparent > 0.5) {
-		depth1 = (mask.hand > 0.5 ? 0.55 : GetTransparentDepth(texcoord));
+		depth1 = (mask.hand > 0.5 ? 0.55 : texture2D(depthtex1, texcoord).x);
 		
 		backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
 		backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
@@ -219,23 +289,12 @@ void main() {
 		alpha = texture2D(colortex2, texcoord).r;
 	}
 	
-	#define VolCloudLOD 0 // [0 1 2]
-	#define CLOUD3D_START_HEIGHT 400 // [260 300 350 400 450 500 550 600 650 700 750 800 850 900 950 1000]
-	
-	vec4 cloud = textureLod(colortex5, texcoord, VolCloudLOD);
-	
-	cloud.rgb = pow2(cloud.rgb) * 50.0;
-	
 	vec3 sky = CalculateSky(backPos[1], vec3(0.0), float(depth1 >= 1.0), 1.0 - alpha, false, 1.0);
-	
-	cloud.a *= clamp01(1.5 - sqrt(length(backPos[1] * ((CLOUD3D_START_HEIGHT - cameraPosition.y) / backPos[1].y)) / 5000.0));
-	
-	sky = mix(sky, cloud.rgb, cloud.a);
 	
 	vec3 normal = DecodeNormal(texture4.g, 11) * mat3(gbufferModelViewInverse);
 	
-	if (isEyeInWater == 1) sky = WaterFog(sky, normal, frontPos[0], vec3(0.0));
-	else if (mask.water > 0.5) sky = mix(WaterFog(sky, normal, frontPos[0], backPos[0]), sky, CalculateFogFactor(frontPos[0]));
+	if (isEyeInWater == 1) sky = WaterFog(sky, frontPos[0], vec3(0.0));
+	else if (mask.water > 0.5) sky = mix(WaterFog(sky, frontPos[0], backPos[0]), sky, CalculateFogFactor(frontPos[0]));
 	
 	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }
 	
@@ -243,11 +302,10 @@ void main() {
 	vec3 color0 = vec3(0.0);
 	vec3 color1 = texture2D(colortex1, texcoord).rgb;
 	
-	if (mask.transparent > 0.5)
+	if (mask.transparent > 0.5) {
 		color0 = texture2D(colortex3, texcoord).rgb / alpha;
-	
-	if (mask.transparent > 0.5) 
 		color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], float(depth1 >= 1.0))) ;// * (1.0 - float(mask.water > 0.5 && isEyeInWater == 0)));
+	}
 	
 	if (mask.transparent - mask.water < 0.5)
 		color0 = color1;
@@ -267,7 +325,7 @@ void main() {
 	if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
 	if (depth1 >= 1.0 && mask.water > 0.5 && isEyeInWater == 1) color0 = color1;
 	
-	gl_FragData[0] = vec4(clamp01(EncodeColor(color0)), 1.0);
+	gl_FragData[0] = vec4(EncodeColor(color0), 1.0);
 	
 	exit();
 }

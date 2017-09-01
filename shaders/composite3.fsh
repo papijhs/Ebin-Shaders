@@ -4,12 +4,9 @@
 #define ShaderStage 3
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:1 */
-
 const bool colortex3MipmapEnabled = true;
 
 uniform sampler2D colortex3;
-uniform sampler2D colortex1;
 
 uniform float viewWidth;
 uniform float viewHeight;
@@ -55,6 +52,8 @@ vec3 SeishinBloom() {
 	
 	return bloom;
 }
+
+/* DRAWBUFFERS:1 */
 
 void main() {
 	gl_FragData[0] = vec4(EncodeColor(SeishinBloom()), 1.0);

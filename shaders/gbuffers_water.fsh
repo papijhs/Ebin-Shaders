@@ -48,7 +48,7 @@ flat varying float materialIDs;
 #include "/lib/Debug.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Uniform/Projection_Matrices.fsh"
-#include "/lib/Misc/Calculate_Fogfactor.glsl"
+#include "/lib/Misc/CalculateFogFactor.glsl"
 #include "/lib/Fragment/Masks.fsh"
 
 #include "/lib/Uniform/Shading_Variables.glsl"
@@ -174,6 +174,8 @@ vec3 GetWaveNormals(vec3 worldSpacePosition, vec3 flatWorldNormal) {
 	return vec3(diff, sqrt(1.0 - length2(diff)));
 }
 
+/* DRAWBUFFERS:023 */
+
 void main() {
 	if (CalculateFogFactor(position[0]) >= 1.0) discard;
 	if (!gl_FrontFacing && materialIDs == 4.0) discard;
@@ -196,10 +198,8 @@ void main() {
 	vec3 composite = CalculateShadedFragment(powf(diffuse.rgb, 2.2), mask, vertLightmap.r, vertLightmap.g, vec4(0.0, 0.0, 0.0, 1.0), normal * mat3(gbufferModelViewInverse), specularity, position);
 	
 	gl_FragData[0] = vec4(Encode4x8F(vec4(specularity, vertLightmap.g, 0.0, 0.1)), EncodeNormalU(normal, mask.water), 0.0, 1.0);
-	gl_FragData[1] = vec4(0.0);
-	gl_FragData[2] = vec4(1.0, 0.0, 0.0, diffuse.a);
-	gl_FragData[3] = vec4(composite, diffuse.a);
-	gl_FragData[4] = vec4(0.0);
+	gl_FragData[1] = vec4(1.0, 0.0, 0.0, diffuse.a);
+	gl_FragData[2] = vec4(composite, diffuse.a);
 	
 	exit();
 }

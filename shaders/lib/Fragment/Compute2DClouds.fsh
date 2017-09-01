@@ -24,7 +24,7 @@ vec2 GetNoise2D(vec2 coord) {
 	return texture2D(noisetex, coord * noiseResInverse + madd).xy;
 }
 
-float GetCoverage(float clouds, float coverage) {
+float GetCoverage2D(float clouds, float coverage) {
 	return cubesmooth(clamp01((coverage + clouds - 1.0) * 1.1 - 0.1));
 }
 
@@ -58,18 +58,16 @@ float CloudFBM(vec2 coord, out mat4x2 c, vec3 weights, float weight) {
 	return cloud * 0.63;
 }
 
-void Compute2DClouds(io vec3 color, out float cloudAlpha, vec3 ray, vec3 rayPos, float sunglow, float visibility) {
+vec4 Compute2DClouds(vec3 ray, vec3 rayPos, float sunglow) {
 #ifndef CLOUDS_2D
-	return;
+	return vec4(0.0);
 #endif
 	
 	cfloat cloudHeight = CLOUD_HEIGHT_2D;
 	
 	rayPos += cameraPos;
 	
-	visibility = pow(visibility, 10.0) * abs(ray.y);
-	
-	if (ray.y <= 0.0 != rayPos.y >= cloudHeight) return;
+	if (ray.y <= 0.0 != rayPos.y >= cloudHeight) return vec4(0.0);
 	
 	
 	cfloat coverage = CLOUD_COVERAGE_2D * 1.16;
@@ -80,8 +78,9 @@ void Compute2DClouds(io vec3 color, out float cloudAlpha, vec3 ray, vec3 rayPos,
 	
 	mat4x2 coords;
 	
-	cloudAlpha = CloudFBM(coord, coords, weights, weight);
-	cloudAlpha = GetCoverage(cloudAlpha, coverage);
+	vec4 cloud;
+	cloud.a = CloudFBM(coord, coords, weights, weight);
+	cloud.a = GetCoverage2D(cloud.a, coverage);
 	
 	vec2 lightOffset = worldLightVector.xz * 0.2;
 	
@@ -90,9 +89,9 @@ void Compute2DClouds(io vec3 color, out float cloudAlpha, vec3 ray, vec3 rayPos,
 	sunlight +=  GetNoise(coords[1] + lightOffset) * weights.x;
 	sunlight +=  GetNoise(coords[2] + lightOffset) * weights.y;
 	sunlight +=  GetNoise(coords[3] + lightOffset) * weights.z;
-	sunlight  = GetCoverage(weight - sunlight, coverage);
+	sunlight  = GetCoverage2D(weight - sunlight, coverage);
 	sunlight  = pow(1.3 - sunlight, 5.5);
-	sunlight *= mix(pow(cloudAlpha, 1.6) * 2.5, 2.0, sunglow);
+	sunlight *= mix(pow(cloud.a, 1.6) * 2.5, 2.0, sunglow);
 	sunlight *= mix(10.0, 1.0, sqrt(sunglow));
 	
 	vec3 directColor  = sunlightColor * 2.0;
@@ -101,7 +100,7 @@ void Compute2DClouds(io vec3 color, out float cloudAlpha, vec3 ray, vec3 rayPos,
 	
 	vec3 ambientColor = mix(skylightColor, directColor, 0.15) * 0.1;
 	
-	vec3 cloud = mix(ambientColor, directColor, sunlight) * 70.0;
+	cloud.rgb = mix(ambientColor, directColor, sunlight) * 70.0;
 	
-	color = mix(color, cloud, cloudAlpha * visibility);
+	return vec4(cloud.rgb, cloud.a * abs(ray.y));
 }

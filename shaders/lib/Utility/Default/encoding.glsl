@@ -47,8 +47,8 @@ vec2 Decode16(float encodedBuffer) {
 	return decoded * decode;
 }
 
-#define EncodeColor(color) powf(color, 1.0 / 2.2) // Prepares the color to be sent through a limited dynamic range pipeline
-#define DecodeColor(color) powf(color, 2.2)
+#define EncodeColor(color) max0(color)
+#define DecodeColor(color) (color)
 
 vec2 EncodeNormal(vec3 normal) {
     return vec2(normal.xy * inversesqrt(normal.z * 8.0 + 8.0) + 0.5);

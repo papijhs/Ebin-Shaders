@@ -7,7 +7,7 @@
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
-uniform sampler2D gdepthtex;
+uniform sampler2D depthtex0;
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferPreviousModelView;
@@ -33,20 +33,9 @@ flat varying vec2 pixelSize;
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Masks.fsh"
 
-vec3 GetColor(vec2 coord) {
-	return DecodeColor(texture2D(colortex3, coord).rgb);
-}
-
-float GetDepth(vec2 coord) {
-	return texture2D(gdepthtex, coord).x;
-}
 
 vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
-}
-
-vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
-	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z;
 }
 
 //#define MOTION_BLUR
@@ -243,8 +232,8 @@ void Tonemap(io vec3 color) {
 }
 
 void main() {
-	float depth = GetDepth(texcoord);
-	vec3  color = GetColor(texcoord);
+	float depth = texture2D(depthtex0, texcoord).x;
+	vec3  color = DecodeColor(texture2D(colortex3, texcoord).rgb);
 	Mask  mask  = CalculateMasks(texture2D(colortex2, texcoord).r);
 	
 	MotionBlur(color, depth, mask.hand);
