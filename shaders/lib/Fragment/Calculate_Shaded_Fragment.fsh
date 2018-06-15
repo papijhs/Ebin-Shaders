@@ -14,8 +14,10 @@ struct Lightmap { // Vector light levels with color
 	vec3 GI;
 };
 
+
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight_Shading.fsh"
+
 
 float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 	mat2x3 lightPos = mat2x3(
@@ -37,22 +39,107 @@ float GetHeldLight(vec3 viewSpacePosition, vec3 normal, float handMask) {
 	return falloff.x + falloff.y;
 }
 
-#define SUN_LIGHT_LEVEL     1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-#define SKY_LIGHT_LEVEL     1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-#define AMBIENT_LIGHT_LEVEL 1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-#define TORCH_LIGHT_LEVEL   1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+#if defined composite1
+#include "/lib/Fragment/Water_Waves.fsh"
 
-#define LIGHT_DESATURATION
-
-vec3 Desaturation(vec3 diffuse, vec3 lightmap) {
-#ifndef LIGHT_DESATURATION
-	return diffuse;
+float CalculateWaterCaustics(vec3 worldPos, float skyLightmap, float waterMask) {
+#ifndef WATER_CAUSTICS
+	return 1.0;
 #endif
 	
-	float desatAmount = clamp01(pow(length(lightmap), 0.07));
-	vec3  desatColor  = vec3(diffuse.r + diffuse.g + diffuse.b);
+	if (skyLightmap <= 0.0 || WAVE_MULT == 0.0 || isEyeInWater == waterMask) return 1.0;
 	
-	return mix(desatColor, diffuse, desatAmount);
+	SetupWaveFBM();
+	
+	worldPos += cameraPosition + gbufferModelViewInverse[3].xyz - vec3(0.0, 1.62, 0.0);
+	
+	float verticalDist = min(abs(worldPos.y - WATER_HEIGHT), 2.0);
+	
+	vec3 flatRefractVector  = refract(-worldLightVector, vec3(0.0, 1.0, 0.0), 1.0 / 1.3333);
+	     flatRefractVector *= verticalDist / flatRefractVector.y;
+	
+	vec3 lookupCenter = worldPos + flatRefractVector;
+	
+	vec2 coord = lookupCenter.xz + lookupCenter.y;
+	
+	cfloat distanceThreshold = 0.15;
+	
+	float caustics = 0.0;
+	
+	vec3 r; // RIGHT height sample to rollover between columns
+	vec3 a; // .x = center      .y = top      .z = right
+	mat4x2[4] p;
+	
+	for (int x = -1; x <= 1; x++) {
+		for (int y = -1; y <= 1; y++) { // 3x3 sample matrix. Starts bottom-left and immediately goes UP
+			vec2 offset = vec2(x, y) * 0.1;
+			
+			// Generate heights for wave normal differentials. Lots of math & sample reuse happening
+			if (x == -1 && y == -1) a.x = GetWaves(coord + offset, p[0]); // If bottom-left-position, generate the height & save FBM coords
+			else if (x == -1)       a.x = a.y;                            // If left-column, reuse TOP sample from previous iteration
+			else                    a.x = r[y + 1];                       // If not left-column, reuse RIGHT sample from previous column
+			
+			if (x != -1 && y != 1) a.y = r[y + 2]; // If not left-column and not top-row, reuse RIGHT sample from previous column 1 row up
+			else a.y = GetWaves(p[x + 1], offset.y + 0.2); // If left-column or top-row, reuse previously computed FBM coords
+			
+			if (y == -1) a.z = GetWaves(coord + offset + vec2(0.1, 0.0), p[x + 2]); // If bottom-row, generate the height & save FBM coords
+			else a.z = GetWaves(p[x + 2], offset.y + 0.2); // If not bottom-row, reuse FBM coords
+			
+			r[y + 1] = a.z; // Save RIGHT height sample for later
+			
+			
+			vec2 diff = a.x - a.yz;
+			
+			vec3 wavesNormal = vec3(diff, sqrt(1.0 - length2(diff))).yzx;
+			
+			vec3 refractVector = refract(-worldLightVector, wavesNormal, 1.0 / 1.3333);
+			vec2 dist = refractVector.xz * (-verticalDist / refractVector.y) + (flatRefractVector.xz + offset);
+			
+			caustics += clamp01(length(dist) / distanceThreshold);
+		}
+	}
+	
+	caustics = 1.0 - caustics / 9.0;
+	caustics *= 0.07 / pow2(distanceThreshold);
+	
+	return pow3(caustics);
+}
+#else
+#define CalculateWaterCaustics(a, c, b) 1.0
+#endif
+
+float Luma(vec3 color) {
+  return dot(color, vec3(0.299, 0.587, 0.114));
+}
+
+vec3 ColorSaturate(vec3 base, float saturation) {
+    return mix(base, vec3(Luma(base)), -saturation);
+}
+
+cvec3 nightColor = vec3(0.25, 0.35, 0.7);
+cvec3 torchColor = vec3(0.5, 0.22, 0.05);
+
+vec3 LightDesaturation(vec3 color, float torchlight, float skylight, float emissive) {
+//	if (emissive > 0.5) return vec3(color);
+	
+	vec3  desatColor = vec3(color.x + color.y + color.z);
+	
+	desatColor = mix(desatColor * nightColor, mix(desatColor, color, 0.5) * ColorSaturate(torchColor, 0.35) * 40.0, clamp01(torchlight * 2.0)*0+1);
+	
+	float moonFade = smoothstep(0.0, 0.3, max0(-worldLightVector.y));
+	
+	float coeff = clamp01(min(moonFade, 0.65) + pow(1.0 - skylight, 1.4));
+	
+	return mix(color, desatColor, coeff);
+}
+
+vec3 nightDesat(vec3 color, vec3 lightmap, cfloat mult, cfloat curve) {
+	float desatAmount = clamp01(pow(length(lightmap) * mult, curve));
+	vec3 desatColor = vec3(color.r + color.g + color.b);
+	
+	desatColor *= sqrt(desatColor);
+	
+	return mix(desatColor, color, desatAmount);
 }
 
 vec3 CalculateShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float skyLightmap, vec4 GI, vec3 normal, float smoothness, mat2x3 position) {
@@ -65,11 +152,11 @@ vec3 CalculateShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float
 	
 	shading.skylight = pow2(skyLightmap);
 	
-	shading.caustics = ComputeUnderwaterCaustics(position[1], shading.skylight, mask.water);
+	shading.caustics = CalculateWaterCaustics(position[1], shading.skylight, mask.water);
 	
 	shading.sunlight  = GetLambertianShading(normal, lightVector, mask) * shading.skylight;
 	shading.sunlight  = ComputeSunlight(position[1], shading.sunlight);
-	shading.sunlight *= 3.0 * SUN_LIGHT_LEVEL;
+	shading.sunlight *= 1.0 * SUN_LIGHT_LEVEL;
 	
 	shading.skylight *= mix(shading.caustics * 0.65 + 0.35, 1.0, pow8(1.0 - abs(worldLightVector.y)));
 	shading.skylight *= GI.a;
@@ -97,13 +184,22 @@ vec3 CalculateShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float
 	
 	lightmap.ambient = vec3(shading.ambient);
 	
-	lightmap.torchlight = shading.torchlight * 10.0 * vec3(0.5, 0.22, 0.05);
+	lightmap.torchlight = shading.torchlight * torchColor * 10.0;
 	
 	lightmap.skylight *= clamp01(1.0 - dot(lightmap.GI, vec3(1.0)) / 6.0);
 	
 	
-	vec3 composite  = lightmap.sunlight + lightmap.skylight + lightmap.torchlight + lightmap.GI + lightmap.ambient;
-	     composite *= Desaturation(diffuse, composite);
+	vec3 desatColor = vec3(pow(diffuse.r + diffuse.g + diffuse.b, 1.5));
+	
+#define LIGHT_DESATURATION
+#ifndef LIGHT_DESATURATION
+//	desatColor = diffuse;
+#endif
+	
+	vec3 composite = diffuse * (lightmap.GI + lightmap.ambient)
+	+ lightmap.skylight   * mix(desatColor, diffuse, clamp01(pow(length(lightmap.skylight  ) * 25.0, 0.2)))
+	+ lightmap.sunlight   * mix(desatColor, diffuse, clamp01(pow(length(lightmap.sunlight  ) *  4.0, 0.1)))
+	+ lightmap.torchlight * mix(desatColor, diffuse, clamp01(pow(length(lightmap.torchlight) *  1.0, 0.1)));
 	
 	return composite;
 }

@@ -1,12 +1,3 @@
-//#define TIME_OVERRIDE
-#define TIME_OVERRIDE_MODE 1 // [1 2 3]
-#define CONSTANT_TIME_HOUR 3 // [0 3 6 9 12 15 18 21]
-#define CUSTOM_DAY_NIGHT   1 // [1 2]
-#define CUSTOM_TIME_MISC   1 // [1 2]
-
-//#define TELEFOCAL_SHADOWS
-//#define SHADOWS_FOCUS_CENTER
-
 #if defined TIME_OVERRIDE || defined TELEFOCAL_SHADOWS
 	flat varying mat4 shadowView;
 	
@@ -24,8 +15,6 @@
 	#include "/lib/EbinScript/Unload.vsh"
 	
 	void GetDaylightVariables(out float isNight, out vec3 worldLightVector) {
-		const float sunPathRotation = -40.0; // [-60.0 -50.0 -40.0 -30.0 -20.0 -10.0 0.0 10.0 20.0 30.0 40.0 50.0 60.0]
-		
 		timeAngle = sunAngle * 360.0;
 		pathRotationAngle = sunPathRotation;
 		twistAngle = 0.0;

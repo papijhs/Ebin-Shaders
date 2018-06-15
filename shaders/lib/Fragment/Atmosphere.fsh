@@ -1,6 +1,3 @@
-#define PHYSICAL_ATMOSPHERE
-#define BLEND_PHYSICAL_ATMOSPHERE
-
 vec2 AtmosphereDistances(vec3 worldPosition, vec3 worldDirection, cfloat atmosphereRadius, cvec2 radiiSquared) {
 	// Considers the planet's center as the coordinate origin, as per convention
 	
@@ -46,7 +43,7 @@ vec3 ComputeAtmosphericSky(vec3 worldDirection, float visibility, vec3 color) {
 	
 	cvec2 radiiSquared = vec2(planetRadius, atmosphereRadius) * vec2(planetRadius, atmosphereRadius);
 	
-	vec3 worldPosition = vec3(0.0, planetRadius + 1.061e3 + max0(cameraPosition.y - HORIZON_HEIGHT) * 40.0*0, 0.0);
+	vec3 worldPosition = vec3(0.0, planetRadius + 1.061e3 + max0(cameraPosition.y - HORIZON_HEIGHT) * 40.0, 0.0);
 	
 #ifdef BLEND_PHYSICAL_ATMOSPHERE
 	float zenith = 1.0 - pow8(1.0 - pow2(sunVector.y));
@@ -76,7 +73,7 @@ vec3 ComputeAtmosphericSky(vec3 worldDirection, float visibility, vec3 color) {
 	vec3 rayleigh = vec3(0.0); // Accumulators for Rayleigh and Mie scattering
 	vec3 mie      = vec3(0.0);
 	
-	vec3 absorb = vec3(1.0);
+	vec3 absorb		= vec3(1.0);
 	
 	vec2 opticalDepth = vec2(0.0); // Optical depth accumulators
 	

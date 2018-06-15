@@ -4,6 +4,8 @@
 #define ShaderStage 0
 #include "/lib/Syntax.glsl"
 
+/* DRAWBUFFERS:56 */
+
 const bool shadowtex1Mipmap    = true;
 const bool shadowcolor0Mipmap  = true;
 const bool shadowcolor1Mipmap  = true;
@@ -14,7 +16,7 @@ const bool shadowcolor1Nearest = false;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex4;
-uniform sampler2D depthtex0;
+uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 uniform sampler2D shadowcolor;
@@ -28,8 +30,11 @@ uniform mat4 shadowProjectionInverse;
 
 uniform vec3 cameraPosition;
 
+uniform float near;
+uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform float frameTimeCounter;
 
 uniform int isEyeInWater;
 
@@ -43,31 +48,33 @@ varying vec2 texcoord;
 #include "/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/lib/Fragment/Masks.fsh"
 
+float GetDepth(vec2 coord) {
+	return textureRaw(gdepthtex, coord).x;
+}
+
+float GetDepthLinear(vec2 coord) {	
+	return (near * far) / (textureRaw(gdepthtex, coord).x * (near - far) + far);
+}
+
 vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	screenPos = screenPos * 2.0 - 1.0;
 	
 	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
 }
 
-#define COMPOSITE0_SCALE 0.50 // [0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
-#define COMPOSITE0_NOISE
+vec3 GetNormal(vec2 coord) {
+	return DecodeNormal(textureRaw(colortex4, coord).xy);
+}
 
-vec2 GetDitherred2DNoise(int n) { // Returns a random noise pattern ranging {-1.0 to 1.0} that repeats every n pixels
-#ifndef COMPOSITE0_NOISE
-	return vec2(0.0);
-#endif
-	
-	return texelFetch(noisetex, ivec2(gl_FragCoord.st) % n, 0).xy * 2.0 - 1.0;
+
+vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise pattern ranging {-1.0 to 1.0} that repeats every n pixels
+	coord *= vec2(viewWidth, viewHeight);
+	coord  = mod(coord, vec2(n));
+	return texelFetch(noisetex, ivec2(coord), 0).xy;
 }
 
 #include "/lib/Misc/Bias_Functions.glsl"
 #include "/lib/Fragment/Sunlight_Shading.fsh"
-
-#define GI_RADIUS       16   // [4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32]
-#define GI_SAMPLE_COUNT 40   // [20 40 80 128 160 256]
-#define GI_BOOST
-#define GI_TRANSLUCENCE 0.5  // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-#define GI_BRIGHTNESS   1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 
 #ifndef GI_ENABLED
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
@@ -102,7 +109,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	
 	cvec3 sampleMax = vec3(0.0, 0.0, radius * radius);
 	
-	cfloat brightness = 3.0 * radius * radius * GI_BRIGHTNESS;
+	cfloat brightness = 1.0 * radius * radius * GI_BRIGHTNESS * SUN_LIGHT_LEVEL;
 	cfloat scale      = radius / 256.0;
 	
 	noise *= scale;
@@ -132,7 +139,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 		     shadowNormal.xy = texture2DLod(shadowcolor1, mapPos, sampleLOD).xy * 2.0 - 1.0;
 		     shadowNormal.z  = sqrt(1.0 - length2(shadowNormal.xy));
 		
-		vec3 lightCoeffs   = vec3(inversesqrt(sampleLengthSqrd) * sampleDiff * mat2x3(normal, shadowNormal), sampleLengthSqrd);
+		vec3 lightCoeffs   = vec3(finversesqrt(sampleLengthSqrd) * sampleDiff * mat2x3(normal, shadowNormal), sampleLengthSqrd);
 		     lightCoeffs   = max(lightCoeffs, sampleMax);
 		     lightCoeffs.x = mix(lightCoeffs.x, 1.0, translucent);
 		     lightCoeffs.y = sqrt(lightCoeffs.y);
@@ -157,17 +164,14 @@ vec2 Circlemap(vec2 p) {
 	return vec2(cos(p.y), sin(p.y)) * p.x;
 }
 
-#define AO_SAMPLE_COUNT 6 // [3 4 5 6 7 8 9 10 11 12 13 14 15 16]
-#define AO_RADIUS 1.3 // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-#define AO_INTENSITY 2.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+#define AO_SAMPLE_COUNT 6 // [3 4 5 6 8 12 16]
+#define AO_RADIUS 1.30 // [0.70 0.85 1.00 1.15 1.30 1.50]
+#define AO_INTENSITY 1.00 // [0.25 0.50 0.75 1.00 1.50 2.00 4.00]
 
-float ContinuityAO(vec3 vPos, vec3 normal, vec2 lightmap, Mask mask) {
+float ContinuityAO(vec3 vPos, vec3 normal) {
 #ifndef AO_ENABLED
 	return 1.0;
 #endif
-	
-	float illumination = clamp01(pow4(lightmap.r) + lightmap.g * 0.7 + mask.emissive);
-	if (illumination >= 1.0) return 1.0;
 	
 	cint steps = AO_SAMPLE_COUNT;
 	cfloat r = AO_RADIUS;
@@ -203,10 +207,8 @@ float ContinuityAO(vec3 vPos, vec3 normal, vec2 lightmap, Mask mask) {
 	}
 	
 	nvisibility /= float(steps);
-	nvisibility  = mix(1.0, nvisibility, AO_INTENSITY);
-	nvisibility  = mix(nvisibility, 1.0, illumination);
 	
-	return nvisibility;
+	return clamp01(mix(1.0, nvisibility, AO_INTENSITY));
 }
 
 vec2 ComputeVolumetricLight(vec3 position, vec3 frontPos, vec2 noise, float waterMask) {
@@ -242,16 +244,20 @@ vec2 ComputeVolumetricLight(vec3 position, vec3 frontPos, vec2 noise, float wate
 	return result / maxSteps;
 }
 
-/* DRAWBUFFERS:56 */
-
 void main() {
-	float depth0 = textureRaw(depthtex0, texcoord).x;
+	float depth0 = GetDepth(texcoord);
 	
 #ifndef VOLUMETRIC_LIGHT
-	if (depth0 >= 1.0) { gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0); return; }
+	if (depth0 >= 1.0) { discard; }
 #endif
 	
-	vec2 noise2D = GetDitherred2DNoise(4);
+	
+#ifdef COMPOSITE0_NOISE
+	vec2 noise2D = GetDitherred2DNoise(texcoord * COMPOSITE0_SCALE, 4.0) * 2.0 - 1.0;
+#else
+	vec2 noise2D = vec2(0.0);
+#endif
+	
 	
 	vec2 texure4 = textureRaw(colortex4, texcoord).rg;
 	
@@ -284,7 +290,7 @@ void main() {
 	
 	vec3 normal = DecodeNormal(texure4.g, 11);
 	
-	float AO = ContinuityAO(backPos[0], normal * mat3(gbufferModelViewInverse), vec2(torchLightmap, skyLightmap), mask);
+	float AO = ContinuityAO(backPos[0], normal * mat3(gbufferModelViewInverse));
 	
 	if (isEyeInWater != mask.water) // If surface is in water
 		{ gl_FragData[0] = vec4(0.0, 0.0, 0.0, AO); exit(); return; }

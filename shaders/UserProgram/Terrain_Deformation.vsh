@@ -23,9 +23,6 @@ vec3 Acid(vec3 position) {
 	return position;
 }
 
-//#define DEFORM
-#define DEFORMATION 1 // [1 2 3]
-
 vec3 TerrainDeformation(vec3 position) {
 	
 #ifdef DEFORM

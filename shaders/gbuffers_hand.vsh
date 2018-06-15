@@ -4,7 +4,5 @@
 #define ShaderStage -2
 #include "/lib/Syntax.glsl"
 
-#define GetMaterialIDs(a) 5.0
-
 
 #include "gbuffers_main.vsh"

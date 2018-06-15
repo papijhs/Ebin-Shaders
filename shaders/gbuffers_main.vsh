@@ -2,6 +2,8 @@ attribute vec4 mc_Entity;
 attribute vec4 at_tangent;
 attribute vec4 mc_midTexCoord;
 
+uniform sampler2D lightmap;
+
 uniform mat4 gbufferModelViewInverse;
 
 uniform vec3  cameraPosition;
@@ -12,18 +14,25 @@ varying vec3 color;
 varying vec2 texcoord;
 varying vec2 vertLightmap;
 
-varying mat3 tbnMatrix;
+flat varying mat3 tbnMatrix;
 
 varying mat2x3 position;
 
 varying vec3 worldDisplacement;
 
+flat varying float mcID;
 flat varying float materialIDs;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
 #include "/lib/Debug.glsl"
 #include "/lib/Uniform/Projection_Matrices.vsh"
+
+#if defined gbuffers_water
+#include "/lib/Uniform/Shading_Variables.glsl"
+#include "/UserProgram/centerDepthSmooth.glsl"
+#include "/lib/Uniform/Shadow_View_Matrix.vsh"
+#endif
 
 
 vec2 GetDefaultLightmap() {
@@ -32,10 +41,12 @@ vec2 GetDefaultLightmap() {
 	return clamp01(lightmapCoord / vec2(0.8745, 0.9373)).rg;
 }
 
+#include "/lib/Vertex/Materials.vsh"
+
 vec3 GetWorldSpacePosition() {
 	vec3 position = transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
 	
-#if defined gbuffers_water
+#if  defined gbuffers_water
 	position -= gl_NormalMatrix * gl_Normal * (norm(gl_Normal) * 0.00005 * float(abs(mc_Entity.x - 8.5) > 0.6));
 #elif defined gbuffers_spidereyes
 	position += gl_NormalMatrix * gl_Normal * (norm(gl_Normal) * 0.0002);
@@ -72,11 +83,7 @@ mat3 CalculateTBN(vec3 worldPosition) {
 	return mat3(tangent, binormal, normal);
 }
 
-//#define HIDE_ENTITIES
-
 void main() {
-	vDebug = vec3(0.0);
-	
 #ifdef HIDE_ENTITIES
 	if (mc_Entity.x < 0.5) { gl_Position = vec4(-1.0); return; }
 #endif
@@ -85,6 +92,7 @@ void main() {
 	
 	color        = abs(mc_Entity.x - 10.5) > 0.6 ? gl_Color.rgb : vec3(1.0);
 	texcoord     = gl_MultiTexCoord0.st;
+	mcID         = mc_Entity.x;
 	vertLightmap = GetDefaultLightmap();
 	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
 	
@@ -100,6 +108,11 @@ void main() {
 	
 	
 	tbnMatrix = CalculateTBN(worldSpacePosition);
+	
+	
+#if defined gbuffers_water
+	#include "/lib/Vertex/Shading_Setup.vsh"
+#endif
 	
 	
 	exit();
