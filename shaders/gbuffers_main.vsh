@@ -14,7 +14,7 @@ varying vec3 color;
 varying vec2 texcoord;
 varying vec2 vertLightmap;
 
-flat varying mat3 tbnMatrix;
+varying mat3 tbnMatrix;
 
 varying mat2x3 position;
 
