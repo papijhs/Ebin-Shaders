@@ -1,7 +1,3 @@
-
-// Start of #include "/UserProgram/CustomTimeCycle.vsh"
-
-
 /* Availible variables:
  * 
  * float time:     Counts up 1.0 every frame
@@ -18,9 +14,12 @@
  * All outputs are floating point degree units.
 */
 
+#define time frameTimeCounter
+#define dayCycle sunAngle
+#define position cameraPosition
 
 void UserRotation() {
-	timeAngle = position.x * 25;
+	timeAngle = position.x * 25.0;
 }
 
 void TimeOverride() {
@@ -49,4 +48,6 @@ void TimeOverride() {
 #endif
 }
 
-// End of #include "/UserProgram/CustomTimeCycle.vsh"
+#undef time
+#undef dayCycle
+#undef position

@@ -30,8 +30,8 @@ flat varying vec3 vertNormal;
 #include "/lib/Utility.glsl"
 
 #include "/UserProgram/centerDepthSmooth.glsl"
-#include "/lib/Uniform/Shadow_View_Matrix.vsh"
 #include "/lib/Uniform/Projection_Matrices.vsh"
+#include "/lib/Uniform/Shadow_View_Matrix.vsh"
 
 vec2 GetDefaultLightmap() {
 	vec2 lightmapCoord = mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st;

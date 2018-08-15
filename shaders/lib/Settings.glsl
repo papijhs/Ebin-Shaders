@@ -43,12 +43,6 @@ cfloat noiseScale = 64.0 / noiseRes;
 const float zShrink = 4.0;
 
 
-
-// GUI Settings
-#define low_profile
-//#define standard_profile
-
-
 //#define DEFAULT_TEXTURE_PACK
 
 
@@ -66,10 +60,12 @@ const float zShrink = 4.0;
 #define PLAYER_SHADOW
 //#define LIMIT_SHADOW_DISTANCE
 
-#if !defined low_profile
-	#define GI_ENABLED
-	#define AO_ENABLED
-	//#define VOLUMETRIC_LIGHT
+//#define GI_ENABLED
+//#define AO_ENABLED
+//#define VOLUMETRIC_LIGHT
+
+#if (defined GI_ENABLED) || (defined AO_ENABLED) || (defined VOLUMETRIC_LIGHT)
+#define COMPOSITE0_ENABLED
 #endif
 
 //#define PLAYER_GI_BOUNCE
@@ -138,7 +134,7 @@ const float zShrink = 4.0;
 #define CUSTOM_TIME_MISC   1 // [1 2]
 
 //#define TELEFOCAL_SHADOWS
-//#define SHADOWS_FOCUS_CENTER
+#define SHADOWS_FOCUS_CENTER
 
 
 #define DEBUG_VIEW 1 // [-1 0 1 2 3 7]
