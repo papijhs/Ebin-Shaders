@@ -1,22 +1,24 @@
 # Ebin Shaders
 
-This is a Minecraft shaderpack for use with [Optifine](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1272953). Ebin is aiming to provide maximum performance, configurability, and visual quality. Whether you want to create easy scenic screenshots to post on reddit, film a complex Minecraft cinematic, or play on a competitive multiplayer server, Ebin is intended to accommodate all these situations, and more.
+Ebin Shaders is a Minecraft shaderpack for use with the [OptiFine mod](https://optifine.net/home).
 
-[Talk to us on Discord.](https://discord.gg/9YTc4Q4)
+Ebin began with the goal of being fast, beautiful, configurable, feature-rich, and having a base of well-written code. It was developed almost entirely by BruceKnowsHow ([Github](https://github.com/BruceKnowsHow), [Youtube](https://www.youtube.com/user/MiningGodBruce)) throughout summer of 2017. As development went on, Ebin became more of a platform for experimental low-level graphics optimizations and coding practices. Work slowed down and eventually stopped when Bruce discovered a tragic fact: sometimes it's not possible to write code that is both "fast" and "clean".
 
-[Ebin has a website.](https://continuum.graphics/ebin/)
+## Current Status
+Development of Ebin is mostly over. Some minor cleanup items are planned, but that is all.
+
+If you would like to discuss Ebin, or other Minecraft shaderpacks, join the [Shaderlabs Discord server](https://discord.gg/SMgEpZe).
 
 ## Features
-- Shadows / Shading - the basics
+- Sunlight Shadows / Shading
 - Global Illumination
 - Bloom / Glow
 - Motion Blur
 - Procedural 2D Clouds
-- Procedural Water
+- Procedural Water Waves
 - Screen Space Reflections
 - Terrain Parallax - 3D blocks with a supported texture pack
 - Multi-Layered Shading Pipeline - Everything is correctly shaded, even behind semi-transparent blocks
-- Time Override - you can force it to be daytime on a multiplayer server
 - Terrain Deformation - "Animal Crossing" and "Acid" deformations
 
 ## Requirements
@@ -26,39 +28,18 @@ This is a Minecraft shaderpack for use with [Optifine](http://www.minecraftforum
 ## Installation
 
 1. Download and install a compatible version of Optifine
-2. Launch the game once to create the 'shaderpacks' folder, which is located with your "saves" folder
-3. Make sure the Ebin-Shaders folder structure is correct if you're downloading from the GitHub repository
-4. Place the Ebin-Shaders folder into your 'shaderpacks' folder.
+2. If you haven't already, launch the game once to create the 'shaderpacks' folder, which is located adjacent to your "saves" folder
+3. Download the Ebin-Shaders .zip and place it into your 'shaderpacks' folder.
+4. (For legacy Minecraft versions before 1.12) you may need to go on Youtube and look at how older shaderpacks used to be installed. This usually involved inzipping the shaderpack and making sure the correct sub-folder is placed into your game's 'shaderpacks' folder.
 
-### Folder Structure
-It should be either:
->Ebin-Shaders/shaders/(.vsh & .fsh files)
-
-or:
->Ebin-Shaders.zip/shaders/(.vsh & .fsh files)
-
-If you download it from GitHub, it will be:
->Ebin-Shaders.zip/Ebin-Shaders/shaders/(.vsh & .fsh files)
-
-## How to submit a crashlog
-1. Make sure you're running the latest version of Ebin (don't send crashlogs from old versions).
-2. Relaunch the game to clear any older crashlogs
-3. From the main menu, select the copy of Ebin that is causing a crash
-4. Log in to a singleplayer world
-5. Close the game
-6. The crashlog is located in either '/logs/shadersmod.log' OR '/logs/fml-client-latest.log'
-7. Send us the crashlog on [Discord](https://discord.gg/9YTc4Q4)
-
-## History
-
-This shaderpack was created after spending years modifying other shaderpacks, primarily [SEUS](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1280299). Ebin was created as a reaction to the many issues and inefficiencies within SEUS (which is by no means a bad shaderpack, it was probably the best shaderpack before the inception of Ebin). Developments within the Shaders Mod, such as its adoption by Optifine, and the addition of the #include preprocessor, boosted motivation to develop a more "modern" shaderpack.
+## If you run into problems
+There is not a support team for using Ebin, and its primary developer does not have time to offer individual support to everybody who needs help. [Shaderlabs](https://discord.gg/SMgEpZe) is a popular Discord server for Minecraft shader development; you may be able to get help from somebody there.
 
 ## Team
 - [BruceKnowsHow](https://github.com/BruceKnowsHow): Primary Developer
-- [dotModded](https://github.com/dotModded): Co-Developer
 
 ## Contributors
-[DethRaid](https://github.com/DethRaid), [zombye](https://github.com/zombye)
+[dotModded](https://github.com/dotModded), [DethRaid](https://github.com/DethRaid), [zombye](https://github.com/zombye)
 
 
 ## Thanks
