@@ -36,7 +36,7 @@ If you would like to discuss Ebin, or other Minecraft shaderpacks, join the [Sha
 There is not a support team for using Ebin, and its primary developer does not have time to offer individual support to everybody who needs help. [Shaderlabs](https://discord.gg/SMgEpZe) is a popular Discord server for Minecraft shader development; you may be able to get help from somebody there.
 
 ## Team
-- [BruceKnowsHow](https://github.com/BruceKnowsHow): Primary Developer
+[BruceKnowsHow](https://github.com/BruceKnowsHow): Primary Developer
 
 ## Contributors
 [dotModded](https://github.com/dotModded), [DethRaid](https://github.com/DethRaid), [zombye](https://github.com/zombye)
