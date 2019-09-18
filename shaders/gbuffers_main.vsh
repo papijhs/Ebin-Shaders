@@ -20,7 +20,6 @@ varying mat2x3 position;
 
 varying vec3 worldDisplacement;
 
-flat varying float mcID;
 flat varying float materialIDs;
 
 #include "/lib/Settings.glsl"
@@ -41,7 +40,7 @@ vec2 GetDefaultLightmap() {
 	return clamp01(lightmapCoord / vec2(0.8745, 0.9373)).rg;
 }
 
-#include "/lib/Vertex/Materials.vsh"
+#include "/../shaders/block.properties"
 
 vec3 GetWorldSpacePosition() {
 	vec3 position = transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
@@ -84,19 +83,19 @@ mat3 CalculateTBN(vec3 worldPosition) {
 }
 
 void main() {
+	materialIDs  = BackPortID(int(mc_Entity.x));
+	
 #ifdef HIDE_ENTITIES
-	if (mc_Entity.x < 0.5) { gl_Position = vec4(-1.0); return; }
+//	if (isEntity(materialIDs)) { gl_Position = vec4(-1.0); return; }
 #endif
 	
 	SetupProjection();
 	
 	color        = abs(mc_Entity.x - 10.5) > 0.6 ? gl_Color.rgb : vec3(1.0);
 	texcoord     = gl_MultiTexCoord0.st;
-	mcID         = mc_Entity.x;
 	vertLightmap = GetDefaultLightmap();
-	materialIDs  = GetMaterialIDs(int(mc_Entity.x));
 	
-	
+	show(int(mc_Entity.x) == 9)
 	vec3 worldSpacePosition = GetWorldSpacePosition();
 	
 	worldDisplacement = CalculateVertexDisplacements(worldSpacePosition);

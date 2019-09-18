@@ -163,7 +163,7 @@ void main() {
 	
 	vec3 wNormal = DecodeNormal(texure4.g, 11);
 	vec3 normal  = wNormal * mat3(gbufferModelViewInverse);
-	vec3 waterNormal;
+	vec3 waterNormal = vec3(0.0);
 	
 	float depth1 = mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord);
 	
@@ -208,7 +208,7 @@ void main() {
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
 		composite = WaterFog(composite, waterNormal, viewSpacePosition0, backPos[0]);
-	
+	show(mask.translucent)
 	composite += AerialPerspective(length(backPos[0]), skyLightmap) * (1.0 - mask.water);
 	
 	gl_FragData[0] = vec4(max0(composite), 1.0);

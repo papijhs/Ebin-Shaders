@@ -18,7 +18,6 @@ varying mat2x3 position;
 
 varying vec3 worldDisplacement;
 
-flat varying float mcID;
 flat varying float materialIDs;
 
 #include "/lib/Settings.glsl"

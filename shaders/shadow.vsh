@@ -25,6 +25,7 @@ varying vec2 texcoord;
 varying vec2 vertLightmap;
 
 flat varying vec3 vertNormal;
+float materialIDs;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
@@ -43,6 +44,7 @@ vec3 GetWorldSpacePositionShadow() {
 	return transMAD(shadowModelViewInverse, transMAD(gl_ModelViewMatrix, gl_Vertex.xyz));
 }
 
+#include "/../shaders/block.properties"
 #include "/lib/Vertex/Waving.vsh"
 #include "/lib/Vertex/Vertex_Displacements.vsh"
 
@@ -115,12 +117,14 @@ bool CullVertex(vec3 wPos) {
 }
 
 void main() {
+	materialIDs = BackPortID(int(mc_Entity.x));
+	
 #ifndef WATER_SHADOW
-	if (abs(mc_Entity.x - 8.5) < 0.6) { gl_Position = vec4(-1.0); return; }
+	if (isWater(materialIDs)) { gl_Position = vec4(-1.0); return; }
 #endif
 	
 #ifdef HIDE_ENTITIES
-	if (mc_Entity.x < 0.5) { gl_Position = vec4(-1.0); return; }
+//	if (mc_Entity.x < 0.5) { gl_Position = vec4(-1.0); return; }
 #endif
 	
 #if defined TIME_OVERRIDE || defined TELEFOCAL_SHADOWS
