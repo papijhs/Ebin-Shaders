@@ -304,7 +304,13 @@ screen.Debug=Development
 option.DEBUG=Debug Mode
 
 option.DEBUG_VIEW=Debug Shader View
-option.DEBUG_VIEW.comment=The shader stage you're debugging. -1: gbuffers_main. 0: composite.fsh. 1: composite1.fsh. 2: composite2.fsh. 3: composite3.fsh. 7: final.fsh
+option.DEBUG_VIEW.comment=The shader stage you're debugging
+value.DEBUG_VIEW.-1=gbuffers_main
+value.DEBUG_VIEW.0=composite
+value.DEBUG_VIEW.1=composite1
+value.DEBUG_VIEW.2=composite2
+value.DEBUG_VIEW.3=composite3
+value.DEBUG_VIEW.7=final
 
 option.PHYSICAL_ATMOSPHERE=Physical Atmosphere
 option.PHYSICAL_ATMOSPHERE.comment=Full settings in /lib/Fragment/Atmosphere.fsh
