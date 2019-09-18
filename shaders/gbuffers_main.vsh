@@ -113,7 +113,4 @@ void main() {
 #if defined gbuffers_water
 	#include "/lib/Vertex/Shading_Setup.vsh"
 #endif
-	
-	
-	exit();
 }

@@ -4,8 +4,6 @@
 #define ShaderStage 0
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:56 */
-
 const bool shadowtex1Mipmap    = true;
 const bool shadowcolor0Mipmap  = true;
 const bool shadowcolor1Mipmap  = true;
@@ -243,6 +241,9 @@ vec2 ComputeVolumetricLight(vec3 position, vec3 frontPos, vec2 noise, float wate
 	
 	return result / maxSteps;
 }
+
+/* DRAWBUFFERS:56 */
+#include "/lib/Exit.glsl"
 
 void main() {
 	float depth0 = GetDepth(texcoord);

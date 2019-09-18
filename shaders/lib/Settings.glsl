@@ -137,9 +137,6 @@ const float zShrink = 4.0;
 #define SHADOWS_FOCUS_CENTER
 
 
-#define DEBUG_VIEW 1 // [-1 0 1 2 3 7]
-
-
 //#define PHYSICAL_ATMOSPHERE
 #define BLEND_PHYSICAL_ATMOSPHERE
 //#define FREEZE_TIME

@@ -1,5 +1,3 @@
-/* DRAWBUFFERS:01234 */
-
 uniform sampler2D texture;
 uniform sampler2D normals;
 uniform sampler2D specular;
@@ -128,6 +126,9 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 	
 	return fract(sampleRay.xy * tileScale.xy + tileCoord) * tileScale.zw + atlasCorner;
 }
+
+/* DRAWBUFFERS:01234 */
+#include "/lib/Exit.glsl"
 
 void main() {
 	if (CalculateFogFactor(position[0], FOG_POWER) >= 1.0) discard;

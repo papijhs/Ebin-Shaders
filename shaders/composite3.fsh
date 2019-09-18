@@ -4,8 +4,6 @@
 #define ShaderStage 3
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:1 */
-
 const bool colortex3MipmapEnabled = true;
 
 uniform sampler2D colortex3;
@@ -68,6 +66,8 @@ vec3 ComputeBloom() {
 	return max(bloom, vec3(0.0));
 }
 
+/* DRAWBUFFERS:1 */
+#include "/lib/Exit.glsl"
 
 void main() {
 	gl_FragData[0] = vec4(pow(ComputeBloom(), vec3(1.0 / 2.2)), 1.0);

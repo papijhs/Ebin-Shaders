@@ -4,8 +4,6 @@
 #define ShaderStage 2
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:32 */
-
 const bool colortex5MipmapEnabled = true;
 
 uniform sampler2D colortex1;
@@ -187,6 +185,9 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 	
 	color = mix(color, reflection, alpha);
 }
+
+/* DRAWBUFFERS:32 */
+#include "/lib/Exit.glsl"
 
 void main() {
 	vec2 texture4 = ScreenTex(colortex4).rg;

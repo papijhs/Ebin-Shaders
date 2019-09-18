@@ -4,8 +4,6 @@
 #define ShaderStage 1
 #include "/lib/Syntax.glsl"
 
-/* DRAWBUFFERS:1465 */
-
 const bool colortex5MipmapEnabled = true;
 
 uniform sampler2D colortex0;
@@ -148,6 +146,9 @@ void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
 #include "/lib/Fragment/AerialPerspective.fsh"
 
 #include "/lib/Fragment/3D_Clouds.fsh"
+
+/* DRAWBUFFERS:1465 */
+#include "/lib/Exit.glsl"
 
 void main() {
 	vec2 texure4 = ScreenTex(colortex4).rg;

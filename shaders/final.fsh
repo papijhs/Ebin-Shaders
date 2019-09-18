@@ -220,6 +220,9 @@ void Tonemap(io vec3 color) {
 #endif
 }
 
+/* DRAWBUFFERS:1 */
+#include "/lib/Exit.glsl"
+
 void main() {
 	float depth = GetDepth(texcoord);
 	vec3  color = GetColor(texcoord);

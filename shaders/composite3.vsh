@@ -13,7 +13,6 @@ flat varying vec2 pixelSize;
 
 #include "/lib/Settings.glsl"
 #include "/lib/Utility.glsl"
-#include "/lib/Debug.glsl"
 
 
 void main() {
@@ -30,7 +29,6 @@ void main() {
 	
 	texcoord *= vertexScale; // Compensate for the vertex adjustment to make this a true "crop" rather than a "downscale"
 	
-	exit();
 #else
 	gl_Position = vec4(-1.0);
 #endif
