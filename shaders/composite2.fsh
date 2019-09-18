@@ -95,7 +95,7 @@ bool ComputeRaytracedIntersection(vec3 vPos, vec3 dir, out vec3 screenPos) {
 	cfloat rayGrowthL2    = log2(rayGrowth);
 	cint   maxRefinements = 0;
 	cbool  doRefinements  = maxRefinements != 0;
-	float  maxRayDepth    = far * 1.875;
+	float  maxRayDepth    = far * 1.75;
 	int    maxSteps       = GetMaxSteps(vPos, dir, maxRayDepth, rayGrowth);
 	
 	vec3 rayStep = dir;
