@@ -2,7 +2,7 @@
 #define gbuffers_water
 #define fsh
 #define ShaderStage -1
-#include "/lib/Syntax.glsl"
+#include "/../shaders/lib/Syntax.glsl"
 
 
 uniform sampler2DShadow shadow;
@@ -23,4 +23,4 @@ uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
 
 
-#include "gbuffers_main.fsh"
+#include "/../shaders/gbuffers_main.fsh"

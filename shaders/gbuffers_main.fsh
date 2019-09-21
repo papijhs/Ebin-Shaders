@@ -20,18 +20,18 @@ varying vec3 worldDisplacement;
 
 flat varying float materialIDs;
 
-#include "/lib/Settings.glsl"
-#include "/lib/Debug.glsl"
-#include "/lib/Utility.glsl"
-#include "/lib/Uniform/Projection_Matrices.fsh"
-#include "/lib/Misc/Calculate_Fogfactor.glsl"
-#include "/lib/Fragment/Masks.fsh"
+#include "/../shaders/lib/Settings.glsl"
+#include "/../shaders/lib/Debug.glsl"
+#include "/../shaders/lib/Utility.glsl"
+#include "/../shaders/lib/Uniform/Projection_Matrices.fsh"
+#include "/../shaders/lib/Misc/Calculate_Fogfactor.glsl"
+#include "/../shaders/lib/Fragment/Masks.fsh"
 
 #if defined gbuffers_water
-#include "/lib/Uniform/Shading_Variables.glsl"
-#include "/lib/Uniform/Shadow_View_Matrix.fsh"
-#include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
-#include "/lib/Fragment/Water_Waves.fsh"
+#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+#include "/../shaders/lib/Uniform/Shadow_View_Matrix.fsh"
+#include "/../shaders/lib/Fragment/Calculate_Shaded_Fragment.fsh"
+#include "/../shaders/lib/Fragment/Water_Waves.fsh"
 #endif
 
 
@@ -127,7 +127,7 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 }
 
 /* DRAWBUFFERS:01234 */
-#include "/lib/Exit.glsl"
+#include "/../shaders/lib/Exit.glsl"
 
 void main() {
 	if (CalculateFogFactor(position[0], FOG_POWER) >= 1.0) discard;

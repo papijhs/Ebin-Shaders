@@ -2,7 +2,7 @@
 #define composite3
 #define vsh
 #define ShaderStage 10
-#include "/lib/Syntax.glsl"
+#include "/../shaders/lib/Syntax.glsl"
 
 uniform float viewWidth;
 uniform float viewHeight;
@@ -11,8 +11,8 @@ varying vec2 texcoord;
 
 flat varying vec2 pixelSize;
 
-#include "/lib/Settings.glsl"
-#include "/lib/Utility.glsl"
+#include "/../shaders/lib/Settings.glsl"
+#include "/../shaders/lib/Utility.glsl"
 
 
 void main() {

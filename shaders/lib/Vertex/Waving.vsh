@@ -73,4 +73,4 @@ vec3 GetWavingWater(vec3 position) {
 	return wave;
 }
 
-#include "/UserProgram/Terrain_Deformation.vsh"
+#include "/../shaders/UserProgram/Terrain_Deformation.vsh"

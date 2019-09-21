@@ -1,4 +1,4 @@
-const int   shadowMapResolution      = 2048;  // [1024 2048 3072 4096 8192]
+const int   shadowMapResolution      = 4096;  // [1024 2048 3072 4096 6144 8192 16384]
 const float sunPathRotation          = -40.0; // [-60.0 -50.0 -40.0 -30.0 -20.0 -10.0 0.0 10.0 20.0 30.0 40.0 50.0 60.0]
 const float shadowDistance           = 140;   // [70 140 280]
 const float shadowIntervalSize       = 4.0;
@@ -46,6 +46,7 @@ const float zShrink = 4.0;
 //#define DEFAULT_TEXTURE_PACK
 
 
+#define EXPOSURE            1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 #define EXPOSURE            1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 #define SATURATION          1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 #define SUN_LIGHT_LEVEL     1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
@@ -110,7 +111,7 @@ const float zShrink = 4.0;
 
 //#define WATER_PARALLAX
 //#define WATER_CAUSTICS
-#include "/UserProgram/WaterHeight.glsl"
+#include "/../shaders/UserProgram/WaterHeight.glsl"
 //#define VARIABLE_WATER_HEIGHT
 #define UNDERWATER_LIGHT_DEPTH 16 // [4 8 16 32 64 65536]
 #define WAVE_MULT  1.0 // [0.0 0.5 1.0 1.5 2.0]

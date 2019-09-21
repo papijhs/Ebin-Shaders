@@ -57,7 +57,7 @@ void Compute2DCloudPlane(io vec3 color, out float cloudAlpha, vec3 ray, vec3 ray
 	
 	rayPos += cameraPos;
 	
-	visibility = pow(visibility, 10.0) * abs(ray.y);
+	visibility = pow(visibility, 10.0) * sqrt(abs(ray.y));
 	
 	if (ray.y <= 0.0 != rayPos.y >= cloudHeight) return;
 	
@@ -85,13 +85,13 @@ void Compute2DCloudPlane(io vec3 color, out float cloudAlpha, vec3 ray, vec3 ray
 	sunlight *= mix(pow(cloudAlpha, 1.6) * 2.5, 2.0, sunglow);
 	sunlight *= mix(10.0, 1.0, sqrt(sunglow));
 	
-	vec3 directColor  = sunlightColor * 2.0;
+	vec3 directColor  = sunlightColor * 8.0;
 	     directColor *= 1.0 + pow(sunglow, 10.0) * 10.0 / (sunlight * 0.8 + 0.2);
 	     directColor *= mix(vec3(1.0), vec3(0.4, 0.5, 0.6), timeNight);
 	
-	vec3 ambientColor = mix(skylightColor, directColor, 0.15) * 0.1;
+	vec3 ambientColor = mix(skylightColor, directColor, 0.15) * 0.05;
 	
-	vec3 cloud = mix(ambientColor, directColor, sunlight) * 70.0;
+	vec3 cloud = mix(ambientColor, directColor, sunlight) * 30.0;
 	
 	color = mix(color, cloud, cloudAlpha * visibility);
 }

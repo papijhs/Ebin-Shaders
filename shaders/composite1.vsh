@@ -2,7 +2,7 @@
 #define composite1
 #define vsh
 #define ShaderStage 10
-#include "/lib/Syntax.glsl"
+#include "/../shaders/lib/Syntax.glsl"
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
@@ -21,12 +21,12 @@ varying vec2 texcoord;
 
 flat varying vec2 pixelSize;
 
-#include "/lib/Settings.glsl"
-#include "/lib/Utility.glsl"
-#include "/lib/Uniform/Projection_Matrices.vsh"
-#include "/lib/Uniform/Shading_Variables.glsl"
-#include "/UserProgram/centerDepthSmooth.glsl"
-#include "/lib/Uniform/Shadow_View_Matrix.vsh"
+#include "/../shaders/lib/Settings.glsl"
+#include "/../shaders/lib/Utility.glsl"
+#include "/../shaders/lib/Uniform/Projection_Matrices.vsh"
+#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+#include "/../shaders/UserProgram/centerDepthSmooth.glsl"
+#include "/../shaders/lib/Uniform/Shadow_View_Matrix.vsh"
 
 void main() {
 	texcoord    = gl_MultiTexCoord0.st;
@@ -37,5 +37,5 @@ void main() {
 	
 	SetupProjection();
 	
-	#include "/lib/Vertex/Shading_Setup.vsh"
+	#include "/../shaders/lib/Vertex/Shading_Setup.vsh"
 }

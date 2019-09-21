@@ -49,8 +49,8 @@ vec3 CalculateMoonspot(float lightCoeff) {
 	return moonspot * pow2(sunlightColor);
 }
 
-#include "/lib/Fragment/2D_Clouds.fsh"
-#include "/lib/Fragment/Atmosphere.fsh"
+#include "/../shaders/lib/Fragment/2D_Clouds.fsh"
+#include "/../shaders/lib/Fragment/Atmosphere.fsh"
 
 #define STARS ON // [ON OFF]
 #define REFLECT_STARS OFF // [ON OFF]

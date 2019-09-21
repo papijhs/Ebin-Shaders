@@ -2,7 +2,7 @@
 #define final
 #define fsh
 #define ShaderStage 7
-#include "/lib/Syntax.glsl"
+#include "/../shaders/lib/Syntax.glsl"
 
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
@@ -24,13 +24,13 @@ varying vec2 texcoord;
 
 flat varying vec2 pixelSize;
 
-#include "/lib/Settings.glsl"
-#include "/lib/Utility.glsl"
-#include "/lib/Debug.glsl"
-#include "/lib/Uniform/Projection_Matrices.fsh"
-#include "/lib/Uniform/Shading_Variables.glsl"
-#include "/lib/Uniform/Shadow_View_Matrix.fsh"
-#include "/lib/Fragment/Masks.fsh"
+#include "/../shaders/lib/Settings.glsl"
+#include "/../shaders/lib/Utility.glsl"
+#include "/../shaders/lib/Debug.glsl"
+#include "/../shaders/lib/Uniform/Projection_Matrices.fsh"
+#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+#include "/../shaders/lib/Uniform/Shadow_View_Matrix.fsh"
+#include "/../shaders/lib/Fragment/Masks.fsh"
 
 vec3 GetColor(vec2 coord) {
 	return DecodeColor(texture2D(colortex3, coord).rgb);
@@ -221,7 +221,7 @@ void Tonemap(io vec3 color) {
 }
 
 /* DRAWBUFFERS:1 */
-#include "/lib/Exit.glsl"
+#include "/../shaders/lib/Exit.glsl"
 
 void main() {
 	float depth = GetDepth(texcoord);

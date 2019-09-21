@@ -2,7 +2,7 @@
 #define composite0
 #define fsh
 #define ShaderStage 0
-#include "/lib/Syntax.glsl"
+#include "/../shaders/lib/Syntax.glsl"
 
 const bool shadowtex1Mipmap    = true;
 const bool shadowcolor0Mipmap  = true;
@@ -38,13 +38,13 @@ uniform int isEyeInWater;
 
 varying vec2 texcoord;
 
-#include "/lib/Settings.glsl"
-#include "/lib/Utility.glsl"
-#include "/lib/Debug.glsl"
-#include "/lib/Uniform/Projection_Matrices.fsh"
-#include "/lib/Uniform/Shading_Variables.glsl"
-#include "/lib/Uniform/Shadow_View_Matrix.fsh"
-#include "/lib/Fragment/Masks.fsh"
+#include "/../shaders/lib/Settings.glsl"
+#include "/../shaders/lib/Utility.glsl"
+#include "/../shaders/lib/Debug.glsl"
+#include "/../shaders/lib/Uniform/Projection_Matrices.fsh"
+#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+#include "/../shaders/lib/Uniform/Shadow_View_Matrix.fsh"
+#include "/../shaders/lib/Fragment/Masks.fsh"
 
 float GetDepth(vec2 coord) {
 	return textureRaw(gdepthtex, coord).x;
@@ -71,8 +71,8 @@ vec2 GetDitherred2DNoise(vec2 coord, float n) { // Returns a random noise patter
 	return texelFetch(noisetex, ivec2(coord), 0).xy;
 }
 
-#include "/lib/Misc/Bias_Functions.glsl"
-#include "/lib/Fragment/Sunlight_Shading.fsh"
+#include "/../shaders/lib/Misc/Bias_Functions.glsl"
+#include "/../shaders/lib/Fragment/Sunlight_Shading.fsh"
 
 #ifndef GI_ENABLED
 	#define ComputeGlobalIllumination(a, b, c, d, e, f) vec3(0.0)
@@ -114,7 +114,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	
 	vec3 GI = vec3(0.0);
 	
-	#include "/lib/Samples/GI.glsl"
+	#include "/../shaders/lib/Samples/GI.glsl"
 	
 	float translucent = clamp01(GI_TRANSLUCENCE + mask.translucent);
 	
@@ -243,7 +243,7 @@ vec2 ComputeVolumetricLight(vec3 position, vec3 frontPos, vec2 noise, float wate
 }
 
 /* DRAWBUFFERS:56 */
-#include "/lib/Exit.glsl"
+#include "/../shaders/lib/Exit.glsl"
 
 void main() {
 	float depth0 = GetDepth(texcoord);

@@ -22,15 +22,15 @@ varying vec3 worldDisplacement;
 
 flat varying float materialIDs;
 
-#include "/lib/Settings.glsl"
-#include "/lib/Utility.glsl"
-#include "/lib/Debug.glsl"
-#include "/lib/Uniform/Projection_Matrices.vsh"
+#include "/../shaders/lib/Settings.glsl"
+#include "/../shaders/lib/Utility.glsl"
+#include "/../shaders/lib/Debug.glsl"
+#include "/../shaders/lib/Uniform/Projection_Matrices.vsh"
 
 #if defined gbuffers_water
-#include "/lib/Uniform/Shading_Variables.glsl"
-#include "/UserProgram/centerDepthSmooth.glsl"
-#include "/lib/Uniform/Shadow_View_Matrix.vsh"
+#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+#include "/../shaders/UserProgram/centerDepthSmooth.glsl"
+#include "/../shaders/lib/Uniform/Shadow_View_Matrix.vsh"
 #endif
 
 
@@ -40,7 +40,7 @@ vec2 GetDefaultLightmap() {
 	return clamp01(lightmapCoord / vec2(0.8745, 0.9373)).rg;
 }
 
-#include "/../shaders/block.properties"
+#include "/../shaders/../shaders/block.properties"
 
 vec3 GetWorldSpacePosition() {
 	vec3 position = transMAD(gl_ModelViewMatrix, gl_Vertex.xyz);
@@ -62,8 +62,8 @@ vec4 ProjectViewSpace(vec3 viewSpacePosition) {
 #endif
 }
 
-#include "/lib/Vertex/Waving.vsh"
-#include "/lib/Vertex/Vertex_Displacements.vsh"
+#include "/../shaders/lib/Vertex/Waving.vsh"
+#include "/../shaders/lib/Vertex/Vertex_Displacements.vsh"
 
 mat3 CalculateTBN(vec3 worldPosition) {
 	vec3 tangent  = normalize(at_tangent.xyz);
@@ -92,6 +92,7 @@ void main() {
 	SetupProjection();
 	
 	color        = abs(mc_Entity.x - 10.5) > 0.6 ? gl_Color.rgb : vec3(1.0);
+	color        = rgb(hsv(color) * vec3(1.0, 1.25, 1.0));
 	texcoord     = gl_MultiTexCoord0.st;
 	vertLightmap = GetDefaultLightmap();
 	
@@ -110,6 +111,6 @@ void main() {
 	
 	
 #if defined gbuffers_water
-	#include "/lib/Vertex/Shading_Setup.vsh"
+	#include "/../shaders/lib/Vertex/Shading_Setup.vsh"
 #endif
 }

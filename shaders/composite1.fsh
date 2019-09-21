@@ -2,7 +2,7 @@
 #define composite1
 #define fsh
 #define ShaderStage 1
-#include "/lib/Syntax.glsl"
+#include "/../shaders/lib/Syntax.glsl"
 
 const bool colortex5MipmapEnabled = true;
 
@@ -44,15 +44,15 @@ varying vec2 texcoord;
 
 flat varying vec2 pixelSize;
 
-#include "/lib/Settings.glsl"
-#include "/lib/Utility.glsl"
-#include "/lib/Debug.glsl"
-#include "/lib/Uniform/Projection_Matrices.fsh"
-#include "/lib/Uniform/Shading_Variables.glsl"
-#include "/lib/Uniform/Shadow_View_Matrix.fsh"
-#include "/lib/Fragment/Masks.fsh"
+#include "/../shaders/lib/Settings.glsl"
+#include "/../shaders/lib/Utility.glsl"
+#include "/../shaders/lib/Debug.glsl"
+#include "/../shaders/lib/Uniform/Projection_Matrices.fsh"
+#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+#include "/../shaders/lib/Uniform/Shadow_View_Matrix.fsh"
+#include "/../shaders/lib/Fragment/Masks.fsh"
 
-#include "/UserProgram/centerDepthSmooth.glsl" // Doesn't seem to be enabled unless it's initialized in a fragment.
+#include "/../shaders/UserProgram/centerDepthSmooth.glsl" // Doesn't seem to be enabled unless it's initialized in a fragment.
 
 vec3 GetDiffuse(vec2 coord) {
 	return texture2D(colortex1, coord).rgb;
@@ -76,7 +76,7 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
 }
 
-#include "/lib/Fragment/Calculate_Shaded_Fragment.fsh"
+#include "/../shaders/lib/Fragment/Calculate_Shaded_Fragment.fsh"
 
 void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
 	GI = vec4(0.0, 0.0, 0.0, 1.0);
@@ -141,14 +141,14 @@ void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
 #endif
 }
 
-#include "/lib/Misc/Calculate_Fogfactor.glsl"
-#include "/lib/Fragment/Water_Depth_Fog.fsh"
-#include "/lib/Fragment/AerialPerspective.fsh"
+#include "/../shaders/lib/Misc/Calculate_Fogfactor.glsl"
+#include "/../shaders/lib/Fragment/Water_Depth_Fog.fsh"
+#include "/../shaders/lib/Fragment/AerialPerspective.fsh"
 
-#include "/lib/Fragment/3D_Clouds.fsh"
+#include "/../shaders/lib/Fragment/3D_Clouds.fsh"
 
 /* DRAWBUFFERS:1465 */
-#include "/lib/Exit.glsl"
+#include "/../shaders/lib/Exit.glsl"
 
 void main() {
 	vec2 texure4 = ScreenTex(colortex4).rg;

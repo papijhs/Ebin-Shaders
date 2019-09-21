@@ -2,7 +2,7 @@
 #define composite2
 #define fsh
 #define ShaderStage 2
-#include "/lib/Syntax.glsl"
+#include "/../shaders/lib/Syntax.glsl"
 
 const bool colortex5MipmapEnabled = true;
 
@@ -38,14 +38,14 @@ varying vec2 texcoord;
 
 flat varying vec2 pixelSize;
 
-#include "/lib/Settings.glsl"
-#include "/lib/Utility.glsl"
-#include "/lib/Debug.glsl"
-#include "/lib/Uniform/Projection_Matrices.fsh"
-#include "/lib/Uniform/Shading_Variables.glsl"
-#include "/lib/Uniform/Shadow_View_Matrix.fsh"
-#include "/lib/Fragment/Masks.fsh"
-#include "/lib/Misc/Calculate_Fogfactor.glsl"
+#include "/../shaders/lib/Settings.glsl"
+#include "/../shaders/lib/Utility.glsl"
+#include "/../shaders/lib/Debug.glsl"
+#include "/../shaders/lib/Uniform/Projection_Matrices.fsh"
+#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+#include "/../shaders/lib/Uniform/Shadow_View_Matrix.fsh"
+#include "/../shaders/lib/Fragment/Masks.fsh"
+#include "/../shaders/lib/Misc/Calculate_Fogfactor.glsl"
 
 
 vec3 GetColor(vec2 coord) {
@@ -70,7 +70,7 @@ vec2 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 	return (diagonal2(projMatrix) * viewSpacePosition.xy + projMatrix[3].xy) / -viewSpacePosition.z * 0.5 + 0.5;
 }
 
-#include "/lib/Fragment/Sky.fsh"
+#include "/../shaders/lib/Fragment/Sky.fsh"
 
 int GetMaxSteps(vec3 pos, vec3 ray, float maxRayDepth, float rayGrowth) { // Returns the number of steps until the ray goes offscreen, or past maxRayDepth
 	vec4 c =  vec4(diagonal2(projMatrix) * pos.xy + projMatrix[3].xy, diagonal2(projMatrix) * ray.xy);
@@ -137,11 +137,11 @@ bool ComputeRaytracedIntersection(vec3 vPos, vec3 dir, out vec3 screenPos) {
 	return false;
 }
 
-#include "lib/Fragment/Water_Depth_Fog.fsh"
-#include "/lib/Fragment/AerialPerspective.fsh"
+#include "/../shaders/lib/Fragment/Water_Depth_Fog.fsh"
+#include "/../shaders/lib/Fragment/AerialPerspective.fsh"
 
-#include "/lib/Misc/Bias_Functions.glsl"
-#include "/lib/Fragment/Sunlight_Shading.fsh"
+#include "/../shaders/lib/Misc/Bias_Functions.glsl"
+#include "/../shaders/lib/Fragment/Sunlight_Shading.fsh"
 
 void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float smoothness, float skyLightmap) {
 	if (isEyeInWater == 1) return;
@@ -187,7 +187,7 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 }
 
 /* DRAWBUFFERS:32 */
-#include "/lib/Exit.glsl"
+#include "/../shaders/lib/Exit.glsl"
 
 void main() {
 	vec2 texture4 = ScreenTex(colortex4).rg;

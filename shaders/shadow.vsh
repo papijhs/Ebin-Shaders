@@ -2,7 +2,7 @@
 #define gbuffers_shadow
 #define vsh
 #define ShaderStage -2
-#include "/lib/Syntax.glsl"
+#include "/../shaders/lib/Syntax.glsl"
 
 
 attribute vec4 mc_Entity;
@@ -27,12 +27,12 @@ varying vec2 vertLightmap;
 flat varying vec3 vertNormal;
 float materialIDs;
 
-#include "/lib/Settings.glsl"
-#include "/lib/Utility.glsl"
+#include "/../shaders/lib/Settings.glsl"
+#include "/../shaders/lib/Utility.glsl"
 
-#include "/UserProgram/centerDepthSmooth.glsl"
-#include "/lib/Uniform/Projection_Matrices.vsh"
-#include "/lib/Uniform/Shadow_View_Matrix.vsh"
+#include "/../shaders/UserProgram/centerDepthSmooth.glsl"
+#include "/../shaders/lib/Uniform/Projection_Matrices.vsh"
+#include "/../shaders/lib/Uniform/Shadow_View_Matrix.vsh"
 
 vec2 GetDefaultLightmap() {
 	vec2 lightmapCoord = mat2(gl_TextureMatrix[1]) * gl_MultiTexCoord1.st;
@@ -44,11 +44,11 @@ vec3 GetWorldSpacePositionShadow() {
 	return transMAD(shadowModelViewInverse, transMAD(gl_ModelViewMatrix, gl_Vertex.xyz));
 }
 
-#include "/../shaders/block.properties"
-#include "/lib/Vertex/Waving.vsh"
-#include "/lib/Vertex/Vertex_Displacements.vsh"
+#include "/../shaders/../shaders/block.properties"
+#include "/../shaders/lib/Vertex/Waving.vsh"
+#include "/../shaders/lib/Vertex/Vertex_Displacements.vsh"
 
-#include "/lib/Misc/Bias_Functions.glsl"
+#include "/../shaders/lib/Misc/Bias_Functions.glsl"
 
 vec4 ProjectShadowMap(vec4 position) {
 	position = vec4(projMAD(shadowProjection, transMAD(shadowViewMatrix, position.xyz)), position.z * shadowProjection[2].w + shadowProjection[3].w);
@@ -58,7 +58,7 @@ vec4 ProjectShadowMap(vec4 position) {
 	position.xy /= biasCoeff;
 	
 	float acne  = 25.0 * pow(clamp01(1.0 - vertNormal.z), 4.0) * float(mc_Entity.x > 0.0);
-	      acne += 0.3 + pow2(biasCoeff) * 6.0;
+	      acne += 0.5 + pow2(biasCoeff) * 8.0;
 	
 	position.z += acne / shadowMapResolution;
 	

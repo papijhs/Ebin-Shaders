@@ -10,7 +10,7 @@
 	#define twistAngle sunAngles.z
 	
 	
-	#include "/UserProgram/Time_Override.vsh"
+	#include "/../shaders/UserProgram/Time_Override.vsh"
 	
 	void GetDaylightVariables(out float isNight, out vec3 worldLightVector) {
 		timeAngle = sunAngle * 360.0;
@@ -52,7 +52,7 @@
 			     position = projMAD(projInverseMatrix, position) / (position.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
 			     position = mat3(gbufferModelViewInverse) * position;
 		#else
-			#include "/UserProgram/ShadowFocus.vsh"
+			#include "/../shaders/UserProgram/ShadowFocus.vsh"
 			
 			#if !defined gbuffers_shadow
 				vec3 camPos = previousCameraPosition;
