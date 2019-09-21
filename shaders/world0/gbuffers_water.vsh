@@ -12,4 +12,4 @@ uniform mat4 shadowModelViewInverse;
 uniform float sunAngle;
 
 
-#include "/../shaders/gbuffers_main.vsh"
+#include "/../shaders/gbuffers_main.glsl"

@@ -70,7 +70,7 @@ const float zShrink = 4.0;
 #endif
 
 //#define PLAYER_GI_BOUNCE
-#define GI_RADIUS       16   // [4 8 16 32]
+#define GI_RADIUS       8   // [4 8 16 32]
 #define GI_SAMPLE_COUNT 40   // [20 40 80 128 160 256]
 #define GI_BOOST
 #define GI_TRANSLUCENCE 0.50  // [0.00 0.25 0.50 0.75 1.00]

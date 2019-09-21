@@ -6,4 +6,4 @@
 #include "/../shaders/lib/Syntax.glsl"
 
 
-#include "/../shadersgbuffers_main.vsh"
+#include "/../shaders/gbuffers_main.glsl"

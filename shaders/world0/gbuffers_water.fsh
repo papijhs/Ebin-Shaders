@@ -24,4 +24,4 @@ uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
 
 
-#include "/../shaders/gbuffers_main.fsh"
+#include "/../shaders/gbuffers_main.glsl"

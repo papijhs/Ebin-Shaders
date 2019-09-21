@@ -5,6 +5,4 @@
 #define ShaderStage -1
 #include "/../shaders/lib/Syntax.glsl"
 
-void main() {
-	discard;
-}
+#include "/../shaders/gbuffers_discard.glsl"
