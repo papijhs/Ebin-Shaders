@@ -3,7 +3,6 @@
 #define vsh
 #define world0
 #define ShaderStage -2
-#include "/../shaders/lib/Syntax.glsl"
 
 
 uniform mat4 shadowModelView;

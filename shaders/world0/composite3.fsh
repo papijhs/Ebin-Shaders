@@ -3,6 +3,5 @@
 #define fsh
 #define world0
 #define ShaderStage 3
-#include "/../shaders/lib/Syntax.glsl"
 
 #include "/../shaders/composite3.glsl"
