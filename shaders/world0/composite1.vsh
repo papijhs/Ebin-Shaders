@@ -1,4 +1,4 @@
-#version 410 compatibility
+#include "/../shaders/lib/GLSL_Version.glsl"
 #define composite1
 #define vsh
 #define world0

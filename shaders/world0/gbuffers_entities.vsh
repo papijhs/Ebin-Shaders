@@ -1,4 +1,4 @@
-#version 410 compatibility
+#include "/../shaders/lib/GLSL_Version.glsl"
 #define gbuffers_entities
 #define vsh
 #define world0
