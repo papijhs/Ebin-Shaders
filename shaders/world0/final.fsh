@@ -1,6 +1,7 @@
 #version 410 compatibility
 #define final
 #define fsh
+#define world0
 #define ShaderStage 7
 #include "/../shaders/lib/Syntax.glsl"
 

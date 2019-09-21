@@ -1,6 +1,7 @@
 #version 410 compatibility
 #define composite3
 #define fsh
+#define world0
 #define ShaderStage 3
 #include "/../shaders/lib/Syntax.glsl"
 
