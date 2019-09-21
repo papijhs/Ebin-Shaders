@@ -24,21 +24,17 @@
 	vec3 skylightHorizon = skylightNight;
 	
 	
-	sunlightDay     = setLength(sunlightDay    , 1.0);
-	sunlightNight   = setLength(sunlightNight  , 0.005);
-	sunlightSunrise = setLength(sunlightSunrise, 1.0);
+	sunlightDay     = setLength(sunlightDay    , 4.0);
+	sunlightNight   = setLength(sunlightNight  , 0.1);
+	sunlightSunrise = setLength(sunlightSunrise, 4.0);
 	
-	skylightDay     = setLength(skylightDay    , 1.00);
-	skylightNight   = setLength(skylightNight  , 0.0005);
+	skylightDay     = setLength(skylightDay    , 0.40);
+	skylightNight   = setLength(skylightNight  , 0.004);
 	skylightSunrise = setLength(skylightSunrise, 0.01);
 	skylightHorizon = setLength(skylightHorizon, 0.003);
 	
 	
-	sunlightColor =
-		mix(sunlightDay, sunlightSunrise , timeHorizon) * timeDay +
-		sunlightNight * timeNight;
+	sunlightColor = mix(sunlightDay, sunlightSunrise, timeHorizon) * timeDay + sunlightNight * timeNight;
 	
-	skylightColor =
-		mix(skylightDay, skylightSunrise, timeHorizon) * timeDay +
-		skylightNight * timeNight + skylightHorizon * timeHorizon;
+	skylightColor = mix(skylightDay, skylightSunrise, timeHorizon) * timeDay + skylightNight * timeNight + skylightHorizon * timeHorizon;
 // }

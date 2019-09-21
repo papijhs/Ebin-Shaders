@@ -249,7 +249,7 @@ void main() {
 	
 	if (mask.water > 0.5 || isEyeInWater == 1)
 		composite = WaterFog(composite, waterNormal, viewSpacePosition0, backPos[0]);
-	show(mask.translucent)
+	
 	composite += AerialPerspective(length(backPos[0]), skyLightmap) * (1.0 - mask.water);
 	
 	gl_FragData[0] = vec4(max0(composite), 1.0);

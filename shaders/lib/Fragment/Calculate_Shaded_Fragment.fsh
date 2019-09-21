@@ -160,7 +160,10 @@ vec3 CalculateShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float
 	
 	shading.skylight *= mix(shading.caustics * 0.65 + 0.35, 1.0, pow8(1.0 - abs(worldLightVector.y)));
 	shading.skylight *= GI.a;
-	shading.skylight *= 0.075 * SKY_LIGHT_LEVEL;
+	shading.skylight *= 1.0 * SKY_LIGHT_LEVEL;
+	#ifdef GI_ENABLED
+	shading.skylight *= 1.0;
+	#endif
 	
 	shading.torchlight  = pow2(1.0 / ((1.0 - torchLightmap*0.9) * 16.0) - 1.0 / 16.0) * 16.0;
 	shading.torchlight += GetHeldLight(position[0], normal, mask.hand);
@@ -171,7 +174,7 @@ vec3 CalculateShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float
 	shading.ambient  = 0.5 + (1.0 - eyeBrightnessSmooth.g / 240.0) * 3.0;
 	shading.ambient += nightVision * 50.0;
 	shading.ambient *= GI.a * 0.5 + 0.5;
-	shading.ambient *= 0.0002 * AMBIENT_LIGHT_LEVEL;
+	shading.ambient *= 0.02 * AMBIENT_LIGHT_LEVEL;
 	
 	
 	Lightmap lightmap;
@@ -196,10 +199,11 @@ vec3 CalculateShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float
 //	desatColor = diffuse;
 #endif
 	
-	vec3 composite = diffuse * (lightmap.GI + lightmap.ambient)
-	+ lightmap.skylight   * mix(desatColor, diffuse, clamp01(pow(length(lightmap.skylight  ) * 25.0, 0.2)))
+	vec3 composite =
+	  diffuse * (lightmap.GI + lightmap.ambient)
 	+ lightmap.sunlight   * mix(desatColor, diffuse, clamp01(pow(length(lightmap.sunlight  ) *  4.0, 0.1)))
-	+ lightmap.torchlight * mix(desatColor, diffuse, clamp01(pow(length(lightmap.torchlight) *  1.0, 0.1)));
+	+ lightmap.skylight   * mix(desatColor, diffuse, clamp01(pow(length(lightmap.skylight  ) * 25.0, 0.2)))
+	+ lightmap.torchlight * mix(desatColor, diffuse, clamp01(pow(length(lightmap.torchlight) *  1.0, 0.1)))*0;
 	
 	return composite;
 }

@@ -147,7 +147,7 @@ vec3 ComputeGlobalIllumination(vec3 worldSpacePosition, vec3 normal, float skyLi
 	
 	cvec3 sampleMax = vec3(0.0, 0.0, radius * radius);
 	
-	cfloat brightness = 1.5 * radius * radius * GI_BRIGHTNESS * SUN_LIGHT_LEVEL;
+	cfloat brightness = 1.0 * radius * radius * GI_BRIGHTNESS * SUN_LIGHT_LEVEL;
 	cfloat scale      = radius / 256.0;
 	
 	noise *= scale;
