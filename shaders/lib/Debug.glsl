@@ -1,4 +1,4 @@
-#ifndef DEBUG_GLSL
+#if !defined DEBUG_GLSL
 #define DEBUG_GLSL
 
 

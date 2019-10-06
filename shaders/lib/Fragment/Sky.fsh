@@ -6,13 +6,6 @@ float CalculateSunglow(float lightCoeff) {
 }
 
 vec3 CalculateSkyGradient(vec3 worldSpacePosition, float sunglow, vec3 sunspot) {
-#ifdef CUSTOM_HORIZON_HEIGHT
-	float radius = max(176.0, far * sqrt(2.0));
-	
-	worldSpacePosition   *= radius / length(worldSpacePosition.xz); // Reproject the world vector to have a consistent horizon height
-	worldSpacePosition.y += cameraPosition.y - HORIZON_HEIGHT;
-#endif
-	
 	float gradientCoeff = pow4(1.0 - abs(normalize(worldSpacePosition).y) * 0.5);
 	
 	vec3 primaryHorizonColor  = SetSaturationLevel(skylightColor, mix(1.25, 0.6, gradientCoeff * timeDay));
@@ -52,12 +45,12 @@ vec3 CalculateMoonspot(float lightCoeff) {
 #include "/../shaders/lib/Fragment/2D_Clouds.fsh"
 #include "/../shaders/lib/Fragment/Atmosphere.fsh"
 
-#define STARS ON // [ON OFF]
-#define REFLECT_STARS OFF // [ON OFF]
-#define ROTATE_STARS OFF // [ON OFF]
-#define STAR_SCALE 1.0 // [0.5 1.0 2.0 4.0]
-#define STAR_BRIGHTNESS 1.00 // [0.25 0.50 1.00 2.00 4.00]
-#define STAR_COVERAGE 1.000 // [0.950 0.975 1.000 1.025 1.050]
+#define STARS            ON    // [ON OFF]
+#define REFLECT_STARS    OFF   // [ON OFF]
+#define ROTATE_STARS     OFF   // [ON OFF]
+#define STAR_SCALE       1.0   // [0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0]
+#define STAR_BRIGHTNESS  1.0   // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
+#define STAR_COVERAGE    1.000 // [0.950 0.975 1.000 1.025 1.050]
 
 void CalculateStars(io vec3 color, vec3 worldDir, float visibility, cbool reflection) {
 	if (!STARS) return;
@@ -97,13 +90,8 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	vec3  sunspot = CalculateSunspot(lightCoeff) * (reflection ? sunlight : pow(visibility, 25) * alpha);
 	vec3  moonspot = CalculateMoonspot(-lightCoeff) * (reflection ? sunlight : pow(visibility, 25) * alpha);
 	
-	
-#ifdef PHYSICAL_ATMOSPHERE
 	vec3 gradient  = ComputeAtmosphericSky(worldSpaceVector, visibility, sunspot) * 10.0;
 	     gradient += CalculateSkyGradient(worldSpacePosition, sunglow, sunspot) * timeNight;
-#else
-	vec3 gradient = CalculateSkyGradient(worldSpacePosition, sunglow, sunspot);
-#endif
 	
 	vec3 sky = gradient + moonspot;
 	

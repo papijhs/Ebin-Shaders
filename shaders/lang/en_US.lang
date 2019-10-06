@@ -1,18 +1,12 @@
-screen.Setup=Setup
+screen.TexturePack=Texture Pack
 
-option.DEFAULT_TEXTURE_PACK=Default Texture Pack
-option.DEFAULT_TEXTURE_PACK.comment=Enabling this option will overwrite every other texture-pack setting with default texture-pack settings.
-
-option.TEXTURE_PACK_RESOLUTION_SETTING=Texture Pack Resolution
+option.TEXTURE_PACK_RESOLUTION=Texture Pack Resolution
 
 option.NORMAL_MAPS=Normal Map Texture Pack
 option.NORMAL_MAPS.comment=Disable this if you're using a texture-pack that does not have normal-map textures.
 
 option.SPECULARITY_MAPS=Specular Map Texture Pack
 option.SPECULARITY_MAPS.comment=Disable this if you're using a texture-pack that does not have specularity textures.
-
-option.PBR_TEXTURE_PACK=PBR Texture Pack
-option.PBR_TEXTURE_PACK.comment=Enable this if you're using a PBR texture-pack.
 
 
 screen.FOV=FOV Override
@@ -67,17 +61,18 @@ screen.Motion_Blur=Motion Blur
 
 option.MOTION_BLUR=Motion Blur
 
-option.VARIABLE_MOTION_BLUR_SAMPLES=Variable Sample Count
-option.VARIABLE_MOTION_BLUR_SAMPLES.comment=Whether to vary the amount of blur samples based on the amount of samples needed. This allows for higher sample counts and better quality blur. High performance cost!
+option.VARIABLE_MOTION_BLUR_SAMPLES=Sample Rate
+value.VARIABLE_MOTION_BLUR_SAMPLES.0=Constant
+value.VARIABLE_MOTION_BLUR_SAMPLES.1=Adaptive
 
-option.CONSTANT_MOTION_BLUR_SAMPLE_COUNT=Constant Sample Count
-option.CONSTANT_MOTION_BLUR_SAMPLE_COUNT.comment=The sample count to be used when "variable sample count" is disabled. Medium performance cost!
+option.VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT=Adaptive Sample Rate
+option.VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT.comment=Medium Performance cost!
 
-option.MAX_MOTION_BLUR_SAMPLE_COUNT=Max Variable Sample Count
-option.MAX_MOTION_BLUR_SAMPLE_COUNT.comment=The maximum sample count to be used when "variable sample count" is enabled. Medium performance cost!
+option.MAX_MOTION_BLUR_SAMPLE_COUNT=Maximum Adaptive Samples
+option.MAX_MOTION_BLUR_SAMPLE_COUNT.comment=Medium performance cost!
 
-option.VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT=Variable Sample Coefficient
-option.VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT.comment=The sample-count-coefficient for when "variable sample count" is enabled. Medium Performance cost!
+option.CONSTANT_MOTION_BLUR_SAMPLE_COUNT=Constant Samples
+option.CONSTANT_MOTION_BLUR_SAMPLE_COUNT.comment=Medium performance cost!
 
 option.MOTION_BLUR_INTENSITY=Blur Intensity
 
@@ -103,14 +98,13 @@ option.sunPathRotation=Sun Path Rotation
 
 option.shadowMapResolution=Shadow Map Resolution
 
-option.LIMIT_SHADOW_DISTANCE=Limit Shadow Distance
-option.shadowDistance=Limited Shadow Distance
-
 option.SHADOW_MAP_BIAS=Shadow Map Bias
 option.SHADOW_MAP_BIAS.comment=Higher values make nearby shadows look better, at the cost of making farther off shadows look worse
 
 option.SHADOW_TYPE=Shadow Type
-option.SHADOW_TYPE.comment=1: Hard shadows. 2: Uniformly soft shadows. Higher values have a medium performance cost!
+option.SHADOW_TYPE.comment=Soft Shadows have a medium performance cost!
+value.SHADOW_TYPE.1=Hard Shadows
+value.SHADOW_TYPE.2=Soft Shadows
 
 option.PLAYER_SHADOW=Player Shadow
 option.PLAYER_SHADOW.comment=Whether or not the player casts a shadow
@@ -118,8 +112,15 @@ option.PLAYER_SHADOW.comment=Whether or not the player casts a shadow
 
 screen.Composite0=GI & AO
 
-option.COMPOSITE0_SCALE=Resolution Scale
-option.COMPOSITE0_SCALE.comment=Computational resolution of :. Global Illumination. Ambient Occlusion. Volumetric Light
+option.COMPOSITE0_SCALE=Effect Resolution
+option.COMPOSITE0_SCALE.comment=Rendering resolution of:. Global Illumination. Ambient Occlusion. Volumetric Light
+value.COMPOSITE0_SCALE.0.25=0.25x
+value.COMPOSITE0_SCALE.0.33=0.33x
+value.COMPOSITE0_SCALE.0.40=0.40x
+value.COMPOSITE0_SCALE.0.50=0.50x
+value.COMPOSITE0_SCALE.0.60=0.60x
+value.COMPOSITE0_SCALE.0.75=0.75x
+value.COMPOSITE0_SCALE.1.00=1.00x
 
 option.COMPOSITE0_NOISE=Ditherred Noise
 option.COMPOSITE0_NOISE.comment=Helps hide artifacts due to low sample counts. Medium performance cost!. Causes flickering at lower resolutions!
@@ -129,10 +130,10 @@ screen.Fog=Fog
 
 option.FOG_ENABLED=Fog Enabled
 
-option.FOG_POWER=Fog Power
+option.FOG_POWER=Fog Curve
 option.FOG_POWER.comment=Higher values make fog more subtle nearby, but more intense farther away
 
-option.AERIAL_PERSPECTIVE_AMOUNT=Aerial Perspective Amount
+option.AERIAL_PERSPECTIVE_AMOUNT=Aerial Perspective
 option.AERIAL_PERSPECTIVE_AMOUNT.comment=Blue-Purple "haze" effect. Independent of fog setting
 
 
@@ -236,17 +237,21 @@ screen.Time=Time Override
 option.TIME_OVERRIDE=Time Override
 option.TIME_OVERRIDE.comment=Modify or override the in-game time, based on the settings on this page
 
-option.TIME_OVERRIDE_MODE=Time Override Mode
-option.TIME_OVERRIDE_MODE.comment=1: Force Constant Time. 2: Day/Night Only. 3: Misc Time Effect
+option.TIME_OVERRIDE_MODE=Override Mode
+value.TIME_OVERRIDE_MODE.1=Constant Time
+value.TIME_OVERRIDE_MODE.2=Day/Night only
+value.TIME_OVERRIDE_MODE.3=Misc Time Effect
 
-option.CONSTANT_TIME_HOUR=[1] Constant Time Hour
+option.CONSTANT_TIME_HOUR=Constant Time Hour
 option.CONSTANT_TIME_HOUR.comment=The hour to set the time. Example: 3 = 3000 ticks
 
-option.CUSTOM_DAY_NIGHT=[2] Day/Night Only
-option.CUSTOM_DAY_NIGHT.comment=1: Day only. 2: Night only
+option.CUSTOM_DAY_NIGHT=Day/Night Only
+value.CUSTOM_DAY_NIGHT.1=Day Only
+value.CUSTOM_DAY_NIGHT.2=Night Only
 
-option.CUSTOM_TIME_MISC=[3] Misc Time Effect
-option.CUSTOM_TIME_MISC.comment=1: Old North (Retro Sun Direction). 2: User rotation
+option.CUSTOM_TIME_MISC=Misc
+value.CUSTOM_TIME_MISC.1=Old North
+value.CUSTOM_TIME_MISC.2=User Defined Rotation
 
 
 screen.Deform=Terrain Deformation
@@ -254,21 +259,16 @@ screen.Deform=Terrain Deformation
 option.DEFORM=Terrain Deformation
 
 option.DEFORMATION=Deformation Type
-option.DEFORMATION.comment=1: Planetoid. 2: Acid. 3: User deformation
+value.DEFORMATION.1=Planetoid
+value.DEFORMATION.2=Acid Shaders
+value.DEFORMATION.3=User Deformation
 
 
 screen.Misc=Misc
 
-option.CUSTOM_HORIZON_HEIGHT=Custom Horizon Height
-
-option.HORIZON_HEIGHT=Horizon Height
-
 option.HIDE_ENTITIES=Hide Entities
 
 option.LIGHT_DESATURATION=Light Desturation
-
-option.REFLECTION_EDGE_FALLOFF=Reflection Edge Falloff
-option.REFLECTION_EDGE_FALLOFF.comment=Whether or not screen-space-reflections "fade out" on the edges of the screen
 
 option.CLEAR_WATER=Clear Water
 
@@ -312,26 +312,7 @@ value.DEBUG_VIEW.2=composite2
 value.DEBUG_VIEW.3=composite3
 value.DEBUG_VIEW.7=final
 
-option.PHYSICAL_ATMOSPHERE=Physical Atmosphere
-option.PHYSICAL_ATMOSPHERE.comment=Full settings in /lib/Fragment/Atmosphere.fsh
-
-option.BLEND_PHYSICAL_ATMOSPHERE=Blend Physical Atmosphere
-option.BLEND_PHYSICAL_ATMOSPHERE.comment=Blend the physical atmosphere with fog if both are enabled
-
 option.CUSTOM_TIME_CYCLE=Custom Time Cycle
 
 option.FREEZE_TIME=Freeze Time
 option.FREEZE_TIME.comment=Disable animations and keep them in a static position. Helpful for screenshot comparisons
-
-
-option.TONEMAP=Tonemap
-value.TONEMAP.1=Reinhard
-value.TONEMAP.2=Burgess
-value.TONEMAP.3=Uncharted 2
-
-option.BURGESS_PRESET=Burgess Preset
-option.BURGESS_PRESET.comment=Customization can be found inside final.fsh. Look for:. "Tweak custom Burgess tonemap HERE"
-value.BURGESS_PRESET.1=Default
-value.BURGESS_PRESET.2=Silvia/Ebin
-value.BURGESS_PRESET.3=Silvia/Continuity
-value.BURGESS_PRESET.4=Custom

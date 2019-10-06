@@ -27,6 +27,8 @@ vec2 AtmosphereDistances(vec3 worldPosition, vec3 worldDirection, cfloat atmosph
 	}
 }
 
+#define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]
+
 vec3 ComputeAtmosphericSky(vec3 worldDirection, float visibility, vec3 color) {
 	cfloat iSteps = 12;
 	
@@ -44,14 +46,6 @@ vec3 ComputeAtmosphericSky(vec3 worldDirection, float visibility, vec3 color) {
 	cvec2 radiiSquared = vec2(planetRadius, atmosphereRadius) * vec2(planetRadius, atmosphereRadius);
 	
 	vec3 worldPosition = vec3(0.0, planetRadius + 1.061e3 + max0(cameraPosition.y - HORIZON_HEIGHT) * 40.0, 0.0);
-	
-#ifdef BLEND_PHYSICAL_ATMOSPHERE
-	float zenith = 1.0 - pow8(1.0 - pow2(sunVector.y));
-	
-	if (worldDirection.y < 0.0) worldDirection.y *= mix(1.0, visibility, 0.7 * zenith);
-	
-	worldDirection.y = mix((worldDirection.y + 0.125) * 0.5 - 0.125, worldDirection.y, zenith);
-#endif
 	
 	vec2 atmosphereDistances = AtmosphereDistances(worldPosition, worldDirection, atmosphereRadius, radiiSquared);
 	
@@ -99,9 +93,6 @@ vec3 ComputeAtmosphericSky(vec3 worldDirection, float visibility, vec3 color) {
 	
 	// Calculate the Rayleigh and Mie phases
 	float g = 0.9;
-#ifdef BLEND_PHYSICAL_ATMOSPHERE
-	g *= sqrt(visibility);
-#endif
 	float gg = g * g;
     float  mu = e.y / iStepSize; // dot(worldDirection, sunVector);
     float rayleighPhase = 1.5 * (1.0 + mu * mu);

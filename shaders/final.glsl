@@ -112,12 +112,12 @@ void MotionBlur(io vec3 color, float depth, float handMask) {
 	vec2 velocity = (position.st - previousPos.st) * intensity; // Screen-space motion vector
 	     velocity = clamp(velocity, vec2(-maxVelocity), vec2(maxVelocity));
 	
-	#ifdef VARIABLE_MOTION_BLUR_SAMPLES
+#if VARIABLE_MOTION_BLUR_SAMPLES == 1
 	float sampleCount = length(velocity / pixelSize) * VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT; // There should be exactly 1 sample for every pixel when the sample coefficient is 1.0
 	      sampleCount = floor(clamp(sampleCount, 1, MAX_MOTION_BLUR_SAMPLE_COUNT));
-	#else
+#else
 	cfloat sampleCount = CONSTANT_MOTION_BLUR_SAMPLE_COUNT;
-	#endif
+#endif
 	
 	vec2 sampleStep = velocity / sampleCount;
 	
@@ -179,7 +179,7 @@ void main() {
 	
 	MotionBlur(color, depth, mask.hand);
 	
-	GetBloom(color); 
+	GetBloom(color);
 	
 	Vignette(color);
 	color = Tonemap(color);

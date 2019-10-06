@@ -23,7 +23,6 @@ varying vec2 texcoord;
 #include "/../shaders/lib/Uniform/Shadow_View_Matrix.vsh"
 
 void main() {
-#if defined GI_ENABLED || defined AO_ENABLED || defined VOLUMETRIC_LIGHT
 	texcoord    = gl_MultiTexCoord0.st;
 	gl_Position = ftransform();
 	
@@ -33,9 +32,6 @@ void main() {
 	SetupProjection();
 	
 	#include "/../shaders/lib/Vertex/Shading_Setup.vsh"
-#else
-	gl_Position = vec4(-1.0);
-#endif
 }
 
 #endif
@@ -92,7 +88,7 @@ float GetDepth(vec2 coord) {
 	return textureRaw(gdepthtex, coord).x;
 }
 
-float GetDepthLinear(vec2 coord) {	
+float GetDepthLinear(vec2 coord) {
 	return (near * far) / (textureRaw(gdepthtex, coord).x * (near - far) + far);
 }
 
@@ -204,9 +200,9 @@ vec2 Circlemap(vec2 p) {
 	return vec2(cos(p.y), sin(p.y)) * p.x;
 }
 
-#define AO_SAMPLE_COUNT 6 // [3 4 5 6 8 12 16]
-#define AO_RADIUS 1.30 // [0.70 0.85 1.00 1.15 1.30 1.50]
-#define AO_INTENSITY 1.00 // [0.25 0.50 0.75 1.00 1.50 2.00 4.00]
+#define AO_SAMPLE_COUNT 6   // [3 4 6 8 12 16]
+#define AO_RADIUS       1.3 // [0.5 0.6 0.7 0.8 0.9 1.1 1.2 1.3 1.4 1.5]
+#define AO_INTENSITY    1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 
 float ContinuityAO(vec3 vPos, vec3 normal) {
 #ifndef AO_ENABLED

@@ -214,12 +214,10 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 		
 		fogFactor = CalculateFogFactor(refVPos, FOG_POWER, 0.0);
 		
-		#ifdef REFLECTION_EDGE_FALLOFF
-			float angleCoeff = clamp01(pow(normal.z + 0.15, 0.25) * 2.0) * 0.2 + 0.8;
-			float dist       = length8(abs(refCoord.st - vec2(0.5)));
-			float edge       = clamp01(1.0 - pow2(dist * 2.0 * angleCoeff));
-			fogFactor        = clamp01(fogFactor + pow(1.0 - edge, 10.0));
-		#endif
+		float angleCoeff = clamp01(pow(normal.z + 0.15, 0.25) * 2.0) * 0.2 + 0.8;
+		float dist       = length8(abs(refCoord.st - vec2(0.5)));
+		float edge       = clamp01(1.0 - pow2(dist * 2.0 * angleCoeff));
+		fogFactor        = clamp01(fogFactor + pow(1.0 - edge, 10.0));
 	}
 	
 	vec3 reflectedSky = CalculateSky(refRay[1], position[1], float(!hit), fogFactor, true, sunlight);

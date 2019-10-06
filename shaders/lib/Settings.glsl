@@ -47,16 +47,15 @@ const float zShrink = 4.0;
 
 
 #define EXPOSURE            1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
-#define EXPOSURE            1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-#define SATURATION          1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-#define SUN_LIGHT_LEVEL     1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-#define SKY_LIGHT_LEVEL     1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-#define AMBIENT_LIGHT_LEVEL 1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-#define TORCH_LIGHT_LEVEL   1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-#define SKY_BRIGHTNESS      1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+#define SATURATION          1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
+#define SUN_LIGHT_LEVEL     1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
+#define SKY_LIGHT_LEVEL     1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
+#define AMBIENT_LIGHT_LEVEL 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
+#define TORCH_LIGHT_LEVEL   1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
+#define SKY_BRIGHTNESS      1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 
 
-#define SHADOW_MAP_BIAS 0.80     // [0.00 0.60 0.70 0.80 0.85 0.90]
+#define SHADOW_MAP_BIAS 0.80 // [0.00 0.60 0.70 0.80 0.85 0.90 0.95]
 #define SHADOW_TYPE 2 // [1 2]
 #define PLAYER_SHADOW
 //#define LIMIT_SHADOW_DISTANCE
@@ -70,44 +69,44 @@ const float zShrink = 4.0;
 #endif
 
 //#define PLAYER_GI_BOUNCE
-#define GI_RADIUS       8   // [4 8 16 32]
-#define GI_SAMPLE_COUNT 40   // [20 40 80 128 160 256]
+#define GI_RADIUS        8   // [2 4 6 8 12 16 24 32]
+#define GI_SAMPLE_COUNT 40  // [20 40 80 128 160 256]
+#define GI_TRANSLUCENCE  0.5 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define GI_BRIGHTNESS    1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 #define GI_BOOST
-#define GI_TRANSLUCENCE 0.50  // [0.00 0.25 0.50 0.75 1.00]
-#define GI_BRIGHTNESS   1.00 // [0.25 0.50 0.75 1.00 2.00 4.00]
 
 #define BLOOM_ENABLED
-#define BLOOM_AMOUNT        0.15 // [0.15 0.30 0.45]
-#define BLOOM_CURVE         1.50 // [1.00 1.25 1.50 1.75 2.00]
+#define BLOOM_AMOUNT  0.2 // [0.1 0.2 0.3 0.4 0.5 0.6]
+#define BLOOM_CURVE   1.5 // [1.0 1.5 2.0 2.5 3.0 3.5 4.0]
 
 //#define MOTION_BLUR
-#define VARIABLE_MOTION_BLUR_SAMPLES
-#define MAX_MOTION_BLUR_SAMPLE_COUNT            50    // [10 25 50 100]
-#define VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT 1.000 // [0.125 0.250 0.500 1.000]
-#define CONSTANT_MOTION_BLUR_SAMPLE_COUNT       2     // [2 3 4 5 10]
-#define MOTION_BLUR_INTENSITY                   1.0   // [0.5 1.0 2.0]
-#define MAX_MOTION_BLUR_AMOUNT                  1.0   // [0.5 1.0 2.0]
+#define VARIABLE_MOTION_BLUR_SAMPLES            1     // [0 1]
+#define VARIABLE_MOTION_BLUR_SAMPLE_COEFFICIENT 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define MAX_MOTION_BLUR_SAMPLE_COUNT            50    // [10 25 50 100 200 500 100]
+#define CONSTANT_MOTION_BLUR_SAMPLE_COUNT       2     // [2 3 4 5 10 20 50]
+#define MOTION_BLUR_INTENSITY                   1.0   // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
+#define MAX_MOTION_BLUR_AMOUNT                  1.0   // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 
-#define TERRAIN_PARALLAX_QUALITY     1.0  // [0.5 1.0 2.0]
-#define TERRAIN_PARALLAX_DISTANCE   12.0  // [6.0 12.0 24.0 48.0]
-#define TERRAIN_PARALLAX_INTENSITY   1.00 // [0.25 0.50 0.75 1.00 1.50 2.00]
+#define TERRAIN_PARALLAX_QUALITY    1.0  // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
+#define TERRAIN_PARALLAX_DISTANCE  12.0  // [6.0 12.0 24.0 48.0]
+#define TERRAIN_PARALLAX_INTENSITY  1.0 // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 
 #define WAVING_DOUBLE_PLANTS
 #define WAVING_GRASS
 #define WAVING_LEAVES
 #define WAVING_WATER
 
-#define COMPOSITE0_SCALE 0.50 // [0.25 0.33 0.40 0.50 0.75 1.00]
+#define COMPOSITE0_SCALE 0.50 // [0.25 0.33 0.40 0.50 0.60 0.75 1.00]
 #define COMPOSITE0_NOISE
 
 //#define FOG_ENABLED
-#define FOG_POWER 3.0                      // [1.0 2.0 3.0 4.0 6.0 8.0]
-#define AERIAL_PERSPECTIVE_AMOUNT 1.00 // [0.00 0.25 0.50 0.75 1.00 2.00 4.00]
+#define FOG_POWER                 2.0 // [1.0 2.0 3.0 4.0 6.0 8.0]
+#define AERIAL_PERSPECTIVE_AMOUNT 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 
 #define CLOUDS_2D
-#define CLOUD_HEIGHT_2D   512  // [384 512 640 768]
-#define CLOUD_COVERAGE_2D 0.5  // [0.3 0.4 0.5 0.6 0.7]
-#define CLOUD_SPEED_2D    1.00 // [0.25 0.50 1.00 2.00 4.00]
+#define CLOUD_HEIGHT_2D   512  // [256 320 384 448 512 576 640 704 768 832 896 960 1024]
+#define CLOUD_COVERAGE_2D 0.50  // [0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70]
+#define CLOUD_SPEED_2D    1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 
 //#define WATER_PARALLAX
 //#define WATER_CAUSTICS
@@ -121,9 +120,6 @@ const float zShrink = 4.0;
 #define DEFORMATION 1 // [1 2 3]
 
 
-//#define CUSTOM_HORIZON_HEIGHT
-#define HORIZON_HEIGHT 62 // [5 62 72 80 128 192 208]
-#define REFLECTION_EDGE_FALLOFF
 //#define HIDE_ENTITIES
 //#define CLEAR_WATER
 //#define WEATHER
@@ -138,30 +134,22 @@ const float zShrink = 4.0;
 #define SHADOWS_FOCUS_CENTER
 
 
-//#define PHYSICAL_ATMOSPHERE
-#define BLEND_PHYSICAL_ATMOSPHERE
 //#define FREEZE_TIME
 
 //#define WATER_SHADOW
 
 
-#ifdef DEFAULT_TEXTURE_PACK
-	#define TEXTURE_PACK_RESOLUTION 16
-#else
-	#define TEXTURE_PACK_RESOLUTION_SETTING 128 // [16 32 64 128 256 512 1024 2048 4096]
-	
-	#define TEXTURE_PACK_RESOLUTION TEXTURE_PACK_RESOLUTION_SETTING
-	
-	#if !defined gbuffers_entities
-		#define NORMAL_MAPS
-	#endif
-	
-	#ifdef NORMAL_MAPS
-		//#define TERRAIN_PARALLAX
-	#endif
-	
-	//#define SPECULARITY_MAPS
+#define TEXTURE_PACK_RESOLUTION 16 // [16 32 64 128 256 512 1024 2048 4096]
+
+#if !defined gbuffers_entities
+	#define NORMAL_MAPS
 #endif
+
+#ifdef NORMAL_MAPS
+	//#define TERRAIN_PARALLAX
+#endif
+
+//#define SPECULARITY_MAPS
 
 //#define FOV_OVERRIDE
 
