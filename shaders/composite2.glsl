@@ -1,5 +1,11 @@
 #include "/../shaders/lib/Syntax.glsl"
 
+
+varying vec2 texcoord;
+
+flat varying vec2 pixelSize;
+
+
 /***********************************************************************/
 #if defined vsh
 
@@ -15,10 +21,6 @@ uniform float frameTimeCounter;
 
 uniform float viewWidth;
 uniform float viewHeight;
-
-varying vec2 texcoord;
-
-flat varying vec2 pixelSize;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
@@ -57,7 +59,7 @@ uniform sampler2D colortex5;
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
-uniform sampler2DShadow shadow; 
+uniform sampler2DShadow shadow;
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowProjection;
@@ -76,10 +78,6 @@ uniform float far;
 uniform ivec2 eyeBrightnessSmooth;
 
 uniform int isEyeInWater;
-
-varying vec2 texcoord;
-
-flat varying vec2 pixelSize;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
@@ -283,7 +281,7 @@ void main() {
 	if (mask.transparent > 0.5)
 		color0 = texture2D(colortex3, texcoord).rgb / alpha;
 	
-	if (mask.transparent > 0.5) 
+	if (mask.transparent > 0.5)
 		color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER, float(depth1 >= 1.0))) ;// * (1.0 - float(mask.water > 0.5 && isEyeInWater == 0)));
 	
 	if (mask.transparent - mask.water < 0.5)

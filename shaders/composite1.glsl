@@ -1,5 +1,11 @@
 #include "/../shaders/lib/Syntax.glsl"
 
+
+varying vec2 texcoord;
+
+flat varying vec2 pixelSize;
+
+
 /***********************************************************************/
 #if defined vsh
 
@@ -15,10 +21,6 @@ uniform float frameTimeCounter;
 
 uniform float viewWidth;
 uniform float viewHeight;
-
-varying vec2 texcoord;
-
-flat varying vec2 pixelSize;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
@@ -82,10 +84,6 @@ uniform ivec2 eyeBrightnessSmooth;
 uniform int isEyeInWater;
 uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
-
-varying vec2 texcoord;
-
-flat varying vec2 pixelSize;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"

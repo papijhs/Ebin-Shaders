@@ -1,5 +1,11 @@
 #include "/../shaders/lib/Syntax.glsl"
 
+
+varying mat2x3 position;
+
+varying vec3 color;
+
+
 /***********************************************************************/
 #if defined vsh
 
@@ -9,10 +15,6 @@ uniform mat4 gbufferModelViewInverse;
 
 uniform vec3  cameraPosition;
 uniform float frameTimeCounter;
-
-varying mat2x3 position;
-
-varying vec3 color;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
@@ -52,8 +54,6 @@ void main() {
 #if defined fsh
 
 /* DRAWBUFFERS:1 */
-
-varying vec3 color;
 
 void main() {
 	gl_FragData[0] = vec4(color.rgb, 1.0);

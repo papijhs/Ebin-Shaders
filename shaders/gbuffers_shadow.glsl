@@ -1,5 +1,13 @@
 #include "/../shaders/lib/Syntax.glsl"
 
+
+varying vec4 color;
+varying vec2 texcoord;
+varying vec2 vertLightmap;
+
+flat varying vec3 vertNormal;
+
+
 /***********************************************************************/
 #if defined vsh
 
@@ -18,11 +26,6 @@ uniform vec3 cameraPosition;
 uniform float sunAngle;
 uniform float frameTimeCounter;
 
-varying vec4 color;
-varying vec2 texcoord;
-varying vec2 vertLightmap;
-
-flat varying vec3 vertNormal;
 float materialIDs;
 
 #include "/../shaders/lib/Settings.glsl"
@@ -168,16 +171,10 @@ void main() {
 /***********************************************************************/
 #if defined fsh
 
-uniform sampler2D texture;
-
-varying vec4 color;
-varying vec2 texcoord;
-
-flat varying vec3 vertNormal;
-
+uniform sampler2D tex;
 
 void main() {
-	vec4 diffuse = color * texture2D(texture, texcoord);
+	vec4 diffuse = color * texture2D(tex, texcoord);
 	
 	gl_FragData[0] = diffuse;
 	gl_FragData[1] = vec4(vertNormal.xy * 0.5 + 0.5, 0.0, 1.0);

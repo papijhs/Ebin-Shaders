@@ -9,7 +9,7 @@
 
 #define io inout
 
-#define ON true
+#define ON  true
 #define OFF false
 
 #define cbool  const bool

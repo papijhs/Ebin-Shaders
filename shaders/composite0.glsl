@@ -1,5 +1,9 @@
 #include "/../shaders/lib/Syntax.glsl"
 
+
+varying vec2 texcoord;
+
+
 /***********************************************************************/
 #if defined vsh
 
@@ -12,8 +16,6 @@ uniform vec3 previousCameraPosition;
 
 uniform float sunAngle;
 uniform float frameTimeCounter;
-
-varying vec2 texcoord;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
@@ -73,8 +75,6 @@ uniform float viewHeight;
 uniform float frameTimeCounter;
 
 uniform int isEyeInWater;
-
-varying vec2 texcoord;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"

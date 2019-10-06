@@ -1,14 +1,14 @@
 #include "/../shaders/lib/Syntax.glsl"
 
+varying vec2 texcoord;
+
+flat varying vec2 pixelSize;
+
 /***********************************************************************/
 #if defined vsh
 
 uniform float viewWidth;
 uniform float viewHeight;
-
-varying vec2 texcoord;
-
-flat varying vec2 pixelSize;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
@@ -44,10 +44,6 @@ void main() {
 const bool colortex3MipmapEnabled = true;
 
 uniform sampler2D colortex3;
-
-varying vec2 texcoord;
-
-flat varying vec2 pixelSize;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
