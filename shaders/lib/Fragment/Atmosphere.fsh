@@ -37,7 +37,7 @@ vec3 ComputeAtmosphericSky(vec3 worldDirection, float visibility, vec3 color) {
 	cvec3  rayleighOZone = (vec3(0.58, 1.35, 3.31) * 1e-5 + OZoneCoeff) * -1.0;
 	cfloat      mieCoeff = 7e-6 * -1.0;
 	
-	cfloat rayleighHeight = 8.0e3 * 0.25;
+	cfloat rayleighHeight = 8.0e3 * 1.0;
 	cfloat      mieHeight = 1.2e3 * 2.0;
 	
 	cfloat     planetRadius = 6371.0e2;
@@ -45,7 +45,7 @@ vec3 ComputeAtmosphericSky(vec3 worldDirection, float visibility, vec3 color) {
 	
 	cvec2 radiiSquared = vec2(planetRadius, atmosphereRadius) * vec2(planetRadius, atmosphereRadius);
 	
-	vec3 worldPosition = vec3(0.0, planetRadius + 1.061e3 + max0(cameraPosition.y - HORIZON_HEIGHT) * 40.0, 0.0);
+	vec3 worldPosition = vec3(0.0, planetRadius + (cameraPosition.y - 256) * 40.0*0, 0.0);
 	
 	vec2 atmosphereDistances = AtmosphereDistances(worldPosition, worldDirection, atmosphereRadius, radiiSquared);
 	

@@ -3,8 +3,6 @@
 
 varying vec2 texcoord;
 
-flat varying vec2 pixelSize;
-
 
 /***********************************************************************/
 #if defined vsh
@@ -19,9 +17,6 @@ uniform vec3 previousCameraPosition;
 uniform float sunAngle;
 uniform float frameTimeCounter;
 
-uniform float viewWidth;
-uniform float viewHeight;
-
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
 #include "/../shaders/lib/Uniform/Projection_Matrices.vsh"
@@ -32,8 +27,6 @@ uniform float viewHeight;
 void main() {
 	texcoord    = gl_MultiTexCoord0.st;
 	gl_Position = ftransform();
-	
-	pixelSize = 1.0 / vec2(viewWidth, viewHeight);
 	
 	SetupProjection();
 	
@@ -59,8 +52,7 @@ uniform mat4 gbufferPreviousModelView;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 
-uniform float viewWidth;
-uniform float viewHeight;
+uniform vec2 pixelSize;
 
 uniform float rainStrength;
 
@@ -89,12 +81,12 @@ vec3 ViewSpaceToScreenSpace(vec3 viewSpacePosition) {
 	return projMAD(projMatrix, viewSpacePosition) / -viewSpacePosition.z;
 }
 
-void MotionBlur(io vec3 color, float depth, float handMask) {
+vec3 MotionBlur(vec3 color, float depth, float handMask) {
 #ifndef MOTION_BLUR
-	return;
+	return color;
 #endif
 	
-	if (handMask > 0.5) return;
+	if (handMask > 0.5) return color;
 	
 	vec3 position = vec3(texcoord, depth) * 2.0 - 1.0; // Signed [-1.0 to 1.0] screen space position
 	
@@ -127,7 +119,7 @@ void MotionBlur(io vec3 color, float depth, float handMask) {
 		color += pow2(texture2D(colortex3, clampScreen(coord, pixelSize)).rgb);
 	}
 	
-	color *= 1000.0 / max(sampleCount + 1.0, 1.0);
+	return color * 1000.0 / max(sampleCount + 1.0, 1.0);
 }
 
 vec3 GetBloomTile(cint scale, vec2 offset) {
@@ -138,8 +130,11 @@ vec3 GetBloomTile(cint scale, vec2 offset) {
 	return DecodeColor(texture2D(colortex1, coord).rgb);
 }
 
-void GetBloom(io vec3 color) {
-#ifdef BLOOM_ENABLED
+vec3 GetBloom(vec3 color) {
+#ifndef BLOOM_ENABLED
+	return color;
+#endif
+	
 	vec3[8] bloom;
 	
 	// These arguments should be identical to those in composite2.fsh
@@ -158,14 +153,13 @@ void GetBloom(io vec3 color) {
 	
 	bloom[0] /= 7.0;
 	
-	color = mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
-#endif
+	return mix(color, min(pow(bloom[0], vec3(BLOOM_CURVE)), bloom[0]), BLOOM_AMOUNT);
 }
 
-void Vignette(io vec3 color) {
+vec3 Vignette(vec3 color) {
 	float edge = distance(texcoord, vec2(0.5));
 	
-	color *= 1.0 - pow(edge * 1.0, 1.5);
+	return color * (1.0 - pow(edge * 1.0, 1.5));
 }
 
 #include "/../shaders/lib/Exit.glsl"
@@ -175,12 +169,10 @@ void main() {
 	vec3  color = GetColor(texcoord);
 	Mask  mask  = CalculateMasks(texture2D(colortex2, texcoord).r);
 	
-	MotionBlur(color, depth, mask.hand);
-	
-	GetBloom(color);
-	
-	Vignette(color);
-	color = Tonemap(color);
+	color = MotionBlur(color, depth, mask.hand);
+	color =   GetBloom(color);
+	color =   Vignette(color);
+	color =    Tonemap(color);
 	
 	gl_FragColor = vec4(color, 1.0);
 	

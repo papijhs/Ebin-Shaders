@@ -3,8 +3,6 @@
 
 varying vec2 texcoord;
 
-flat varying vec2 pixelSize;
-
 
 /***********************************************************************/
 #if defined vsh
@@ -19,9 +17,6 @@ uniform vec3 previousCameraPosition;
 uniform float sunAngle;
 uniform float frameTimeCounter;
 
-uniform float viewWidth;
-uniform float viewHeight;
-
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
 #include "/../shaders/lib/Uniform/Projection_Matrices.vsh"
@@ -32,9 +27,6 @@ uniform float viewHeight;
 void main() {
 	texcoord    = gl_MultiTexCoord0.st;
 	gl_Position = ftransform();
-	
-	pixelSize = 1.0 / vec2(viewWidth, viewHeight);
-	
 	
 	SetupProjection();
 	
@@ -66,11 +58,10 @@ uniform mat4 shadowProjection;
 
 uniform vec3 cameraPosition;
 
+uniform vec2 pixelSize;
+
 uniform float frameTimeCounter;
 uniform float rainStrength;
-
-uniform float viewWidth;
-uniform float viewHeight;
 
 uniform float near;
 uniform float far;
@@ -210,7 +201,7 @@ void ComputeReflectedLight(io vec3 color, mat2x3 position, vec3 normal, float sm
 		
 		vec3 refVPos = CalculateViewSpacePosition(refCoord);
 		
-		fogFactor = CalculateFogFactor(refVPos, FOG_POWER, 0.0);
+		fogFactor = length(abs(position[0] - refVPos) / 500.0);
 		
 		float angleCoeff = clamp01(pow(normal.z + 0.15, 0.25) * 2.0) * 0.2 + 0.8;
 		float dist       = length8(abs(refCoord.st - vec2(0.5)));
@@ -266,6 +257,7 @@ void main() {
 	vec3 sky = CalculateSky(backPos[1], vec3(0.0), float(depth1 >= 1.0), 1.0 - alpha, false, 1.0);
 	
 	sky = mix(sky, cloud.rgb, cloud.a);
+	vec3 oldSky = sky;
 	
 	vec3 normal = DecodeNormal(texture4.g, 11) * mat3(gbufferModelViewInverse);
 	
@@ -281,8 +273,8 @@ void main() {
 	if (mask.transparent > 0.5)
 		color0 = texture2D(colortex3, texcoord).rgb / alpha;
 	
-	if (mask.transparent > 0.5)
-		color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER, float(depth1 >= 1.0))) ;// * (1.0 - float(mask.water > 0.5 && isEyeInWater == 0)));
+//	if (mask.transparent > 0.5)
+//		color1 = mix(color1, sky.rgb, CalculateFogFactor(backPos[0], FOG_POWER, float(depth1 >= 1.0))) ;// * (1.0 - float(mask.water > 0.5 && isEyeInWater == 0)));
 	
 	if (mask.transparent - mask.water < 0.5)
 		color0 = color1;
@@ -297,10 +289,10 @@ void main() {
 		color0 = mix(sky.rgb, color0, mix(alpha, 0.0, isEyeInWater == 1));
 	
 	
-	color0 = mix(color0, sky.rgb, CalculateFogFactor(frontPos[0], FOG_POWER));
+	color0 = mix(color0, oldSky.rgb, CalculateFogFactor(frontPos[0], FOG_POWER));
 	
-	if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
-	if (depth1 >= 1.0 && mask.water > 0.5 && isEyeInWater == 1) color0 = color1;
+//	if (depth1 < 1.0 && mask.transparent > 0.5) color0 = mix(color1, color0, alpha);
+//	if (depth1 >= 1.0 && mask.water > 0.5 && isEyeInWater == 1) color0 = color1;
 	
 	gl_FragData[0] = vec4(clamp01(EncodeColor(color0)), 1.0);
 	

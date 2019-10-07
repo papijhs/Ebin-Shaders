@@ -3,8 +3,6 @@
 
 varying vec2 texcoord;
 
-flat varying vec2 pixelSize;
-
 
 /***********************************************************************/
 #if defined vsh
@@ -19,9 +17,6 @@ uniform vec3 previousCameraPosition;
 uniform float sunAngle;
 uniform float frameTimeCounter;
 
-uniform float viewWidth;
-uniform float viewHeight;
-
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
 #include "/../shaders/lib/Uniform/Projection_Matrices.vsh"
@@ -32,9 +27,6 @@ uniform float viewHeight;
 void main() {
 	texcoord    = gl_MultiTexCoord0.st;
 	gl_Position = ftransform();
-	
-	pixelSize = 1.0 / vec2(viewWidth, viewHeight);
-	
 	
 	SetupProjection();
 	
@@ -49,14 +41,19 @@ void main() {
 /***********************************************************************/
 #if defined fsh
 
-const bool colortex5MipmapEnabled = true;
+#include "/../shaders/lib/Settings.glsl"
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
+
+#if defined COMPOSITE0_ENABLED
+const bool colortex5MipmapEnabled = true;
 uniform sampler2D colortex5;
 uniform sampler2D colortex6;
+#endif
+
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
@@ -69,6 +66,8 @@ uniform mat4 shadowProjection;
 
 uniform vec3 cameraPosition;
 uniform vec3 upPosition;
+
+uniform vec2 pixelSize;
 
 uniform float viewWidth;
 uniform float viewHeight;
@@ -85,7 +84,6 @@ uniform int isEyeInWater;
 uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
 
-#include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
 #include "/../shaders/lib/Debug.glsl"
 #include "/../shaders/lib/Uniform/Projection_Matrices.fsh"
@@ -123,7 +121,7 @@ void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
 	GI = vec4(0.0, 0.0, 0.0, 1.0);
 	VL = vec2(1.0);
 	
-#if !(defined GI_ENABLED || defined AO_ENABLED || defined VOLUMETRIC_LIGHT)
+#if !(defined COMPOSITE0_ENABLED)
 	return;
 #endif
 	
@@ -158,7 +156,8 @@ void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
 		}
 	}
 	
-	GI = samples / totalWeight; GI.rgb *= 5.0;
+	GI = samples / totalWeight;
+	GI.rgb *= 10.0;
 	
 	samples = vec4(0.0);
 	totalWeight = 0.0;

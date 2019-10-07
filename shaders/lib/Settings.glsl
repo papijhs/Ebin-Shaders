@@ -32,7 +32,11 @@ const bool colortex1Clear = false;
 const bool colortex2Clear = false;
 const bool colortex3Clear = false;
 const bool colortex4Clear = true;
-const bool colortex5Clear = false;
+const bool colortex5Clear = true;
+const bool colortex6Clear = false;
+
+const vec4 colortex4ClearColor = vec4(0.0, 0.0, 0.0, 1.0);
+const vec4 colortex5ClearColor = vec4(0.1, 0.1, 0.1, 1.0);
 */
 
 const int noiseTextureResolution = 64; // [16 32 64 128 256 512 1024]
@@ -47,7 +51,7 @@ const float zShrink = 4.0;
 
 
 #define EXPOSURE            1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
-#define SATURATION          1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
+#define SATURATION          1.2 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
 #define SUN_LIGHT_LEVEL     1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 #define SKY_LIGHT_LEVEL     1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 #define AMBIENT_LIGHT_LEVEL 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]

@@ -23,7 +23,13 @@ vec3 RRTAndODTFit(vec3 v) {
 }
 
 vec3 ACESFitted(vec3 color) {
+	color *= EXPOSURE;
+	
+	const vec3 W = vec3(0.2125, 0.7154, 0.0721);
+	color = mix(vec3(dot(color, W)), color, SATURATION);
+	
 	color = color * ACESInputMat;
+	
 	
 	// Apply RRT and ODT
 	color = RRTAndODTFit(color);
@@ -31,6 +37,7 @@ vec3 ACESFitted(vec3 color) {
 	color = color * ACESOutputMat;
 	
 	color = pow(color, vec3(1.0 / 2.2));
+	
 	return color;
 }
 

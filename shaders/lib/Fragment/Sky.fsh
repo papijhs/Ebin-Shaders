@@ -80,6 +80,7 @@ void CalculateStars(io vec3 color, vec3 worldDir, float visibility, cbool reflec
 
 vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, float alpha, cbool reflection, float sunlight) {
 	float visibility = (reflection ? alpha : CalculateFogFactor(worldSpacePosition, FOG_POWER, skyMask));
+	// float visibility = (reflection ? alpha : CalculateFogFactor(worldSpacePosition, FOG_POWER, skyMask));
 	if (!reflection && visibility < 0.000001) return vec3(0.0);
 	
 	vec3 worldSpaceVector = normalize(worldSpacePosition);
@@ -90,7 +91,7 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	vec3  sunspot = CalculateSunspot(lightCoeff) * (reflection ? sunlight : pow(visibility, 25) * alpha);
 	vec3  moonspot = CalculateMoonspot(-lightCoeff) * (reflection ? sunlight : pow(visibility, 25) * alpha);
 	
-	vec3 gradient  = ComputeAtmosphericSky(worldSpaceVector, visibility, sunspot) * 10.0;
+	vec3 gradient  = ComputeAtmosphericSky(worldSpaceVector, visibility, sunspot) * 5.0;
 	     gradient += CalculateSkyGradient(worldSpacePosition, sunglow, sunspot) * timeNight;
 	
 	vec3 sky = gradient + moonspot;
@@ -100,5 +101,5 @@ vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, floa
 	
 	CalculateStars(sky, worldSpaceVector, visibility * (1.0 - cloudAlpha), reflection);
 	
-	return sky * SKY_BRIGHTNESS * 0.1;
+	return sky * SKY_BRIGHTNESS * 0.3;
 }

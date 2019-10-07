@@ -14,17 +14,17 @@
 	timeHorizon	= sqrt((1.0 - timeDay) * (1.0 - timeNight));
 	
 	
-	vec3 sunlightDay      = vec3(1.00, 1.00, 1.00);
-	vec3 sunlightNight    = vec3(0.23, 0.45, 1.00);
-	vec3 sunlightSunrise  = vec3(1.00, 0.45, 0.10);
+	vec3 sunlightDay      = vec3(1.00, 1.00, 1.00)*3.0;
+	vec3 sunlightNight    = vec3(0.23, 0.45, 1.00)*3.0;
+	vec3 sunlightSunrise  = vec3(1.00, 0.45, 0.10)*3.0;
 	
-	vec3 skylightDay     = vec3(0.13, 0.26, 1.00);
-	vec3 skylightNight   = vec3(0.25, 0.50, 1.00);
-	vec3 skylightSunrise = vec3(0.29, 0.48, 1.00);
+	vec3 skylightDay     = vec3(0.13, 0.26, 1.00)*3.0;
+	vec3 skylightNight   = vec3(0.25, 0.50, 1.00)*3.0;
+	vec3 skylightSunrise = vec3(0.29, 0.48, 1.00)*3.0;
 	vec3 skylightHorizon = skylightNight;
 	
 	
-	sunlightDay     = setLength(sunlightDay    , 4.0);
+	sunlightDay     = setLength(sunlightDay    , 4.0)*3.0;
 	sunlightNight   = setLength(sunlightNight  , 0.1);
 	sunlightSunrise = setLength(sunlightSunrise, 4.0);
 	

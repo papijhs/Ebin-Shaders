@@ -1,14 +1,13 @@
 #include "/../shaders/lib/Syntax.glsl"
 
+
 varying vec2 texcoord;
 
-flat varying vec2 pixelSize;
 
 /***********************************************************************/
 #if defined vsh
 
-uniform float viewWidth;
-uniform float viewHeight;
+uniform vec2 pixelSize;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
@@ -18,9 +17,6 @@ void main() {
 #ifdef BLOOM_ENABLED
 	texcoord    = gl_MultiTexCoord0.st;
 	gl_Position = ftransform();
-	
-	pixelSize = 1.0 / vec2(viewWidth, viewHeight);
-	
 	
 	vec2 vertexScale = vec2(0.25 + pixelSize.x * 2.0, 0.375 + pixelSize.y * 4.0);
 	
@@ -44,6 +40,8 @@ void main() {
 const bool colortex3MipmapEnabled = true;
 
 uniform sampler2D colortex3;
+
+uniform vec2 pixelSize;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
