@@ -1,9 +1,6 @@
-float CalculateSunglow(float lightCoeff) {
-	float sunglow = clamp01(lightCoeff - 0.01);
-	      sunglow = pow8(sunglow);
-	
-	return sunglow;
-}
+#include "/../shaders/lib/Fragment/PrecomputedSky.glsl"
+#include "/../shaders/lib/Fragment/2D_Clouds.fsh"
+#include "/../shaders/lib/Fragment/3D_Clouds.fsh"
 
 vec3 CalculateSkyGradient(vec3 worldSpacePosition, float sunglow, vec3 sunspot) {
 	float gradientCoeff = pow4(1.0 - abs(normalize(worldSpacePosition).y) * 0.5);
@@ -22,28 +19,14 @@ vec3 CalculateSkyGradient(vec3 worldSpacePosition, float sunglow, vec3 sunspot) 
 	return color;
 }
 
-vec3 CalculateSunspot(float lightCoeff) {
-	float sunspot  = clamp01(lightCoeff - 0.01);
-	      sunspot  = pow(sunspot, 375.0);
-	      sunspot  = pow(sunspot + 1.0, 400.0) - 1.0;
-	      sunspot  = min(sunspot, 20.0) * 6.0;
-	      sunspot  = sin(max(lightCoeff - 0.9985, 0.0) / 0.0015 * PI * 0.5) * 200.0;
+vec3 ComputeSunspot(vec3 wDir, inout vec3 transmit) {
+	float sunspot = float(dot(wDir, sunVector) > 0.9994 + 0*0.9999567766);
+	vec3 color = vec3(float(sunspot) * sunbright) * transmit;
 	
-	return vec3(sunspot);// * pow2(sunlightColor) * vec3(1.0, 0.8, 0.6);
-}
-
-vec3 CalculateMoonspot(float lightCoeff) {
-	float moonspot  = clamp01(lightCoeff - 0.01);
-	      moonspot  = pow(moonspot, 400.0);
-	      moonspot  = pow(moonspot + 1.0, 400.0) - 1.0;
-	      moonspot  = min(moonspot, 20.0) * 6.0;
-	      moonspot *= timeNight * 200.0;
+	transmit *= 1.0 - sunspot;
 	
-	return moonspot * pow2(sunlightColor);
+	return color;
 }
-
-#include "/../shaders/lib/Fragment/2D_Clouds.fsh"
-#include "/../shaders/lib/Fragment/Atmosphere.fsh"
 
 #define STARS            ON    // [ON OFF]
 #define REFLECT_STARS    OFF   // [ON OFF]
@@ -52,54 +35,69 @@ vec3 CalculateMoonspot(float lightCoeff) {
 #define STAR_BRIGHTNESS  1.0   // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 #define STAR_COVERAGE    1.000 // [0.950 0.975 1.000 1.025 1.050]
 
-void CalculateStars(io vec3 color, vec3 worldDir, float visibility, cbool reflection) {
-	if (!STARS) return;
-	if (!REFLECT_STARS && reflection) return;
+vec3 CalculateStars(vec3 wDir, vec3 transmit, cbool reflection) {
+	if (!STARS) return vec3(0.0);
+	if (!REFLECT_STARS && reflection) return vec3(0.0);
 	
-	float alpha = STAR_BRIGHTNESS * 2000.0 * pow2(clamp01(worldDir.y)) * timeNight * pow(visibility, 50.0);
-	if (alpha <= 0.0) return;
+	if (transmit.r + transmit.g + transmit.b <= 0.0) return vec3(0.0);
 	
 	vec2 coord;
 	
 	if (ROTATE_STARS) {
-		vec3 shadowCoord     = mat3(shadowViewMatrix) * worldDir;
+		vec3 shadowCoord     = mat3(shadowViewMatrix) * wDir;
 		     shadowCoord.xz *= sign(sunVector.y);
 		
 		coord  = vec2(atan(shadowCoord.x, shadowCoord.z), acos(shadowCoord.y));
 		coord *= 3.0 * STAR_SCALE * noiseScale;
 	} else
-		coord = worldDir.xz * (2.5 * STAR_SCALE * (2.0 - worldDir.y) * noiseScale);
+		coord = wDir.xz * (2.5 * STAR_SCALE * (2.0 - wDir.y) * noiseScale);
 	
 	float noise  = texture2D(noisetex, coord * 0.5).r;
 	      noise += texture2D(noisetex, coord).r * 0.5;
 	
-	float star = clamp01(noise - 1.3 / STAR_COVERAGE);
+	float star = clamp01(noise - 1.3 / STAR_COVERAGE) * STAR_BRIGHTNESS * 2000.0 * pow2(clamp01(wDir.y)) * timeNight;
 	
-	color += star * alpha;
+	return star * transmit;
 }
 
-vec3 CalculateSky(vec3 worldSpacePosition, vec3 rayPosition, float skyMask, float alpha, cbool reflection, float sunlight) {
-	float visibility = (reflection ? alpha : CalculateFogFactor(worldSpacePosition, FOG_POWER, skyMask));
-	// float visibility = (reflection ? alpha : CalculateFogFactor(worldSpacePosition, FOG_POWER, skyMask));
-	if (!reflection && visibility < 0.000001) return vec3(0.0);
+float PhaseG(float cosTheta, const float g){
+    float gg = g * g;
+    return (gg * -0.25 + 0.25) * pow(-2.0 * (g * cosTheta) + (gg + 1.0), -1.5) / PI;
+}
+
+float CalculateCloudPhase(float vDotL){
+    const float mixer = 0.5;
+
+    float g1 = PhaseG(vDotL, 0.8);
+    float g2 = PhaseG(vDotL, -0.5);
+
+    return mix(g2, g1, mixer);
+}
+
+
+vec3 ComputeBackSky(vec3 wDir, vec3 wPos, io vec3 transmit, float sunlight, cbool reflection) {
+	vec3 color = vec3(0.0);
+	color += SkyAtmosphere(wDir, transmit);
+	color += ComputeSunspot(wDir, transmit);
+	color += CalculateStars(wDir, transmit, reflection);
 	
-	vec3 worldSpaceVector = normalize(worldSpacePosition);
+	return color;
+}
+
+vec3 ComputeClouds(vec3 wDir, vec3 wPos, io vec3 transmit) {
+	float VdotL = dot(wDir, sunVector);
+	float phase = CalculateCloudPhase(VdotL);
 	
-	float lightCoeff = dot(worldSpaceVector, worldLightVector) * sign(sunVector.y);
+	vec3 color = vec3(0.0);
+	color += Compute2DCloudPlane(wDir, wPos, transmit, phase) / 100.0;
 	
-	float sunglow = CalculateSunglow(lightCoeff);
-	vec3  sunspot = CalculateSunspot(lightCoeff) * (reflection ? sunlight : pow(visibility, 25) * alpha);
-	vec3  moonspot = CalculateMoonspot(-lightCoeff) * (reflection ? sunlight : pow(visibility, 25) * alpha);
+	return color;
+}
+
+vec3 ComputeSky(vec3 wDir, vec3 wPos, io vec3 transmit, float sunlight, cbool reflection) {
+	vec3 color = vec3(0.0);
+	color += ComputeClouds(wDir, wPos, transmit);
+	color += ComputeBackSky(wDir, wPos, transmit, sunlight, reflection);
 	
-	vec3 gradient  = ComputeAtmosphericSky(worldSpaceVector, visibility, sunspot) * 5.0;
-	     gradient += CalculateSkyGradient(worldSpacePosition, sunglow, sunspot) * timeNight;
-	
-	vec3 sky = gradient + moonspot;
-	
-	float cloudAlpha;
-	Compute2DCloudPlane(sky, cloudAlpha, worldSpaceVector, rayPosition, sunglow, visibility);
-	
-	CalculateStars(sky, worldSpaceVector, visibility * (1.0 - cloudAlpha), reflection);
-	
-	return sky * SKY_BRIGHTNESS * 0.3;
+	return color;
 }

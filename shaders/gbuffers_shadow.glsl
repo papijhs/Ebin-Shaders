@@ -49,7 +49,7 @@ vec3 GetWorldSpacePositionShadow() {
 #include "/../shaders/lib/Vertex/Waving.vsh"
 #include "/../shaders/lib/Vertex/Vertex_Displacements.vsh"
 
-#include "/../shaders/lib/Misc/Bias_Functions.glsl"
+#include "/../shaders/lib/Misc/ShadowBias.glsl"
 
 vec4 ProjectShadowMap(vec4 position) {
 	position = vec4(projMAD(shadowProjection, transMAD(shadowViewMatrix, position.xyz)), position.z * shadowProjection[2].w + shadowProjection[3].w);

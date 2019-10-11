@@ -3,9 +3,13 @@
 
 varying vec2 texcoord;
 
+#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+
 
 /***********************************************************************/
 #if defined vsh
+
+uniform sampler3D colortex7;
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
@@ -16,21 +20,23 @@ uniform vec3 previousCameraPosition;
 
 uniform float sunAngle;
 uniform float frameTimeCounter;
+uniform float far;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
+#include "/../shaders/lib/Debug.glsl"
 #include "/../shaders/lib/Uniform/Projection_Matrices.vsh"
-#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
 #include "/../shaders/UserProgram/centerDepthSmooth.glsl"
 #include "/../shaders/lib/Uniform/Shadow_View_Matrix.vsh"
+#include "/../shaders/lib/Fragment/PrecomputedSky.glsl"
+#include "/../shaders/lib/Vertex/Shading_Setup.vsh"
 
 void main() {
 	texcoord    = gl_MultiTexCoord0.st;
 	gl_Position = ftransform();
 	
 	SetupProjection();
-	
-	#include "/../shaders/lib/Vertex/Shading_Setup.vsh"
+	SetupShading();
 }
 
 #endif
@@ -87,7 +93,6 @@ uniform int heldBlockLightValue2;
 #include "/../shaders/lib/Utility.glsl"
 #include "/../shaders/lib/Debug.glsl"
 #include "/../shaders/lib/Uniform/Projection_Matrices.fsh"
-#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
 #include "/../shaders/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/../shaders/lib/Fragment/Masks.fsh"
 
@@ -115,77 +120,11 @@ vec3 CalculateViewSpacePosition(vec3 screenPos) {
 	return projMAD(projInverseMatrix, screenPos) / (screenPos.z * projInverseMatrix[2].w + projInverseMatrix[3].w);
 }
 
-#include "/../shaders/lib/Fragment/Calculate_Shaded_Fragment.fsh"
+#include "/../shaders/lib/Fragment/ComputeShadedFragment.fsh"
+#include "/../shaders/lib/Fragment/BilateralUpsample.fsh"
 
-void BilateralUpsample(vec3 normal, float depth, out vec4 GI, out vec2 VL) {
-	GI = vec4(0.0, 0.0, 0.0, 1.0);
-	VL = vec2(1.0);
-	
-#if !(defined COMPOSITE0_ENABLED)
-	return;
-#endif
-	
-	vec2 scaledCoord = texcoord * COMPOSITE0_SCALE;
-	
-	float expDepth = ExpToLinearDepth(depth);
-	
-	cfloat kernal = 2.0;
-	cfloat range = kernal * 0.5 - 0.5;
-	
-	float totalWeight = 0.0;
-	
-	vec4 samples = vec4(0.0);
-	
-#if defined GI_ENABLED || defined AO_ENABLED
-	if (depth < 1.0) {
-		for (float y = -range; y <= range; y++) {
-			for (float x = -range; x <= range; x++) {
-				vec2 offset = vec2(x, y) * pixelSize;
-				
-				float sampleDepth  = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
-				vec3  sampleNormal =     DecodeNormal(texture2D(colortex4, texcoord + offset * 8.0).g, 11);
-				
-				float weight  = clamp01(1.0 - abs(expDepth - sampleDepth));
-					  weight *= abs(dot(normal, sampleNormal)) * 0.5 + 0.5;
-					  weight += 0.001;
-				
-				samples += pow2(texture2DLod(colortex5, scaledCoord + offset * 2.0, 1)) * weight;
-				
-				totalWeight += weight;
-			}
-		}
-	}
-	
-	GI = samples / totalWeight;
-	GI.rgb *= 10.0;
-	
-	samples = vec4(0.0);
-	totalWeight = 0.0;
-#endif
-	
-#ifdef VOLUMETRIC_LIGHT
-	for (float y = -range; y <= range; y++) {
-		for (float x = -range; x <= range; x++) {
-			vec2 offset = vec2(x, y) * pixelSize;
-			
-			float sampleDepth = ExpToLinearDepth(texture2D(gdepthtex, texcoord + offset * 8.0).x);
-			float weight = clamp01(1.0 - abs(expDepth - sampleDepth)) + 0.001;
-			
-			samples.xy += texture2DLod(colortex6, scaledCoord + offset, 0).rg * weight;
-			
-			totalWeight += weight;
-		}
-	}
-	
-	VL = samples.xy / totalWeight;
-#endif
-}
-
-#include "/../shaders/lib/Misc/Calculate_Fogfactor.glsl"
-#include "/../shaders/lib/Fragment/Water_Depth_Fog.fsh"
-#include "/../shaders/lib/Fragment/AerialPerspective.fsh"
-
-#include "/../shaders/lib/Fragment/3D_Clouds.fsh"
+#include "/../shaders/lib/Misc/CalculateFogfactor.glsl"
+#include "/../shaders/lib/Fragment/WaterDepthFog.fsh"
 
 /* DRAWBUFFERS:1465 */
 #include "/../shaders/lib/Exit.glsl"
@@ -203,7 +142,6 @@ void main() {
 	
 	vec3 wNormal = DecodeNormal(texure4.g, 11);
 	vec3 normal  = wNormal * mat3(gbufferModelViewInverse);
-	vec3 waterNormal = vec3(0.0);
 	
 	float depth1 = mask.hand > 0.5 ? depth0 : GetTransparentDepth(texcoord);
 	
@@ -211,14 +149,13 @@ void main() {
 		vec2 texure0 = texture2D(colortex0, texcoord).rg;
 		
 		vec4 decode0 = Decode4x8F(texure0.r);
-		waterNormal = DecodeNormalU(texure0.g) * mat3(gbufferModelViewInverse);
 		
 		mask.transparent = 1.0;
-		mask.water       = DecodeWater(texure0.g);
-		mask.bits.xy     = vec2(1.0, mask.water);
+		mask.water       = decode0.b;
+		mask.bits.xy     = vec2(mask.transparent, mask.water);
 		mask.materialIDs = EncodeMaterialIDs(1.0, mask.bits);
 
-		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), ReEncodeNormal(texure0.g, 11.0));
+		texure4 = vec2(Encode4x8F(vec4(mask.materialIDs, decode0.r, 0.0, decode0.g)), texure0.g);
 	}
 	
 	vec4 GI; vec2 VL;
@@ -232,11 +169,6 @@ void main() {
 	backPos[0] = CalculateViewSpacePosition(vec3(texcoord, depth1));
 	backPos[1] = mat3(gbufferModelViewInverse) * backPos[0];
 	
-	vec4 cloud = CalculateClouds3(backPos, depth1);
-	
-	
-	gl_FragData[3] = vec4(sqrt(cloud.rgb / 50.0), cloud.a);
-	
 	if (depth1 - mask.hand >= 1.0) { exit(); return; }
 	
 	
@@ -244,12 +176,7 @@ void main() {
 	vec3 viewSpacePosition0 = CalculateViewSpacePosition(vec3(texcoord, depth0));
 	
 	
-	vec3 composite = CalculateShadedFragment(powf(diffuse, 2.2), mask, torchLightmap, skyLightmap, GI, normal, smoothness, backPos);
-	
-	if (mask.water > 0.5 || isEyeInWater == 1)
-		composite = WaterFog(composite, waterNormal, viewSpacePosition0, backPos[0]);
-	
-	composite += AerialPerspective(length(backPos[0]), skyLightmap) * (1.0 - mask.water);
+	vec3 composite = ComputeShadedFragment(powf(diffuse, 2.2), mask, torchLightmap, skyLightmap, GI, normal, smoothness, backPos);
 	
 	gl_FragData[0] = vec4(max0(composite), 1.0);
 	

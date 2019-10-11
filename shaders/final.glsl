@@ -3,9 +3,13 @@
 
 varying vec2 texcoord;
 
+#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+
 
 /***********************************************************************/
 #if defined vsh
+
+uniform sampler3D colortex7;
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
@@ -16,21 +20,23 @@ uniform vec3 previousCameraPosition;
 
 uniform float sunAngle;
 uniform float frameTimeCounter;
+uniform float far;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"
+#include "/../shaders/lib/Debug.glsl"
 #include "/../shaders/lib/Uniform/Projection_Matrices.vsh"
-#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
 #include "/../shaders/UserProgram/centerDepthSmooth.glsl"
 #include "/../shaders/lib/Uniform/Shadow_View_Matrix.vsh"
+#include "/../shaders/lib/Fragment/PrecomputedSky.glsl"
+#include "/../shaders/lib/Vertex/Shading_Setup.vsh"
 
 void main() {
 	texcoord    = gl_MultiTexCoord0.st;
 	gl_Position = ftransform();
 	
 	SetupProjection();
-	
-	#include "/../shaders/lib/Vertex/Shading_Setup.vsh"
+	SetupShading();
 }
 
 #endif
@@ -60,7 +66,6 @@ uniform float rainStrength;
 #include "/../shaders/lib/Utility.glsl"
 #include "/../shaders/lib/Debug.glsl"
 #include "/../shaders/lib/Uniform/Projection_Matrices.fsh"
-#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
 #include "/../shaders/lib/Uniform/Shadow_View_Matrix.fsh"
 #include "/../shaders/lib/Fragment/Masks.fsh"
 #include "/../shaders/lib/Fragment/Tonemap.fsh"

@@ -13,6 +13,8 @@ varying vec3 worldDisplacement;
 
 flat varying float materialIDs;
 
+#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+
 
 /***********************************************************************/
 #if defined vsh
@@ -28,6 +30,7 @@ uniform mat4 gbufferModelViewInverse;
 uniform vec3  cameraPosition;
 uniform vec3  previousCameraPosition;
 uniform float frameTimeCounter;
+uniform float far;
 
 
 #include "/../shaders/lib/Settings.glsl"
@@ -36,9 +39,12 @@ uniform float frameTimeCounter;
 #include "/../shaders/lib/Uniform/Projection_Matrices.vsh"
 
 #if defined gbuffers_water
-#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+uniform sampler3D gaux1;
+
 #include "/../shaders/UserProgram/centerDepthSmooth.glsl"
 #include "/../shaders/lib/Uniform/Shadow_View_Matrix.vsh"
+#include "/../shaders/lib/Fragment/PrecomputedSky.glsl"
+#include "/../shaders/lib/Vertex/Shading_Setup.vsh"
 #endif
 
 
@@ -118,7 +124,7 @@ void main() {
 	
 	
 #if defined gbuffers_water
-	#include "/../shaders/lib/Vertex/Shading_Setup.vsh"
+	SetupShading();
 #endif
 }
 
@@ -161,14 +167,15 @@ uniform float far;
 #include "/../shaders/lib/Debug.glsl"
 #include "/../shaders/lib/Utility.glsl"
 #include "/../shaders/lib/Uniform/Projection_Matrices.fsh"
-#include "/../shaders/lib/Misc/Calculate_Fogfactor.glsl"
+#include "/../shaders/lib/Misc/CalculateFogfactor.glsl"
 #include "/../shaders/lib/Fragment/Masks.fsh"
 
 #if defined gbuffers_water
-#include "/../shaders/lib/Uniform/Shading_Variables.glsl"
+uniform sampler3D gaux1;
+
 #include "/../shaders/lib/Uniform/Shadow_View_Matrix.fsh"
-#include "/../shaders/lib/Fragment/Calculate_Shaded_Fragment.fsh"
-#include "/../shaders/lib/Fragment/Water_Waves.fsh"
+#include "/../shaders/lib/Fragment/ComputeShadedFragment.fsh"
+#include "/../shaders/lib/Fragment/ComputeWaveNormals.fsh"
 #endif
 
 
@@ -225,7 +232,7 @@ float GetSpecularity(vec2 coord) {
 #include "/../shaders/lib/Exit.glsl"
 
 void main() {
-	if (CalculateFogFactor(position[0], FOG_POWER) >= 1.0)
+	if (CalculateFogfactor(position[0]) >= 1.0)
 		{ discard; }
 	
 	vec2  coord       = ComputeParallaxCoordinate(texcoord, position[1]);
@@ -248,16 +255,21 @@ void main() {
 		if (!gl_FrontFacing) discard;
 		
 		diffuse     = vec4(0.215, 0.356, 0.533, 0.75);
-		normal      = tbnMatrix * GetWaveNormals(position[1], tbnMatrix[2]);
+		normal      = tbnMatrix * ComputeWaveNormals(position[1], tbnMatrix[2]);
 		specularity = 1.0;
 		mask.water  = 1.0;
 	}
 	
-	vec3 composite = CalculateShadedFragment(powf(diffuse.rgb, 2.2), mask, vertLightmap.r, vertLightmap.g, vec4(0.0, 0.0, 0.0, 1.0), normal * mat3(gbufferModelViewInverse), specularity, position);
+	vec3 composite = ComputeShadedFragment(powf(diffuse.rgb, 2.2), mask, vertLightmap.r, vertLightmap.g, vec4(0.0, 0.0, 0.0, 1.0), normal * mat3(gbufferModelViewInverse), specularity, position);
 	
 	vec2 encode;
-	encode.x = Encode4x8F(vec4(specularity, vertLightmap.g, 0.0, 0.1));
-	encode.y = EncodeNormalU(normal, mask.water);
+	encode.x = Encode4x8F(vec4(specularity, vertLightmap.g, mask.water, 0.1));
+	encode.y = EncodeNormal(normal, 11.0);
+	
+	if (materialIDs == 4.0) {
+		composite *= 0.0;
+		diffuse.a = 0.0;
+	}
 	
 	gl_FragData[0] = vec4(encode, 0.0, 1.0);
 	gl_FragData[1] = vec4(composite, diffuse.a);

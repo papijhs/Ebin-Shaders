@@ -12,8 +12,7 @@ const float centerDepthHalflife = 0.5;
 /*
 ** Transparent Gbuffers **
 const int colortex0Format = RG32F;
-const int colortex3Format = R11F_G11F_B10F;
-const int colortex2Format = R8;
+const int colortex3Format = RGBA16F;
 
 ** Flat Gbuffers **
 const int colortex1Format = R11F_G11F_B10F;
@@ -30,11 +29,12 @@ const float ambientOcclusionLevel = 0.65;
 const bool colortex0Clear = false;
 const bool colortex1Clear = false;
 const bool colortex2Clear = false;
-const bool colortex3Clear = false;
+const bool colortex3Clear = true;
 const bool colortex4Clear = true;
 const bool colortex5Clear = true;
 const bool colortex6Clear = false;
 
+const vec4 colortex3ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const vec4 colortex4ClearColor = vec4(0.0, 0.0, 0.0, 1.0);
 const vec4 colortex5ClearColor = vec4(0.1, 0.1, 0.1, 1.0);
 */
@@ -105,7 +105,6 @@ const float zShrink = 4.0;
 
 //#define FOG_ENABLED
 #define FOG_POWER                 2.0 // [1.0 2.0 3.0 4.0 6.0 8.0]
-#define AERIAL_PERSPECTIVE_AMOUNT 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 
 #define CLOUDS_2D
 #define CLOUD_HEIGHT_2D   512  // [256 320 384 448 512 576 640 704 768 832 896 960 1024]

@@ -1,3 +1,6 @@
+#if !defined MASKS_FSH
+#define MASKS_FSH
+
 struct Mask {
 	float materialIDs;
 	float matIDs;
@@ -54,3 +57,5 @@ Mask CalculateMasks(float materialIDs) {
 	
 	return mask;
 }
+
+#endif

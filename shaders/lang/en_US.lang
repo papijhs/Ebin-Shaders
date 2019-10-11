@@ -133,9 +133,6 @@ option.FOG_ENABLED=Fog Enabled
 option.FOG_POWER=Fog Curve
 option.FOG_POWER.comment=Higher values make fog more subtle nearby, but more intense farther away
 
-option.AERIAL_PERSPECTIVE_AMOUNT=Aerial Perspective
-option.AERIAL_PERSPECTIVE_AMOUNT.comment=Blue-Purple "haze" effect. Independent of fog setting
-
 
 screen.GI=Global Illumination
 

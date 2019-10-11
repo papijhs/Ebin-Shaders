@@ -184,8 +184,8 @@ void CloudLighting2(float sunglow) {
 	bouncedColor = vec3(0.0);
 }
 
-void RaymarchClouds(io vec4 cloudSum, vec3 position, float sunglow, float samples, cfloat noise, cfloat density, float coverage, cfloat cloudLowerHeight, cfloat cloudDepth) {
-	if (cloudSum.a >= 1.0) return;
+void RaymarchClouds(io vec4 cloud, vec3 position, float sunglow, float samples, cfloat noise, cfloat density, float coverage, cfloat cloudLowerHeight, cfloat cloudDepth) {
+	if (cloud.a >= 1.0) return;
 	
 	cfloat cloudUpperHeight = cloudLowerHeight + cloudDepth;
 	
@@ -217,14 +217,14 @@ void RaymarchClouds(io vec4 cloudSum, vec3 position, float sunglow, float sample
 	
 	cfloat denseFactor = 1.0 / (1.0 - density);
 	
-	for (float i = 0.0; i < samples && cloudSum.a < 1.0; i++, rayPosition += rayIncrement) {
+	for (float i = 0.0; i < samples && cloud.a < 1.0; i++, rayPosition += rayIncrement) {
 		vec4 cloud = CloudColor(rayPosition, cloudLowerHeight, cloudDepth, denseFactor, coverage, sunglow);
 		
-		cloudSum.rgb += cloud.rgb * (1.0 - cloudSum.a) * cloud.a;
-		cloudSum.a += cloud.a;
+		cloud.rgb += cloud.rgb * (1.0 - cloud.a) * cloud.a;
+		cloud.a += cloud.a;
 	}
 	
-	cloudSum.a = clamp01(cloudSum.a);
+	cloud.a = clamp01(cloud.a);
 }
 
 //#define CLOUD3D
@@ -236,7 +236,7 @@ void RaymarchClouds(io vec4 cloudSum, vec3 position, float sunglow, float sample
 #define CLOUD3D_DENSITY        0.95 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 0.97 0.99]
 #define CLOUD3D_SPEED          1.0  // [0.25 0.5 1.0 2.5 5.0 10.0]
 
-vec4 CalculateClouds3(mat2x3 position, float depth) {
+vec4 CalculateClouds3(vec3 wPos, float depth) {
 #ifndef CLOUD3D
 	return vec4(0.0);
 #endif
@@ -245,7 +245,7 @@ vec4 CalculateClouds3(mat2x3 position, float depth) {
 	const ivec2[4] offsets = ivec2[4](ivec2(2), ivec2(-2, 2), ivec2(2, -2), ivec2(-2));
 //	if (all(lessThan(textureGatherOffsets(depthtex1, texcoord, offsets, 0), vec4(1.0)))) return vec4(0.0);
 	
-	float sunglow  = pow8(clamp01(dotNorm(position[1], worldLightVector) - 0.01)) * pow4(max(timeDay, timeNight));
+	float sunglow  = pow8(clamp01(dotNorm(wPos, worldLightVector) - 0.01)) * pow4(max(timeDay, timeNight));
 	float coverage = 0.0;
 	
 	vec4 cloudSum = vec4(0.0);
@@ -253,7 +253,7 @@ vec4 CalculateClouds3(mat2x3 position, float depth) {
 	coverage = CLOUD3D_COVERAGE + rainStrength * 0.335;
 	CloudFBM1(CLOUD3D_SPEED);
 	CloudLighting2(sunglow);
-	RaymarchClouds(cloudSum, position[1], sunglow, CLOUD3D_SAMPLES, CLOUD3D_NOISE, CLOUD3D_DENSITY, coverage, CLOUD3D_START_HEIGHT, CLOUD3D_DEPTH);
+	RaymarchClouds(cloudSum, wPos, sunglow, CLOUD3D_SAMPLES, CLOUD3D_NOISE, CLOUD3D_DENSITY, coverage, CLOUD3D_START_HEIGHT, CLOUD3D_DEPTH);
 	
 	cloudSum.rgb *= 0.1;
 	

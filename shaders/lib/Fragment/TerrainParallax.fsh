@@ -1,3 +1,6 @@
+#if !defined TERRAINPARALLAX_FSH
+#define TERRAINPARALLAX_FSH
+
 vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 #if !defined TERRAIN_PARALLAX || !defined gbuffers_terrain
 	return coord;
@@ -48,3 +51,5 @@ vec2 ComputeParallaxCoordinate(vec2 coord, vec3 position) {
 	
 	return fract(sampleRay.xy * tileScale.xy + tileCoord) * tileScale.zw + atlasCorner;
 }
+
+#endif

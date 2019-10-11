@@ -48,30 +48,30 @@ float CloudFBM(vec2 coord, out mat4x2 c, vec3 weights, float weight) {
 	return cloud * 0.63;
 }
 
-void Compute2DCloudPlane(io vec3 color, out float cloudAlpha, vec3 ray, vec3 rayPos, float sunglow, float visibility) {
+vec3 Compute2DCloudPlane(vec3 wDir, vec3 wPos, vec3 transmit, float phase) {
 #ifndef CLOUDS_2D
-	return;
+	return vec3(0.0);
 #endif
 	
 	cfloat cloudHeight = CLOUD_HEIGHT_2D;
 	
-	rayPos += cameraPos;
+	wPos += cameraPos;
 	
-	visibility = pow(visibility, 10.0) * abs(ray.y);
-	
-	if (ray.y <= 0.0 != rayPos.y >= cloudHeight) return;
+	if (wDir.y <= 0.0 != wPos.y >= cloudHeight) return vec3(0.0);
 	
 	
 	cfloat coverage = CLOUD_COVERAGE_2D * 1.16;
 	cvec3  weights  = vec3(0.5, 0.135, 0.075);
 	cfloat weight   = weights.x + weights.y + weights.z;
 	
-	vec2 coord = ray.xz * ((cloudHeight - rayPos.y) / ray.y) + rayPos.xz;
+	vec2 coord = wDir.xz * ((cloudHeight - wPos.y) / wDir.y) + wPos.xz;
+	vec3 RAY = wDir * ((cloudHeight - wPos.y) / wDir.y);
 	
 	mat4x2 coords;
 	
-	cloudAlpha = CloudFBM(coord, coords, weights, weight);
+	float cloudAlpha = CloudFBM(coord, coords, weights, weight);
 	cloudAlpha = GetCoverage(cloudAlpha, coverage);
+	// cloudAlpha = GetCoverage(cloudAlpha, coverage) * sqrt(abs(wDir.y)) ;
 	
 	vec2 lightOffset = worldLightVector.xz * 0.2;
 	
@@ -81,17 +81,25 @@ void Compute2DCloudPlane(io vec3 color, out float cloudAlpha, vec3 ray, vec3 ray
 	sunlight +=  GetNoise(coords[2] + lightOffset) * weights.y;
 	sunlight +=  GetNoise(coords[3] + lightOffset) * weights.z;
 	sunlight  = GetCoverage(weight - sunlight, coverage);
-	sunlight  = pow(1.25 - sunlight, 5.5);
-	sunlight *= mix(pow(cloudAlpha, 1.6) * 2.5, 2.0, sunglow);
-	sunlight *= mix(10.0, 3.0, sqrt(sunglow));
+	sunlight  = pow(1.3 - sunlight, 5.5);
+	sunlight *= phase ;
+	sunlight *= 1000.0;
 	
-	vec3 directColor  = sunlightColor * 8.0;
-	     directColor *= 1.0 + pow(sunglow, 10.0) * 10.0 / (sunlight * 0.8 + 0.2);
-	     directColor *= mix(1.0, 5.0, timeNight);
+	float direct  = mix(1.0, 5.0, timeNight);
+	float ambient = 5.0;
 	
-	vec3 ambientColor = mix(skylightColor, directColor, 0.15) * 0.03;
+	vec3 directColor  = sunlightColor * direct;
+	vec3 ambientColor = mix(skylightColor, sunlightColor, 0.15) * ambient;
 	
-	vec3 cloud = mix(ambientColor, directColor, sunlight) * 15.0;
+	vec3 cloud = (ambientColor + directColor * sunlight) * 10.0 * cloudAlpha;
 	
-	color = mix(color, cloud, cloudAlpha * visibility);
+#ifdef PRECOMPUTED_ATMOSPHERE
+//	vec3 fakeTransmit = vec3(1.0);
+//	SkyAtmosphereToPoint(vec3(0.0), RAY*5.0, fakeTransmit);
+	transmit *= sqrt(abs(wDir.y));
+#else
+	transmit *= sqrt(abs(wDir.y));
+#endif
+	
+	return cloud * transmit;
 }
