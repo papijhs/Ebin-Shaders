@@ -103,9 +103,6 @@ const float zShrink = 4.0;
 #define COMPOSITE0_SCALE 0.50 // [0.25 0.33 0.40 0.50 0.60 0.75 1.00]
 #define COMPOSITE0_NOISE
 
-//#define FOG_ENABLED
-#define FOG_POWER 1.5 // [1.0 1.5 2.0 3.0 4.0 6.0 8.0]
-
 #define CLOUDS_2D
 #define CLOUD_HEIGHT_2D   512  // [256 320 384 448 512 576 640 704 768 832 896 960 1024]
 #define CLOUD_COVERAGE_2D 0.50  // [0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70]

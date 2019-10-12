@@ -24,7 +24,6 @@ uniform mat4 shadowModelViewInverse;
 uniform vec3 cameraPosition;
 
 uniform float sunAngle;
-uniform float frameTimeCounter;
 
 float materialIDs;
 

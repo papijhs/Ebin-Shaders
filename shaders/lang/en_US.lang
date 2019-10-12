@@ -133,6 +133,8 @@ option.FOG_ENABLED=Fog Enabled
 option.FOG_POWER=Fog Curve
 option.FOG_POWER.comment=Higher values make fog more subtle nearby, but more intense farther away
 
+option.FOG_START=Fog Start
+
 
 screen.GI=Global Illumination
 

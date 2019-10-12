@@ -19,7 +19,6 @@ uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 
 uniform float sunAngle;
-uniform float frameTimeCounter;
 uniform float far;
 
 #include "/../shaders/lib/Settings.glsl"

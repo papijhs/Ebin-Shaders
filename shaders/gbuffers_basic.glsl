@@ -14,7 +14,6 @@ attribute vec4 mc_Entity;
 uniform mat4 gbufferModelViewInverse;
 
 uniform vec3  cameraPosition;
-uniform float frameTimeCounter;
 
 #include "/../shaders/lib/Settings.glsl"
 #include "/../shaders/lib/Utility.glsl"

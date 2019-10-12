@@ -29,7 +29,6 @@ uniform mat4 gbufferModelViewInverse;
 
 uniform vec3  cameraPosition;
 uniform vec3  previousCameraPosition;
-uniform float frameTimeCounter;
 uniform float far;
 
 
@@ -158,7 +157,6 @@ uniform int heldBlockLightValue2;
 
 uniform ivec2 atlasSize;
 
-uniform float frameTimeCounter;
 uniform float wetness;
 uniform float far;
 
