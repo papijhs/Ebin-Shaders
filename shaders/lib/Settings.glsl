@@ -137,8 +137,6 @@ const float zShrink = 4.0;
 #define SHADOWS_FOCUS_CENTER
 
 
-//#define FREEZE_TIME
-
 //#define WATER_SHADOW
 
 
