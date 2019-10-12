@@ -94,8 +94,7 @@ vec3 Compute2DCloudPlane(vec3 wDir, vec3 wPos, vec3 transmit, float phase) {
 	vec3 cloud = (ambientColor + directColor * sunlight) * 10.0 * cloudAlpha;
 	
 #ifdef PRECOMPUTED_ATMOSPHERE
-//	vec3 fakeTransmit = vec3(1.0);
-//	SkyAtmosphereToPoint(vec3(0.0), RAY*5.0, fakeTransmit);
+//	PrecomputedSkyToPoint(kCamera, kPoint(RAY*5.0), 0.0, sunVector, transmit);
 	transmit *= sqrt(abs(wDir.y));
 #else
 	transmit *= sqrt(abs(wDir.y));

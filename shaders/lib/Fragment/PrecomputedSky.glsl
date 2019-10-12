@@ -140,7 +140,7 @@ const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(
 const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(683.000000,683.000000,683.000000) * PI;
 const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(98242.786222,69954.398112,66475.012354) * PI;
 
-const vec3 sunbright = 7.0 * SUN_SPECTRAL_RADIANCE_TO_LUMINANCE.r / SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
+const vec3 sunbright = SUN_SPECTRAL_RADIANCE_TO_LUMINANCE / SUN_SPECTRAL_RADIANCE_TO_LUMINANCE.b;
 const vec3 skybright = 0.2 * SKY_SPECTRAL_RADIANCE_TO_LUMINANCE / SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
 // const vec3 skybright = 1.0 * (SKY_SPECTRAL_RADIANCE_TO_LUMINANCE / SUN_SPECTRAL_RADIANCE_TO_LUMINANCE) /  (SKY_SPECTRAL_RADIANCE_TO_LUMINANCE / SUN_SPECTRAL_RADIANCE_TO_LUMINANCE).b;
 
@@ -393,10 +393,10 @@ vec2 GetIrradianceTextureUvFromRMuS(float r, float mu_s) {
 	return vec2(GetTextureCoordFromUnitRange(x_mu_s, IRRADIANCE_TEXTURE_WIDTH), GetTextureCoordFromUnitRange(x_r, IRRADIANCE_TEXTURE_HEIGHT));
 }
 
-vec3 GetIrradiance(sampler3D irradiance_texture, float r, float mu_s) {
+vec3 GetIrradiance(float r, float mu_s) {
 	vec2 uv = GetIrradianceTextureUvFromRMuS(r, mu_s);
 
-	return irradianceLookup(irradiance_texture, uv).rgb;
+	return irradianceLookup(atmosphereSampler, uv).rgb;
 }
 
 vec3 PrecomputedSky(
@@ -547,24 +547,35 @@ vec3 GetSolarRadiance() {
   return ATMOSPHERE.solar_irradiance / (PI * ATMOSPHERE.sun_angular_radius * ATMOSPHERE.sun_angular_radius) * SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
 }
 
-vec3 GetSunAndSkyIrradiance(sampler3D irradiance_texture, vec3 point, vec3 normal, vec3 sun_direction, out vec3 sky_irradiance) {
+vec3 GetSunAndSkyIrradiance(vec3 point, vec3 normal, vec3 sun_direction, out vec3 sky_irradiance) {
 	float r = length(point);
 	float mu_s = dot(point, sun_direction) / r;
 
 	// Indirect irradiance (approximated if the surface is not horizontal).
-	sky_irradiance = GetIrradiance(irradiance_texture, r, mu_s) * (1.0 + dot(normal, point) / r) * 0.5;
+	sky_irradiance = GetIrradiance(r, mu_s) * (1.0 + dot(normal, point) / r) * 0.5;
 
 	// Direct irradiance.
 	return ATMOSPHERE.solar_irradiance * GetTransmittanceToSun(r, mu_s);
 }
 
+vec3 CalculateNightSky(vec3 wDir, io vec3 transmit) {
+	const vec3 nightSkyColor = vec3(0.04, 0.04, 0.1)*0.4;
+	
+	float value = (dot(wDir, -sunVector) * 0.5 + 0.5) + 0.5;
+	value *= 1.0 - timeDay;
+	float horizon = cubesmooth(pow4(1.0 - abs(wDir.y)));
+	
+	return nightSkyColor * value * transmit;
+}
 
 #define PRECOMPUTED_ATMOSPHERE
 
 vec3 SkyAtmosphere(vec3 wDir, io vec3 transmit) {
 #ifdef PRECOMPUTED_ATMOSPHERE
-	vec3 inScatter = PrecomputedSky(kCamera, wDir, 0.0, sunVector, transmit) * 0.1;
-	show(inScatter)
+	vec3 inScatter = vec3(0.0);
+	inScatter += CalculateNightSky(wDir, transmit);
+	inScatter += PrecomputedSky(kCamera, wDir, 0.0, sunVector, transmit) * 0.1;
+	
 	return inScatter;
 #else
 	return ComputeAtmosphericSky(wDir, transmit);
@@ -573,9 +584,12 @@ vec3 SkyAtmosphere(vec3 wDir, io vec3 transmit) {
 
 vec3 SkyAtmosphereToPoint(vec3 wPos0, vec3 wPos1, io vec3 transmit) {
 #ifdef PRECOMPUTED_ATMOSPHERE
+	vec3 wDir = normalize(wPos1 - wPos0);
 	vec3 transmitIgnore = vec3(1.0);
-	vec3 inScatter = PrecomputedSky(kCamera, normalize(wPos1 - wPos0), 0.0, sunVector, transmitIgnore)*0.1;
-	show(inScatter)
+	vec3 inScatter = vec3(0.0);
+	inScatter += CalculateNightSky(wDir, transmitIgnore);
+	inScatter += PrecomputedSky(kCamera, wDir, 0.0, sunVector, transmitIgnore)*0.1;
+	
 	float fog0 = CalculateFogfactor(wPos0);
 	float fog1 = CalculateFogfactor(wPos1);
 	

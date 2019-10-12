@@ -1,6 +1,8 @@
 #if !defined COMPUTESHADEDFRAGMENT_FSH
 #define COMPUTESHADEDFRAGMENT_FSH
 
+#include "/../shaders/lib/Fragment/PrecomputedSky.glsl"
+
 struct Shading { // Scalar light levels
 	float sunlight;
 	float skylight;
@@ -162,10 +164,10 @@ vec3 ComputeShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float s
 	
 	shading.skylight *= mix(shading.caustics * 0.65 + 0.35, 1.0, pow8(1.0 - abs(worldLightVector.y)));
 	shading.skylight *= GI.a;
-	shading.skylight *= 1.2 * SKY_LIGHT_LEVEL;
-	#ifdef GI_ENABLED
+	shading.skylight *= 2.0 * SKY_LIGHT_LEVEL;
+#ifdef GI_ENABLED
 	shading.skylight *= 0.9 * SKY_LIGHT_LEVEL;
-	#endif
+#endif
 	
 	shading.torchlight  = pow2(1.0 / ((1.0 - torchLightmap*0.9) * 16.0) - 1.0 / 16.0) * 16.0;
 	shading.torchlight += GetHeldLight(position[0], normal, mask.hand);
@@ -194,6 +196,9 @@ vec3 ComputeShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float s
 	lightmap.skylight *= clamp01(1.0 - dot(lightmap.GI, vec3(1.0)) / 6.0);
 	
 	
+//	lightmap.sunlight = GetSunAndSkyIrradiance(kPoint(position[1]), normal, sunVector, lightmap.skylight) * shading.sunlight*2.0;
+	
+	
 	vec3 desatColor = vec3(pow(diffuse.r + diffuse.g + diffuse.b, 1.5));
 	
 #define LIGHT_DESATURATION
@@ -205,7 +210,7 @@ vec3 ComputeShadedFragment(vec3 diffuse, Mask mask, float torchLightmap, float s
 	  diffuse * (lightmap.GI + lightmap.ambient)
 	+ lightmap.sunlight   * mix(desatColor, diffuse, clamp01(pow(length(lightmap.sunlight  ) *  4.0, 0.1)))
 	+ lightmap.skylight   * mix(desatColor, diffuse, clamp01(pow(length(lightmap.skylight  ) * 25.0, 0.2)))
-	+ lightmap.torchlight * mix(desatColor, diffuse, clamp01(pow(length(lightmap.torchlight) *  1.0, 0.1)))*0;
+	+ lightmap.torchlight * mix(desatColor, diffuse, clamp01(pow(length(lightmap.torchlight) *  1.0, 0.1)));
 	
 	return composite;
 }

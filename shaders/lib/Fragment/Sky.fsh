@@ -2,8 +2,8 @@
 #include "/../shaders/lib/Fragment/2D_Clouds.fsh"
 #include "/../shaders/lib/Fragment/3D_Clouds.fsh"
 
-vec3 CalculateSkyGradient(vec3 worldSpacePosition, float sunglow, vec3 sunspot) {
-	float gradientCoeff = pow4(1.0 - abs(normalize(worldSpacePosition).y) * 0.5);
+vec3 CalculateSkyGradient(vec3 wDir, float sunglow, vec3 sunspot) {
+	float gradientCoeff = pow4(1.0 - abs(wDir.y) * 0.5);
 	
 	vec3 primaryHorizonColor  = SetSaturationLevel(skylightColor, mix(1.25, 0.6, gradientCoeff * timeDay));
 	     primaryHorizonColor *= gradientCoeff * 0.5 + 1.0;
@@ -78,7 +78,10 @@ float CalculateCloudPhase(float vDotL){
 vec3 ComputeBackSky(vec3 wDir, vec3 wPos, io vec3 transmit, float sunlight, cbool reflection) {
 	vec3 color = vec3(0.0);
 	color += SkyAtmosphere(wDir, transmit);
-	color += ComputeSunspot(wDir, transmit);
+	
+	color += CalculateNightSky(wDir, transmit);
+	color += ComputeSunspot(wDir, transmit) * 16.0;
+	color += ComputeSunspot(-wDir, transmit) * 16.0 * vec3(0.3, 0.7, 8.0);
 	color += CalculateStars(wDir, transmit, reflection);
 	
 	return color;

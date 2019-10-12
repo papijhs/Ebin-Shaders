@@ -53,6 +53,7 @@ uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
+uniform sampler3D colortex7;
 
 #if defined COMPOSITE0_ENABLED
 const bool colortex5MipmapEnabled = true;

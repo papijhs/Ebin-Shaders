@@ -128,10 +128,7 @@ void main() {
 //	if (mc_Entity.x < 0.5) { gl_Position = vec4(-1.0); return; }
 #endif
 	
-#if defined TIME_OVERRIDE || defined TELEFOCAL_SHADOWS
 	CalculateShadowView();
-#endif
-	
 	SetupProjection();
 	
 	color        = gl_Color;

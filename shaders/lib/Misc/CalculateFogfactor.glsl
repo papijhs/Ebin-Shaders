@@ -7,8 +7,8 @@ float CalculateFogfactor(vec3 position) {
 #endif
 	
 	float fogFactor  = length(position);
-		  fogFactor  = max0(fogFactor - gl_Fog.start*0);
-		  fogFactor /= far - gl_Fog.start*0;
+		  fogFactor  = max0(fogFactor - gl_Fog.start);
+		  fogFactor /= far - gl_Fog.start;
 		  fogFactor  = pow(fogFactor, FOG_POWER);
 		  fogFactor  = clamp01(fogFactor);
 	

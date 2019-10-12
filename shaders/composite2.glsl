@@ -193,39 +193,6 @@ void main() {
 	} else if (isEyeInWater == 1) { // Underwater
 		
 	}
-	
-	vec3 transmit = vec3(1.0);
-	vec3 sky      = (depth1 >= 1.0) ? ComputeSky(normalize(backPos[1]), backPos[1], transmit, 1.0, false) : vec3(0.0);
-	
-	transmit = vec3(1.0);
-	vec3 in_scatter = WaterDepthFog(frontPos[0], backPos[0] * (1-isEyeInWater), transmit);
-	sky *= transmit;
-	
-	
-//	else if (mask.water    > 0.5) sky = mix(WaterDepthFog(sky, frontPos[0], backPos[0]), sky, CalculateFogfactor(frontPos[0], FOG_POWER));
-	
-	if (depth0 >= 1.0) { gl_FragData[0] = vec4(EncodeColor(sky), 1.0); exit(); return; }
-	
-	
-	vec3 color0 = vec3(0.0);
-	vec3 color1 = texture2D(colortex1, texcoord).rgb;
-	
-	if      (mask.transparent == 1.0)
-		color0 = texture2D(colortex3, texcoord).rgb / alpha;
-	else if (mask.transparent - mask.water < 0.5)
-		color0 = color1;
-	
-	ComputeSSReflections(color0, frontPos, normal, smoothness, skyLightmap);
-	
-	
-	transmit = vec3(1.0);
-	
-	vec3 fog = SkyAtmosphereToPoint(vec3(0.0), frontPos[1], transmit);
-	color0 = color0 * transmit + fog;
-//	color0 *= WaterDepthFog(frontPos[0], backPos[0]);
-	gl_FragData[0] = vec4(clamp01(EncodeColor(color0)), 1.0);
-	
-	exit();
 }
 
 #endif

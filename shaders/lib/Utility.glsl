@@ -67,8 +67,9 @@ vec2 clampScreen(vec2 coord, vec2 pixel) {
 cvec3 lumaCoeff = vec3(0.2125, 0.7154, 0.0721);
 vec3  SetSaturationLevel(vec3 color, float level) {
 	float luminance = dot(color, lumaCoeff);
+	vec3 newColor = max0(mix(vec3(luminance), color, level));
 	
-	return max0(mix(vec3(luminance), color, level));
+	return newColor;
 }
 
 vec3 hsv(vec3 c) {
