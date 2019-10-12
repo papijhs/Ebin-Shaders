@@ -22,7 +22,7 @@ If you would like to discuss Ebin, or other Minecraft shaderpacks, join the [Sha
 - Terrain Deformation - "Animal Crossing" and "Acid" deformations
 
 ## Requirements
-- OptiFine 1.10.2 D1 or newer
+- [OptiFine 1.12.2 HD U F4 pre3](https://optifine.net/downloads) (or newer)
 - OpenGL 4.1 compatible hardware
 
 ## Installation
