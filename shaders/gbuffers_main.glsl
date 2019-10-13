@@ -219,6 +219,7 @@ float GetSpecularity(vec2 coord) {
 
 
 #include "/../shaders/lib/Fragment/TerrainParallax.fsh"
+#include "/../shaders/lib/Misc/Euclid.glsl"
 
 
 #if defined gbuffers_water
@@ -237,7 +238,6 @@ void main() {
 	vec4  diffuse     = GetDiffuse(coord); if (diffuse.a < 0.1) { discard; }
 	vec3  normal      = GetNormal(coord);
 	float specularity = GetSpecularity(coord);
-	
 	
 #if !defined gbuffers_water
 	float encodedMaterialIDs = EncodeMaterialIDs(materialIDs, vec4(0.0, 0.0, 0.0, 0.0));
