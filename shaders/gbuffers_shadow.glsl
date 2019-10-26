@@ -117,6 +117,8 @@ bool CullVertex(vec3 wPos) {
 }
 
 void main() {
+	if (mc_Entity.x == 66) { gl_Position = vec4(-1.0); return; }
+	
 	materialIDs = BackPortID(int(mc_Entity.x));
 	
 #ifndef WATER_SHADOW
